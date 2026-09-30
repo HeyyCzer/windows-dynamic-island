@@ -32,6 +32,8 @@ export interface IslandModule {
   id: string;
   /** Translation key of the tab / settings card title. */
   title: MessageKey;
+  /** Static glyph for the settings sidebar. */
+  settingsIcon?: ReactNode;
   /**
    * React hook returning the module's current view. Called on every render of
    * the island, in registry order, so it must follow the rules of hooks.

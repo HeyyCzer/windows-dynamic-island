@@ -3,6 +3,7 @@
  * media controls (browsers, Apple Music, VLC…). Everything music-related lives
  * in this folder; its backend counterpart is `src-tauri/src/providers/music/`.
  */
+import { MusicIcon } from "../../components/icons";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { Artwork } from "./components/Artwork";
 import { MusicPanel } from "./components/MusicPanel";
@@ -16,6 +17,7 @@ import "./music.css";
 export const musicModule: IslandModule = {
   id: "music",
   title: "music.title",
+  settingsIcon: <MusicIcon size={15} />,
   settings: Object.values(musicSettings),
   useView(): ModuleView {
     const { music, active } = useMusic();

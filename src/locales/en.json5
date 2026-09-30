@@ -14,6 +14,12 @@
   settings: {
     subtitle: "Settings",
     general: "General",
+    minimize: "Minimize",
+    close: "Close",
+    module: {
+      label: "Show in the island",
+      desc: "Turn off to hide this module completely.",
+    },
     autostart: {
       label: "Start with Windows",
       appOnly: "Only available in the app.",

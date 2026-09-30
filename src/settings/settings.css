@@ -1,68 +1,192 @@
-/* Settings window (a regular, opaque window). */
+/* Settings window: frameless, opaque, custom titlebar + sidebar. */
 
 html:has(.settings),
 body:has(.settings) {
   background: #0c0c10;
-  overflow: auto;
-}
-#root:has(.settings) {
-  height: auto;
-  overflow: visible;
 }
 
 .settings {
-  max-width: 640px;
-  margin: 0 auto;
-  padding: 28px 24px 40px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  user-select: text;
+  height: 100%;
 }
 
-.settings-header h1 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
-.settings-header p {
-  margin: 2px 0 6px;
-  font-size: 13px;
-  color: var(--text-dim);
-}
+/* ------------------------------------------------------------ titlebar -- */
 
-.settings-card {
-  padding: 6px 18px 10px;
-  border-radius: 18px;
-  background: #16161b;
-  box-shadow: inset 0 0 0 1px var(--hairline);
-}
-.settings-card h2 {
-  margin: 12px 0 6px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-}
-.settings-card-head {
+.titlebar {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 40px;
+  padding-left: 16px;
+  background: #0c0c10;
 }
-.settings-card-head h2 {
-  margin-bottom: 12px;
+.titlebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.titlebar-logo {
+  flex: none;
+  pointer-events: none;
+}
+.titlebar-sep,
+.titlebar-sub {
+  color: var(--text-faint);
+  font-weight: 500;
+  pointer-events: none;
+}
+.titlebar-controls {
+  display: flex;
+  align-self: stretch;
+}
+.titlebar-controls button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  color: var(--text-dim);
+  transition: background 0.12s, color 0.12s;
+}
+.titlebar-controls button:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+}
+.titlebar-controls button.close:hover {
+  background: #c42b1c;
+  color: #fff;
+}
+
+/* ---------------------------------------------------------------- layout -- */
+
+.settings-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.settings-nav {
+  flex: none;
+  width: 212px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px 16px;
+}
+.settings-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 13.5px;
+  font-weight: 550;
+  color: var(--text-dim);
+  text-align: left;
+  transition: color 0.15s, background 0.15s;
+}
+.settings-nav-item:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+}
+.settings-nav-item.active {
+  color: var(--text);
+}
+.settings-nav-item.off .settings-nav-label {
+  opacity: 0.5;
+}
+.settings-nav-pill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+.settings-nav-pill::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 3px;
+  border-radius: 99px;
+  background: var(--accent);
+}
+.settings-nav-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 16px;
+}
+.settings-nav-label {
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  border-top-left-radius: 12px;
+  background: #121217;
+  box-shadow: inset 1px 1px 0 var(--hairline);
+}
+.settings-content::-webkit-scrollbar {
+  width: 10px;
+}
+.settings-content::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.12) padding-box;
+}
+
+.settings-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px 36px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  user-select: text;
+}
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.settings-title {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.settings-card {
+  padding: 4px 18px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
 
 .settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 11px 0;
-  border-top: 1px solid var(--hairline);
+  gap: 24px;
+  min-height: 60px;
+  padding: 12px 0;
   cursor: pointer;
+}
+.settings-card > .settings-row + .settings-row {
+  border-top: 1px solid var(--hairline);
 }
 .settings-text {
   display: flex;
@@ -75,7 +199,7 @@ body:has(.settings) {
   font-weight: 550;
 }
 .settings-desc {
-  font-size: 12px;
+  font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-dim);
 }
@@ -93,7 +217,7 @@ body:has(.settings) {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 14px;
 }
 .settings-block .settings-row {
   cursor: default;

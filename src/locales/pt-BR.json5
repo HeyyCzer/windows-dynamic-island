@@ -9,6 +9,12 @@
   settings: {
     subtitle: "Configurações",
     general: "Geral",
+    minimize: "Minimizar",
+    close: "Fechar",
+    module: {
+      label: "Mostrar na ilha",
+      desc: "Desative para esconder este módulo completamente.",
+    },
     autostart: {
       label: "Iniciar com o Windows",
       appOnly: "Disponível só no app.",

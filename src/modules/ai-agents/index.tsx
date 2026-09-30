@@ -8,6 +8,7 @@
  * To support another agent, add a folder exporting an `AgentDefinition` and
  * append it to `agents` below.
  */
+import { SparkleIcon } from "../../components/icons";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { claudeAgent } from "./claude";
 import { AgentCompactLeft, AgentCompactRight } from "./common/components/AgentCompact";
@@ -31,6 +32,7 @@ const PRIORITY: Record<AgentStatus, number> = { waiting: 90, done: 70, working: 
 export const aiAgentsModule: IslandModule = {
   id: "ai-agents",
   title: "agents.title",
+  settingsIcon: <SparkleIcon size={15} />,
   settings: Object.values(agentSettings),
   SettingsSection: () => (
     <>
