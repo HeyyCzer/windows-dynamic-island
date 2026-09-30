@@ -44,6 +44,18 @@
       version: "Version {version}",
       source: "Source code",
       license: "License",
+      updates: {
+        label: "Updates",
+        idle: "Check whether a new version is out.",
+        checking: "Checking…",
+        latest: "You're on the latest version.",
+        // {version}: the new version, e.g. 1.2.3
+        ready: "Version {version} is ready to install.",
+        dev: "Development builds don't update.",
+        error: "Couldn't check for updates.",
+        check: "Check",
+        install: "Restart and update",
+      },
     },
   },
 

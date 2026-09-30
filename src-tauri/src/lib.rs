@@ -61,6 +61,8 @@ pub fn run() {
             settings::get_autostart,
             settings::set_autostart,
             settings::open_repo,
+            updater::check_update,
+            updater::install_update,
             i18n::set_locale,
         ])
         .run(tauri::generate_context!())

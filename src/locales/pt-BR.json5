@@ -37,6 +37,17 @@
       version: "Versão {version}",
       source: "Código-fonte",
       license: "Licença",
+      updates: {
+        label: "Atualizações",
+        idle: "Verifica se há uma nova versão.",
+        checking: "Verificando…",
+        latest: "Você está na versão mais recente.",
+        ready: "Versão {version} pronta para instalar.",
+        dev: "Builds de desenvolvimento não atualizam.",
+        error: "Não foi possível verificar.",
+        check: "Verificar",
+        install: "Reiniciar e atualizar",
+      },
     },
   },
 

@@ -35,18 +35,39 @@ pub fn spawn(app: AppHandle) {
     });
 }
 
-async fn check(app: &AppHandle) -> tauri_plugin_updater::Result<()> {
-    if app.state::<Pending>().0.lock().unwrap().is_some() {
-        return Ok(()); // already waiting on the user
+/// Look for a newer release and download it. Returns the version waiting to
+/// be installed, if any.
+async fn check(app: &AppHandle) -> tauri_plugin_updater::Result<Option<String>> {
+    if let Some((update, _)) = &*app.state::<Pending>().0.lock().unwrap() {
+        return Ok(Some(update.version.clone())); // already waiting on the user
     }
     let Some(update) = app.updater()?.check().await? else {
-        return Ok(());
+        return Ok(None);
     };
     let bytes = update.download(|_, _| {}, || {}).await?;
     let version = update.version.clone();
     *app.state::<Pending>().0.lock().unwrap() = Some((update, bytes));
     crate::tray::show_update(app, &version);
-    Ok(())
+    Ok(Some(version))
+}
+
+/// Manual check from the About page. Errors with `"dev"` on dev builds, which
+/// never self-update.
+#[tauri::command]
+pub async fn check_update(app: AppHandle) -> Result<Option<String>, String> {
+    if app.try_state::<Pending>().is_none() {
+        return Err("dev".into());
+    }
+    check(&app).await.map_err(|e| {
+        log::warn!("update check failed: {e}");
+        e.to_string()
+    })
+}
+
+/// Install the pending update from the About page.
+#[tauri::command]
+pub fn install_update(app: AppHandle) {
+    install(&app);
 }
 
 /// Install the downloaded update. On Windows the installer takes over and the
