@@ -10,6 +10,9 @@ use tauri::Manager;
 use hub::Hub;
 use providers::Providers;
 
+pub use providers::claude::statusline::BRIDGE_FLAG as STATUSLINE_BRIDGE_FLAG;
+pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
+
 pub fn run() {
     tauri::Builder::default()
         // Must be registered first: a second launch just exits.

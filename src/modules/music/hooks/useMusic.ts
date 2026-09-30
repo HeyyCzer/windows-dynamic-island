@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import { providerAction, useProvider } from "../../core/bridge";
+import { providerAction, useProvider } from "../../../core/bridge";
 
-/** Mirrors `MediaState` in `src-tauri/src/providers/media.rs`. */
-export interface MediaState {
+/** Mirrors `MusicState` in `src-tauri/src/providers/music/mod.rs`. */
+export interface MusicState {
   available: boolean;
   playing: boolean;
   title: string;
@@ -18,46 +18,49 @@ export interface MediaState {
   canPrevious: boolean;
 }
 
+export const MUSIC_PROVIDER = "music";
+export const LEVEL_EVENT = "music://level";
+
 /** How long a paused track keeps its spot in the compact island. */
 const PAUSE_GRACE_MS = 15_000;
 
-export const mediaAction = (action: "toggle" | "next" | "previous" | "seek", payload?: number) =>
-  providerAction("media", action, payload);
+export const musicAction = (action: "toggle" | "next" | "previous" | "seek", payload?: number) =>
+  providerAction(MUSIC_PROVIDER, action, payload);
 
-export function useMedia() {
-  const media = useProvider<MediaState>("media");
+export function useMusic() {
+  const music = useProvider<MusicState>(MUSIC_PROVIDER);
   const lastPlayingAt = useRef(0);
   const [, force] = useState(0);
 
-  if (media?.playing) lastPlayingAt.current = Date.now();
+  if (music?.playing) lastPlayingAt.current = Date.now();
 
   // Re-render when the pause grace period runs out.
   useEffect(() => {
-    if (!media?.available || media.playing) return;
+    if (!music?.available || music.playing) return;
     const left = PAUSE_GRACE_MS - (Date.now() - lastPlayingAt.current);
     if (left <= 0) return;
     const t = window.setTimeout(() => force((n) => n + 1), left + 50);
     return () => window.clearTimeout(t);
-  }, [media?.available, media?.playing]);
+  }, [music?.available, music?.playing]);
 
   const recentlyPlayed = Date.now() - lastPlayingAt.current < PAUSE_GRACE_MS;
-  const active = !!media?.available && (media.playing || recentlyPlayed);
-  return { media, active };
+  const active = !!music?.available && (music.playing || recentlyPlayed);
+  return { music, active };
 }
 
 /** Current playback position, extrapolated between backend updates. */
-export function useLivePosition(media: MediaState | undefined) {
+export function useLivePosition(music: MusicState | undefined) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    if (!media?.playing) return;
+    if (!music?.playing) return;
     const t = window.setInterval(() => setNow(Date.now()), 250);
     return () => window.clearInterval(t);
-  }, [media?.playing]);
+  }, [music?.playing]);
 
-  if (!media) return 0;
-  const elapsed = media.playing ? Math.max(0, now - media.positionAt) : 0;
-  const pos = media.positionMs + elapsed;
-  return media.durationMs ? Math.min(pos, media.durationMs) : pos;
+  if (!music) return 0;
+  const elapsed = music.playing ? Math.max(0, now - music.positionAt) : 0;
+  const pos = music.positionMs + elapsed;
+  return music.durationMs ? Math.min(pos, music.durationMs) : pos;
 }
 
 export function formatTime(ms: number) {

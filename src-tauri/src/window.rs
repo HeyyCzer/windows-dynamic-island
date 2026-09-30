@@ -67,7 +67,7 @@ pub fn spawn_hit_test(app: AppHandle) {
             };
 
             // Fullscreen check is cheaper to run a few times per second.
-            if tick % 12 == 0 {
+            if tick.is_multiple_of(12) {
                 let fs = fullscreen_app_active(&win);
                 if fs != fullscreen {
                     fullscreen = fs;

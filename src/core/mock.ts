@@ -12,7 +12,7 @@ export function startMock() {
   let playing = true;
 
   const publish = () =>
-    publishLocal("media", {
+    publishLocal("music", {
       available: true,
       playing,
       title: "Midnight City (Extended Version)",
@@ -31,7 +31,7 @@ export function startMock() {
   publish();
   setInterval(publish, 1000);
   setInterval(() => {
-    if (playing) emitLocal("media://level", 0.25 + Math.random() * 0.6);
+    if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
   }, 33);
 
   // Space toggles playback in the mock to preview state changes.

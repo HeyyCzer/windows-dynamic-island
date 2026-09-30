@@ -9,9 +9,11 @@
 //!   2. add it to [`registry`];
 //!   3. add a matching frontend module in `src/modules/<name>/`.
 
-pub mod media;
+pub mod claude;
+pub mod music;
 
 use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use serde_json::Value;
 use tauri::State;
@@ -32,7 +34,17 @@ pub trait Provider: Send + Sync + 'static {
 }
 
 pub fn registry() -> Vec<Arc<dyn Provider>> {
-    vec![Arc::new(media::MediaProvider::default())]
+    vec![
+        Arc::new(music::MusicProvider::default()),
+        Arc::new(claude::ClaudeProvider::default()),
+    ]
+}
+
+pub fn now_ms() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_millis() as u64)
+        .unwrap_or(0)
 }
 
 pub struct Providers(pub Vec<Arc<dyn Provider>>);
