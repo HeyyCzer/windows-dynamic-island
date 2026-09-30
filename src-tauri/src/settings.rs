@@ -76,10 +76,11 @@ pub fn open(app: &AppHandle) -> tauri::Result<()> {
     WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
         .title(crate::i18n::t(app, "window.settings"))
         .inner_size(860.0, 620.0)
-        .min_inner_size(680.0, 460.0)
         .center()
         // Custom titlebar lives in the webview (see `SettingsApp.tsx`).
         .decorations(false)
+        .resizable(false)
+        .maximizable(false)
         .background_color(tauri::webview::Color(12, 12, 16, 255))
         .build()?;
     Ok(())
