@@ -117,6 +117,32 @@ export function Island() {
 					</AnimatePresence>
 				</motion.div>
 
+				<div className="ambient-bubbles">
+					<AnimatePresence>
+						{(mode === "compact" || mode === "idle") &&
+							ctl.entries
+								.filter((e) => e.view.ambient)
+								.map(({ module, view }) => (
+									<motion.button
+										key={module.id}
+										className="bubble ambient"
+										data-hit
+										layout
+										initial={{ opacity: 0, scale: 0.3, x: 40 }}
+										animate={{ opacity: 1, scale: mode === "idle" ? 0.84 : 1, x: 0 }}
+										exit={{ opacity: 0, scale: 0.3, x: 40 }}
+										transition={shellSpring}
+										onClick={(e) => {
+											e.stopPropagation();
+											ctl.expand(module.id);
+										}}
+									>
+										{view.ambient}
+									</motion.button>
+								))}
+					</AnimatePresence>
+				</div>
+
 				<AnimatePresence>
 					{mode === "compact" && secondary && (
 						<motion.button

@@ -118,6 +118,56 @@
     },
   },
 
+  // Módulo GitHub
+  github: {
+    title: "GitHub",
+    openIssues: "Issues abertas",
+    refresh: "Atualizar",
+    loading: "Atualizando…",
+    updated: "Atualizado {time}",
+    rateLimited: "Limite de requisições até {time}",
+    empty: "Nenhum repositório ainda",
+    addInSettings: "Adicione nas configurações",
+    newIssue: "Nova",
+    noIssues: "Nenhuma issue aberta",
+    showBubble: {
+      label: "Bolinha lateral",
+      desc: "Mostra o total de issues abertas ao lado da ilha.",
+    },
+    peekOnNew: {
+      label: "Expandir com issue nova",
+      desc: "Abre a ilha por alguns segundos quando alguém abre uma issue.",
+    },
+    error: {
+      notFound: "Não encontrado ou sem acesso",
+      unauthorized: "Token recusado pelo GitHub",
+      rateLimited: "Limite de requisições",
+      network: "Sem conexão",
+      http: "Erro do GitHub",
+    },
+    repos: {
+      title: "Repositórios",
+      desc: "Digite dono/repo ou cole um link do GitHub. As contagens atualizam a cada 5 minutos.",
+      placeholder: "dono/repo",
+      add: "Adicionar",
+      remove: "Remover",
+      invalid: "Use dono/repo ou um link do github.com.",
+      duplicate: "Já adicionado.",
+    },
+    account: {
+      title: "Conta do GitHub",
+      token: "Conectado como {login} com token.",
+      gh: "Usando o login do GitHub CLI ({login}).",
+      none: "Sem login: só repositórios públicos, com limite de requisições menor. O login do GitHub CLI é usado automaticamente se existir.",
+      rejected: "O token salvo foi recusado pelo GitHub.",
+      placeholder: "Token de acesso pessoal",
+      save: "Salvar",
+      remove: "Remover token",
+      stored: "Guardado no Gerenciador de Credenciais do Windows, nunca no arquivo de configurações.",
+      create: "Criar um token",
+    },
+  },
+
   // Tempo relativo
   time: {
     now: "agora",

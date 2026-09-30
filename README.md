@@ -38,6 +38,12 @@ An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows deskt
   <img src="docs/screenshots/agents.png" width="700" alt="Expanded AI Agents panel with Claude Code sessions" />
 </p>
 
+**GitHub** — open issue counts for the repositories you follow.
+
+- A side bubble next to the island with the total, and a panel with each repo and its newest issue
+- Optionally pops open when someone opens a new issue
+- Works anonymously for public repos; uses your GitHub CLI login automatically, or a token kept in the Windows Credential Manager for private repos
+
 **And also**
 
 - Expands on hover (or click), collapses when you leave
@@ -83,11 +89,11 @@ bun run app:build    # installers in src-tauri/target/release/bundle/
 ```
 src/
   core/        island state, provider bridge, settings, i18n
-  modules/     one folder per module (music, ai-agents), each with its own UI and settings
+  modules/     one folder per module (music, ai-agents, github), each with its own UI and settings
   locales/     translations (*.json5)
   settings/    settings window
 src-tauri/src/
-  providers/   OS-side data sources, one per module (media controls, Claude Code)
+  providers/   OS-side data sources, one per module (media controls, Claude Code, GitHub)
   window.rs    click-through window + hover hit-testing
   tray.rs      tray menu
 ```

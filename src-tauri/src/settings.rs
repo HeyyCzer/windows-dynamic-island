@@ -36,6 +36,11 @@ impl Settings {
         }
     }
 
+    /// Current raw value of a setting (`None` = never set, use the default).
+    pub fn get(&self, key: &str) -> Option<Value> {
+        self.data.lock().unwrap().get(key).cloned()
+    }
+
     fn save(&self, data: &Map<String, Value>) {
         if let Some(dir) = self.path.parent() {
             let _ = std::fs::create_dir_all(dir);
@@ -105,6 +110,11 @@ const REPO_URL: &str = "https://github.com/HeyyCzer/windows-dynamic-island";
 /// Open the GitHub repo in the default browser (About page).
 #[tauri::command]
 pub fn open_repo() {
+    open_url(REPO_URL);
+}
+
+/// Open a URL in the default browser.
+pub fn open_url(url: &str) {
     #[cfg(windows)]
     unsafe {
         use windows::Win32::UI::Shell::ShellExecuteW;
@@ -113,7 +123,7 @@ pub fn open_repo() {
         ShellExecuteW(
             None,
             w!("open"),
-            &HSTRING::from(REPO_URL),
+            &HSTRING::from(url),
             PCWSTR::null(),
             PCWSTR::null(),
             SW_SHOWNORMAL,

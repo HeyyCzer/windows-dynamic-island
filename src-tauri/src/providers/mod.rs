@@ -10,6 +10,7 @@
 //!   3. add a matching frontend module in `src/modules/<name>/`.
 
 pub mod claude;
+pub mod github;
 pub mod music;
 
 use std::sync::Arc;
@@ -37,6 +38,7 @@ pub fn registry() -> Vec<Arc<dyn Provider>> {
     vec![
         Arc::new(music::MusicProvider::default()),
         Arc::new(claude::ClaudeProvider::default()),
+        Arc::new(github::GithubProvider::default()),
     ]
 }
 

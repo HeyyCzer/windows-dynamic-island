@@ -84,3 +84,23 @@ export const SparkleIcon = (p: P) => (
     <path d="M12 2.5c.4 0 .75.27.86.66l1.1 3.9a4.5 4.5 0 0 0 3.08 3.08l3.9 1.1a.9.9 0 0 1 0 1.72l-3.9 1.1a4.5 4.5 0 0 0-3.08 3.08l-1.1 3.9a.9.9 0 0 1-1.72 0l-1.1-3.9a4.5 4.5 0 0 0-3.08-3.08l-3.9-1.1a.9.9 0 0 1 0-1.72l3.9-1.1a4.5 4.5 0 0 0 3.08-3.08l1.1-3.9A.9.9 0 0 1 12 2.5Z" />
   </svg>
 );
+
+export const IssueIcon = (p: P) => (
+  <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={2}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
+  </svg>
+);
+
+export const RefreshIcon = (p: P) => (
+  <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 12a8 8 0 1 1-2.34-5.66L20 8.5" />
+    <path d="M20 3.5v5h-5" />
+  </svg>
+);
+
+export const CloseIcon = (p: P) => (
+  <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round">
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);

@@ -51,6 +51,10 @@ impl Hub {
         let _ = self.app.emit(event, payload);
     }
 
+    pub fn app(&self) -> &AppHandle {
+        &self.app
+    }
+
     pub fn snapshot(&self) -> HashMap<String, Value> {
         self.state.lock().unwrap().clone()
     }
