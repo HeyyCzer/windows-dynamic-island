@@ -67,20 +67,34 @@ pub fn open_settings(app: AppHandle) -> Result<(), String> {
     open(&app).map_err(|e| e.to_string())
 }
 
+const SIZE: (f64, f64) = (860.0, 620.0);
+
 pub fn open(app: &AppHandle) -> tauri::Result<()> {
     if let Some(win) = app.get_webview_window(SETTINGS_LABEL) {
         win.unminimize()?;
         win.show()?;
         return win.set_focus();
     }
-    WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
+    // Callers are sync commands / tray / single-instance handlers on the main
+    // thread, where building a webview deadlocks on Windows (WebView2 needs the
+    // event loop). Build from another thread instead.
+    let app = app.clone();
+    std::thread::spawn(move || {
+        if let Err(e) = create(&app) {
+            eprintln!("settings window: {e}");
+        }
+    });
+    Ok(())
+}
+
+fn create(app: &AppHandle) -> tauri::Result<()> {
+    let _win = WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
         .title(crate::i18n::t(app, "window.settings"))
-        .inner_size(860.0, 620.0)
+        .inner_size(SIZE.0, SIZE.1)
+        .resizable(false)
         .center()
         // Custom titlebar lives in the webview (see `SettingsApp.tsx`).
         .decorations(false)
-        .resizable(false)
-        .maximizable(false)
         .background_color(tauri::webview::Color(12, 12, 16, 255))
         .build()?;
     Ok(())
