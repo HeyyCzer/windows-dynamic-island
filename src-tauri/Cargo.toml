@@ -7,7 +7,9 @@ rust-version = "1.98"
 
 [lib]
 name = "dynamic_island_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+# Desktop only: the Tauri template's `staticlib`/`cdylib` exist for mobile and
+# made every dev rebuild also write a ~900 MB static lib.
+crate-type = ["rlib"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -40,6 +42,14 @@ windows = { version = "0.62", features = [
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
 ] }
+
+# Faster dev rebuilds: line tables are enough for backtraces, and nobody
+# steps through dependencies in a debugger.
+[profile.dev]
+debug = "line-tables-only"
+
+[profile.dev.package."*"]
+debug = false
 
 [profile.release]
 codegen-units = 1
