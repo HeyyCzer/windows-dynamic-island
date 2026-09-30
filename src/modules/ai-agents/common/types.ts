@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 /**
  * Contract every AI agent integration implements (Claude today; Codex,
@@ -12,6 +12,8 @@ export interface AgentDefinition {
   Icon: (props: { size: number; state?: AgentStatus }) => ReactNode;
   /** React hook returning the agent's live snapshot. */
   useAgent: () => AgentSnapshot;
+  /** Agent-specific block in the settings window (integration setup…). */
+  SettingsSection?: ComponentType;
 }
 
 export type AgentStatus = "idle" | "working" | "waiting" | "done";

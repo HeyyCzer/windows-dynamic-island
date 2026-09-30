@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
+import { generalSettings, moduleEnabled, readSetting, useSettings } from "./settings";
 import type { IslandMode, IslandModule, ModuleView } from "./types";
 
 const HOVER_IN_DELAY = 110;
@@ -16,8 +17,16 @@ export interface ModuleEntry {
  * main slot, and whether the island is idle, compact, peeking or expanded.
  */
 export function useIslandController(modules: IslandModule[]) {
+  const settings = useSettings();
   // The registry is static, so calling each module's hook in order is stable.
-  const entries: ModuleEntry[] = modules.map((module) => ({ module, view: module.useView() }));
+  // Disabled modules still run their hook (rules of hooks) but are dropped.
+  const entries: ModuleEntry[] = modules
+    .map((module) => ({ module, view: module.useView() }))
+    .filter(({ module }) => readSetting(settings, moduleEnabled(module.id, module.title)));
+  const hideInFullscreen = readSetting(settings, generalSettings.hideInFullscreen);
+  const expandOnHover = readSetting(settings, generalSettings.expandOnHover);
+  const expandOnHoverRef = useRef(expandOnHover);
+  expandOnHoverRef.current = expandOnHover;
 
   const [hovered, setHovered] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
@@ -35,7 +44,15 @@ export function useIslandController(modules: IslandModule[]) {
     if (immediate) apply();
     else hoverTimer.current = window.setTimeout(apply, inside ? HOVER_IN_DELAY : HOVER_OUT_DELAY);
   }, []);
-  useTauriEvent<boolean>("island://hover", (inside) => setHover(inside));
+  // Leaving always collapses; entering only expands when hover-to-expand is on.
+  const onPointer = useCallback(
+    (inside: boolean) => {
+      if (!inside || expandOnHoverRef.current) setHover(inside);
+      else window.clearTimeout(hoverTimer.current);
+    },
+    [setHover],
+  );
+  useTauriEvent<boolean>("island://hover", onPointer);
 
   // --- fullscreen apps hide the island --------------------------------------
   useTauriEvent<boolean>("island://fullscreen", setFullscreen);
@@ -69,7 +86,7 @@ export function useIslandController(modules: IslandModule[]) {
   const primary = active[0] ? entries.find((e) => e.module.id === active[0].module.id) : undefined;
   const secondary = active[1] ? entries.find((e) => e.module.id === active[1].module.id) : undefined;
 
-  const mode: IslandMode = fullscreen
+  const mode: IslandMode = fullscreen && hideInFullscreen
     ? "hidden"
     : hovered
       ? "expanded"
@@ -104,6 +121,6 @@ export function useIslandController(modules: IslandModule[]) {
     /** Browser-only hover handlers (Tauri uses the backend hit-test). */
     domHover: isTauri
       ? {}
-      : { onMouseEnter: () => setHover(true), onMouseLeave: () => setHover(false) },
+      : { onMouseEnter: () => onPointer(true), onMouseLeave: () => onPointer(false) },
   };
 }

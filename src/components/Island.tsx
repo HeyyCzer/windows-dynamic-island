@@ -4,6 +4,8 @@ import { modules } from "../modules";
 import { useHitRects } from "../core/useHitRects";
 import { useIslandController, type ModuleEntry } from "../core/useIslandController";
 import type { IslandMode } from "../core/types";
+import { command } from "../core/bridge";
+import { GearIcon } from "./icons";
 
 const IDLE = { width: 150, height: 8, radius: 8, ear: 6 };
 const COMPACT = { width: 300, height: 38, radius: 19, ear: 10 };
@@ -34,7 +36,8 @@ export function Island() {
   const { mode, primary, secondary, focused } = ctl;
   useHitRects();
 
-  const showTabs = ctl.entries.length > 1;
+  // Always shown when expanded: it also hosts the settings button.
+  const showTabs = true;
   const g = geometry(mode, focused, primary, showTabs);
   const big = mode === "expanded" || mode === "peek";
   const hidden = mode === "hidden";
@@ -77,7 +80,7 @@ export function Island() {
           y: hidden ? -g.height - 12 : 0,
         }}
         transition={big ? expandSpring : shellSpring}
-        onClick={() => mode === "compact" && ctl.expand()}
+        onClick={() => (mode === "compact" || mode === "idle") && ctl.expand()}
       >
         <motion.span className="ear left" initial={false} animate={{ width: g.ear, height: g.ear }} transition={shellSpring} />
         <motion.span className="ear right" initial={false} animate={{ width: g.ear, height: g.ear }} transition={shellSpring} />
@@ -161,6 +164,19 @@ function Tabs({
           {view.active && <span className="tab-dot" />}
         </button>
       ))}
+      <motion.button
+        className="tab-gear"
+        title="Configurações"
+        whileHover={{ rotate: 45 }}
+        whileTap={{ scale: 0.85 }}
+        transition={{ type: "spring", stiffness: 300, damping: 15 }}
+        onClick={(e) => {
+          e.stopPropagation();
+          command("open_settings");
+        }}
+      >
+        <GearIcon size={16} />
+      </motion.button>
     </div>
   );
 }

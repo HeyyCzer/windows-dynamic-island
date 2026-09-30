@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
+import type { SettingDef } from "./settings";
 
 /** What a module wants the island to render right now. */
 export interface ModuleView {
@@ -34,6 +35,10 @@ export interface IslandModule {
    * the island, in registry order, so it must follow the rules of hooks.
    */
   useView: () => ModuleView;
+  /** Toggles shown under this module in the settings window. */
+  settings?: SettingDef[];
+  /** Extra custom UI for the settings window (e.g. integration status). */
+  SettingsSection?: ComponentType;
 }
 
 export type IslandMode = "hidden" | "idle" | "compact" | "peek" | "expanded";

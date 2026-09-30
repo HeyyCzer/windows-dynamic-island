@@ -7,7 +7,15 @@ import { Controls } from "./Controls";
 import { Visualizer } from "./Visualizer";
 
 /** Expanded now-playing panel. */
-export function MusicPanel({ music, accent }: { music: MusicState | undefined; accent: string }) {
+export function MusicPanel({
+  music,
+  accent,
+  showVisualizer = true,
+}: {
+  music: MusicState | undefined;
+  accent: string;
+  showVisualizer?: boolean;
+}) {
   const position = useLivePosition(music);
 
   if (!music?.available) {
@@ -32,7 +40,7 @@ export function MusicPanel({ music, accent }: { music: MusicState | undefined; a
             <Marquee text={music.title} className="music-title" />
             <Marquee text={subtitle} className="music-artist" />
           </div>
-          <Visualizer playing={music.playing} color={accent} height={30} barWidth={4.5} />
+          {showVisualizer && <Visualizer playing={music.playing} color={accent} height={30} barWidth={4.5} />}
         </div>
 
         <div className="music-progress">

@@ -209,3 +209,18 @@ button {
 body.preview {
   background: radial-gradient(120% 90% at 80% 100%, #3b3a6b 0%, #16162a 55%, #0d0d17 100%);
 }
+
+.tab-gear {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  border-radius: 50%;
+  color: var(--text-faint);
+  transition: color 0.2s, background 0.2s;
+}
+.tab-gear:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}

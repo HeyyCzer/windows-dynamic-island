@@ -1,5 +1,6 @@
 mod hub;
 mod providers;
+mod settings;
 mod tray;
 mod window;
 
@@ -15,12 +16,15 @@ pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
 
 pub fn run() {
     tauri::Builder::default()
-        // Must be registered first: a second launch just exits.
-        .plugin(tauri_plugin_single_instance::init(|_app, _argv, _cwd| {}))
+        // Must be registered first. Launching the app again opens settings.
+        .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+            let _ = settings::open(app);
+        }))
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .manage(window::HitState::default())
         .setup(|app| {
             let handle = app.handle().clone();
+            app.manage(settings::Settings::load(&handle));
 
             let hub = Arc::new(Hub::new(handle.clone()));
             let providers = providers::registry();
@@ -46,6 +50,11 @@ pub fn run() {
             providers::provider_action,
             window::set_hit_rects,
             window::is_fullscreen_active,
+            settings::get_settings,
+            settings::set_setting,
+            settings::open_settings,
+            settings::get_autostart,
+            settings::set_autostart,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

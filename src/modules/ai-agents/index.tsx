@@ -15,6 +15,8 @@ import { AgentsPanel } from "./common/components/AgentsPanel";
 import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
+import { agentSettings } from "./settings";
+import { useSetting } from "../../core/settings";
 import "./ai-agents.css";
 
 const agents: AgentDefinition[] = [claudeAgent];
@@ -29,7 +31,15 @@ const PRIORITY: Record<AgentStatus, number> = { waiting: 90, done: 70, working: 
 export const aiAgentsModule: IslandModule = {
   id: "ai-agents",
   title: "AI Agents",
+  settings: Object.values(agentSettings),
+  SettingsSection: () => (
+    <>
+      {agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}
+    </>
+  ),
   useView(): ModuleView {
+    const peekOnWaiting = useSetting(agentSettings.peekOnWaiting);
+    const peekOnDone = useSetting(agentSettings.peekOnDone);
     // Static list → stable hook order.
     const snapshots = agents.map((a) => a.useAgent());
 
@@ -64,10 +74,11 @@ export const aiAgentsModule: IslandModule = {
         width: 340,
       },
       expanded: <AgentsPanel agents={agents} snapshots={snapshots} sessions={recent} />,
-      expandedSize: { width: 620, height: 196 + Math.max(1, recent.length) * 30 },
-      // Peek when an agent needs you or just finished.
+      expandedSize: { width: 620, height: 236 + Math.max(1, recent.length) * 30 },
+      // Peek when an agent needs you or just finished (each is a setting).
       activityKey:
-        hot && (hot.session.status === "waiting" || hot.session.status === "done")
+        hot &&
+        ((hot.session.status === "waiting" && peekOnWaiting) || (hot.session.status === "done" && peekOnDone))
           ? `${hot.agent.id}:${hot.session.id}:${hot.session.status}:${hot.session.finishedAt ?? hot.session.lastEventAt}`
           : undefined,
     };

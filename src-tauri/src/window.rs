@@ -120,13 +120,24 @@ fn cursor_pos() -> Option<(f64, f64)> {
     None
 }
 
-/// True when the foreground window covers the island's whole monitor without
-/// being maximized (games, videos, presentations in fullscreen).
+/// True when a fullscreen app (game, video, F11 browser, presentation) is in
+/// front on the island's monitor.
+///
+/// Two signals:
+/// - Windows' own "busy / D3D fullscreen / presentation" state (the one that
+///   silences notifications);
+/// - the foreground window's rect matching the monitor *exactly*. Maximized
+///   windows overhang the screen by their resize borders (~8px) or stop at the
+///   taskbar, so they never match — but browsers in fullscreen stay flagged as
+///   "maximized", which is why `IsZoomed` can't be used to rule them out.
 #[cfg(windows)]
 fn fullscreen_app_active(island: &WebviewWindow) -> bool {
     use windows::Win32::Foundation::{HWND, RECT};
     use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST};
-    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetForegroundWindow, GetWindowRect, IsZoomed};
+    use windows::Win32::UI::Shell::{
+        SHQueryUserNotificationState, QUNS_BUSY, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
+    };
+    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetForegroundWindow, GetWindowRect};
 
     unsafe {
         let fg = GetForegroundWindow();
@@ -134,7 +145,7 @@ fn fullscreen_app_active(island: &WebviewWindow) -> bool {
             return false;
         }
         let island_hwnd = island.hwnd().map(|h| h.0).unwrap_or(std::ptr::null_mut());
-        if fg.0 == island_hwnd || IsZoomed(fg).as_bool() {
+        if fg.0 == island_hwnd {
             return false;
         }
 
@@ -152,6 +163,11 @@ fn fullscreen_app_active(island: &WebviewWindow) -> bool {
             return false;
         }
 
+        if let Ok(state) = SHQueryUserNotificationState()
+            && (state == QUNS_BUSY || state == QUNS_RUNNING_D3D_FULL_SCREEN || state == QUNS_PRESENTATION_MODE) {
+                return true;
+            }
+
         let mut info = MONITORINFO {
             cbSize: std::mem::size_of::<MONITORINFO>() as u32,
             ..Default::default()
@@ -164,7 +180,7 @@ fn fullscreen_app_active(island: &WebviewWindow) -> bool {
             return false;
         }
         let m = info.rcMonitor;
-        rect.left <= m.left && rect.top <= m.top && rect.right >= m.right && rect.bottom >= m.bottom
+        rect.left == m.left && rect.top == m.top && rect.right == m.right && rect.bottom == m.bottom
     }
 }
 

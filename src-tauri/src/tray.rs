@@ -15,11 +15,13 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         autostart_on,
         None::<&str>,
     )?;
+    let settings = MenuItem::with_id(app, "settings", "Configurações…", true, None::<&str>)?;
     let recenter = MenuItem::with_id(app, "recenter", "Recentralizar", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
         &[
+            &settings,
             &autostart,
             &recenter,
             &PredefinedMenuItem::separator(app)?,
@@ -41,6 +43,9 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                     launcher.enable()
                 };
                 let _ = autostart.set_checked(launcher.is_enabled().unwrap_or(false));
+            }
+            "settings" => {
+                let _ = crate::settings::open(app);
             }
             "recenter" => {
                 if let Some(win) = app.get_webview_window(ISLAND_LABEL) {
