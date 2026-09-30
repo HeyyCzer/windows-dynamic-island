@@ -14,6 +14,9 @@ startSettings();
 // (or `#settings` when previewing in a browser).
 const isSettingsWindow = isTauri ? getCurrentWindow().label === "settings" : location.hash === "#settings";
 
+// No browser context menu (reload, inspect…) in release builds.
+if (import.meta.env.PROD) document.addEventListener("contextmenu", (e) => e.preventDefault());
+
 // Browser preview only: fake wallpaper so the black island is visible.
 if (!isTauri && !isSettingsWindow) document.body.classList.add("preview");
 
