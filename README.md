@@ -4,7 +4,7 @@
 
 # Dynamic Island for Windows
 
-An iPhone-style Dynamic Island that lives at the top of your Windows desktop — showing what's playing and what your AI coding agents are up to.
+An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows desktop — showing what's playing and what your AI coding agents are up to.
 
 [**Download the latest release**](https://github.com/HeyyCzer/windows-dynamic-island/releases/latest)
 
@@ -55,7 +55,9 @@ Requires Windows 10 or 11 (WebView2 is installed automatically if missing).
 
 ### Claude Code integration
 
-Open **Settings → AI Agents → Claude Code integration → Enable**. This adds HTTP hooks (live status) and a statusline bridge (plan limits) to `~/.claude/settings.json`; a backup is written before every change, and your existing statusline keeps working. Restart Claude Code sessions that were already open. Without it, the island still picks up sessions from Claude Code's transcripts, just with less detail.
+Open **Settings → AI Agents → Claude Code integration → Enable**. This adds HTTP hooks (live status) and a statusline bridge to `~/.claude/settings.json`; a backup is written before every change, and your existing statusline keeps working. Restart Claude Code sessions that were already open. Without it, the island still picks up sessions from Claude Code's transcripts, just with less detail.
+
+**Plan limits** come from the statusline when you use the terminal CLI. Since the statusline doesn't run in the IDE extensions, the island also asks Anthropic directly, using the same endpoint as Claude Code's `/usage`. It authenticates with the OAuth token Claude Code keeps in `~/.claude/.credentials.json`, and that token is only ever sent to `api.anthropic.com`. Requests only happen while the panel is open (at most once a minute) or every few minutes while agents are active.
 
 ## Development
 
