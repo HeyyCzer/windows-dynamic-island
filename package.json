@@ -1,14 +1,15 @@
 {
   "name": "windows-dynamic-island",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "tauri": "tauri",
     "app:dev": "tauri dev",
-    "app:build": "tauri build"
+    "app:build": "tauri build",
+    "v": "bun pm version"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.0",
