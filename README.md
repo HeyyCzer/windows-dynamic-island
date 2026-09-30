@@ -8,7 +8,7 @@ An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows deskt
 
 [**Download the latest release**](https://github.com/HeyyCzer/windows-dynamic-island/releases/latest)
 
-<img src="docs/screenshots/compact.png" width="500" alt="Compact island showing a Claude Code session waiting for permission" />
+<img src="docs/screenshots/compact.png" width="576" alt="Compact island showing a Claude Code session waiting for permission" />
 
 </div>
 
@@ -16,11 +16,14 @@ An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows deskt
 
 **Music** — works with Spotify and anything that shows up in Windows' media controls (browsers, Apple Music, VLC…).
 
+- Current track and artist right in the compact island
 - Album art, title, artist and a live progress bar you can click to seek
 - Play/pause, previous and next
 - Audio visualizer that follows the music
 
 <p align="center">
+  <img src="docs/screenshots/compact-music.png" width="480" alt="Compact island showing the current track and artist" />
+  <br />
   <img src="docs/screenshots/music.png" width="700" alt="Expanded music panel" />
 </p>
 
@@ -39,11 +42,11 @@ An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows deskt
 
 - Expands on hover (or click), collapses when you leave
 - Hides itself while a game, video or app is fullscreen
-- Starts with Windows, lives in the tray
+- Starts with Windows, lives in the tray, checks for updates
 - English and Portuguese (Brazil), following your system language by default
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" width="520" alt="Settings window" />
+  <img src="docs/screenshots/settings.png" width="640" alt="Settings window, general page" />
 </p>
 
 ## Install
@@ -56,6 +59,10 @@ Requires Windows 10 or 11 (WebView2 is installed automatically if missing).
 ### Claude Code integration
 
 Open **Settings → AI Agents → Claude Code integration → Enable**. This adds HTTP hooks (live status) and a statusline bridge to `~/.claude/settings.json`; a backup is written before every change, and your existing statusline keeps working. Restart Claude Code sessions that were already open. Without it, the island still picks up sessions from Claude Code's transcripts, just with less detail.
+
+<p align="center">
+  <img src="docs/screenshots/settings-agents.png" width="640" alt="AI Agents settings with the Claude Code integration enabled" />
+</p>
 
 **Plan limits** come from the statusline when you use the terminal CLI. Since the statusline doesn't run in the IDE extensions, the island also asks Anthropic directly, using the same endpoint as Claude Code's `/usage`. It authenticates with the OAuth token Claude Code keeps in `~/.claude/.credentials.json`, and that token is only ever sent to `api.anthropic.com`. Requests only happen while the panel is open (at most once a minute) or every few minutes while agents are active.
 
