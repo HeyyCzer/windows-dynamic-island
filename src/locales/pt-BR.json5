@@ -1,0 +1,149 @@
+// Português (Brasil). Same keys as en.json5 (the reference); see it for notes
+// on each placeholder.
+{
+  language: {
+    name: "Português (Brasil)",
+  },
+
+  // Janela de configurações
+  settings: {
+    subtitle: "Configurações",
+    general: "Geral",
+    autostart: {
+      label: "Iniciar com o Windows",
+      appOnly: "Disponível só no app.",
+    },
+    language: {
+      label: "Idioma",
+      desc: "Por padrão segue o idioma do sistema.",
+      auto: "Sistema ({language})",
+    },
+    hideInFullscreen: {
+      label: "Ocultar em tela cheia",
+      desc: "Esconde a island quando um jogo, vídeo ou app está em tela cheia.",
+    },
+    expandOnHover: {
+      label: "Expandir ao passar o mouse",
+      desc: "Desligado: expande só com clique.",
+    },
+  },
+
+  // Renderizado pelo backend (src-tauri/src/i18n.rs)
+  tray: {
+    settings: "Configurações…",
+    autostart: "Iniciar com o Windows",
+    recenter: "Recentralizar",
+    quit: "Sair",
+  },
+  window: {
+    settings: "Dynamic Island — Configurações",
+  },
+
+  island: {
+    settings: "Configurações",
+  },
+
+  // Módulo de música
+  music: {
+    title: "Música",
+    nothingPlaying: "Nada tocando",
+    autoExpand: {
+      label: "Expandir ao trocar de música",
+      desc: "Mostra a capa e o título por alguns segundos quando uma nova faixa começa.",
+    },
+    visualizer: {
+      label: "Visualizador de áudio",
+      desc: "Barras animadas no ritmo da música.",
+    },
+  },
+
+  // Módulo AI Agents
+  agents: {
+    title: "AI Agents",
+    peekOnWaiting: {
+      label: "Expandir quando um agente pedir sua atenção",
+      desc: "Pedido de permissão ou pergunta aguardando resposta.",
+    },
+    peekOnDone: {
+      label: "Expandir quando um agente terminar",
+    },
+    status: {
+      working: "Trabalhando",
+      waiting: "Aguardando você",
+      done: "Concluído",
+    },
+    now: "Agora",
+    noSessions: "Nenhuma sessão recente",
+    contextUsed: "Contexto usado",
+    noLimits: "Sem dados de limite ainda",
+    tokensToday: "Tokens hoje",
+    tokens: {
+      input: "Entrada",
+      output: "Saída",
+      cacheRead: "Cache lido",
+      cacheWrite: "Cache escrito",
+    },
+    limit: {
+      fiveHour: "Sessão · 5h",
+      sevenDay: "Semana · 7d",
+      resetsIn: "reseta em {time}",
+    },
+    setup: {
+      busy: "Ativando…",
+      failed: "Falhou — tentar de novo",
+    },
+  },
+
+  // Tempo relativo
+  time: {
+    now: "agora",
+    minutesAgo: "há {n} min",
+    hoursAgo: "há {n} h",
+    daysAgo: "há {n} d",
+    lessThanMinute: "< 1 min",
+  },
+
+  // Claude Code
+  claude: {
+    limitsHint: {
+      installed: "Limites aparecem na próxima resposta do Claude Code",
+      missing: "Ative a integração para ver os limites do plano",
+    },
+    setup: {
+      message: "Status em tempo real e limites do plano via hooks do Claude Code (backup do settings.json é criado).",
+      serverDown: "Servidor local indisponível (porta 47823 ocupada?).",
+      action: "Ativar integração",
+    },
+    integration: {
+      title: "Integração com Claude Code",
+      desc: "Hooks HTTP para status em tempo real + statusline para limites do plano. Seu statusline atual continua funcionando. Um backup do {file} é criado a cada alteração.",
+      enable: "Ativar",
+      remove: "Remover",
+      server: "Servidor local :47823",
+      restart: "Sessões do Claude Code já abertas precisam ser reiniciadas para carregar os hooks.",
+    },
+  },
+
+  // O que uma sessão do Claude está fazendo
+  activity: {
+    thinking: "Pensando…",
+    run: "Executando {arg}",
+    read: "Lendo {arg}",
+    edit: "Editando {arg}",
+    write: "Escrevendo {arg}",
+    grep: "Buscando “{arg}”",
+    glob: "Procurando {arg}",
+    webSearch: "Pesquisando “{arg}”",
+    webFetch: "Lendo {arg}",
+    subagent: "Subagente: {arg}",
+    todos: "Atualizando tarefas",
+    skill: "Skill {arg}",
+    question: "Aguardando sua resposta",
+    plan: "Plano pronto",
+    tool: "{arg}",
+    message: "{arg}",
+    done: "Concluído",
+    failed: "Falhou",
+    permission: "Permissão: {what}",
+  },
+}

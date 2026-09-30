@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { providerAction, useProvider } from "../../../core/bridge";
+import { useT } from "../../../core/i18n";
 
 interface IntegrationState {
   integration: { hooks: boolean; statusline: boolean; serverOk: boolean };
@@ -8,6 +9,7 @@ interface IntegrationState {
 /** Claude Code integration status + install/remove, for the settings window. */
 export function ClaudeSettings() {
   const state = useProvider<IntegrationState>("claude");
+  const t = useT();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const i = state?.integration;
@@ -29,28 +31,25 @@ export function ClaudeSettings() {
     <div className="settings-block">
       <div className="settings-row">
         <div className="settings-text">
-          <span className="settings-label">Integração com Claude Code</span>
-          <span className="settings-desc">
-            Hooks HTTP para status em tempo real + statusline para limites do plano. Seu statusline atual continua
-            funcionando. Um backup do <code>~/.claude/settings.json</code> é criado a cada alteração.
-          </span>
+          <span className="settings-label">{t("claude.integration.title")}</span>
+          <span className="settings-desc">{t("claude.integration.desc", { file: "~/.claude/settings.json" })}</span>
         </div>
         <button
           className={`settings-btn ${installed ? "danger" : "primary"}`}
           disabled={busy || !state}
           onClick={() => run(installed ? "uninstall" : "install")}
         >
-          {busy ? "…" : installed ? "Remover" : "Ativar"}
+          {busy ? "…" : installed ? t("claude.integration.remove") : t("claude.integration.enable")}
         </button>
       </div>
       <div className="settings-chips">
         <Chip ok={!!i?.hooks} label="Hooks" />
         <Chip ok={!!i?.statusline} label="Statusline" />
-        <Chip ok={!!i?.serverOk} label="Servidor local :47823" />
+        <Chip ok={!!i?.serverOk} label={t("claude.integration.server")} />
       </div>
       {installed && (
         <span className="settings-desc">
-          Sessões do Claude Code já abertas precisam ser reiniciadas para carregar os hooks.
+          {t("claude.integration.restart")}
         </span>
       )}
       {error && <span className="settings-error">{error}</span>}

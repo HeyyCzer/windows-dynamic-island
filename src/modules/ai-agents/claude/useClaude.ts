@@ -1,4 +1,5 @@
 import { providerAction, useProvider } from "../../../core/bridge";
+import { useT, type MessageKey, type Translate } from "../../../core/i18n";
 import type { AgentSnapshot, AgentStatus, UsageLimit } from "../common/types";
 
 /** Mirrors `ClaudeState` in `src-tauri/src/providers/claude/mod.rs`. */
@@ -8,7 +9,7 @@ interface ClaudeState {
     project: string;
     cwd: string;
     status: AgentStatus;
-    activity: string | null;
+    activity: Activity | null;
     tool: string | null;
     turnStartedAt: number | null;
     finishedAt: number | null;
@@ -27,16 +28,24 @@ interface ClaudeState {
   integration: { hooks: boolean; statusline: boolean; serverOk: boolean };
 }
 
+/** Mirrors `Activity` in `src-tauri/src/providers/claude/activity.rs`. */
+interface Activity {
+  kind: string;
+  arg?: string;
+  permission?: boolean;
+}
+
 const PROVIDER = "claude";
 
 export function useClaude(): AgentSnapshot {
   const state = useProvider<ClaudeState>(PROVIDER);
+  const t = useT();
   if (!state) return { available: false, sessions: [], limits: [] };
 
   const limits: UsageLimit[] = [];
   const { fiveHour, sevenDay } = state.limits ?? {};
-  if (fiveHour) limits.push({ id: "5h", label: "Sessão · 5h", usedPct: fiveHour.usedPct, resetsAt: toMs(fiveHour.resetsAt) });
-  if (sevenDay) limits.push({ id: "7d", label: "Semana · 7d", usedPct: sevenDay.usedPct, resetsAt: toMs(sevenDay.resetsAt) });
+  if (fiveHour) limits.push({ id: "5h", label: t("agents.limit.fiveHour"), usedPct: fiveHour.usedPct, resetsAt: toMs(fiveHour.resetsAt) });
+  if (sevenDay) limits.push({ id: "7d", label: t("agents.limit.sevenDay"), usedPct: sevenDay.usedPct, resetsAt: toMs(sevenDay.resetsAt) });
 
   const { hooks, statusline, serverOk } = state.integration;
   const installed = hooks && statusline;
@@ -47,13 +56,13 @@ export function useClaude(): AgentSnapshot {
     tokensToday: state.tokensToday,
     limits,
     limitsHint: installed
-      ? "Limites aparecem na próxima resposta do Claude Code"
-      : "Ative a integração para ver os limites do plano",
+      ? t("claude.limitsHint.installed")
+      : t("claude.limitsHint.missing"),
     sessions: state.sessions.map((s) => ({
       id: s.id,
       title: s.project,
       status: s.status,
-      activity: s.activity,
+      activity: s.activity && describe(t, s.activity),
       turnStartedAt: s.turnStartedAt,
       finishedAt: s.finishedAt,
       lastEventAt: s.lastEventAt,
@@ -63,13 +72,18 @@ export function useClaude(): AgentSnapshot {
     setup: installed
       ? undefined
       : {
-          message: serverOk
-            ? "Status em tempo real e limites do plano via hooks do Claude Code (backup do settings.json é criado)."
-            : "Servidor local indisponível (porta 47823 ocupada?).",
-          actionLabel: "Ativar integração",
+          message: serverOk ? t("claude.setup.message") : t("claude.setup.serverDown"),
+          actionLabel: t("claude.setup.action"),
           action: () => providerAction(PROVIDER, "install"),
         },
   };
+}
+
+function describe(t: Translate, a: Activity) {
+  const key = `activity.${a.kind}` as MessageKey;
+  const text = t(key, { arg: a.arg ?? "" });
+  const label = text === key ? (a.arg ?? a.kind) : text; // unknown kind from a newer backend
+  return a.permission ? t("activity.permission", { what: label }) : label;
 }
 
 const toMs = (unixSeconds: number | null) => (unixSeconds ? unixSeconds * 1000 : null);

@@ -1,14 +1,19 @@
 import { AnimatePresence, motion } from "motion/react";
+import { useT } from "../../../../core/i18n";
 import { formatElapsed, useNow } from "../format";
 import type { AgentSessionRef } from "../types";
 import { StatusGlyph } from "./StatusGlyph";
 
-const STATUS_TEXT = { working: "Trabalhando", waiting: "Aguardando você", done: "Concluído", idle: "" };
-
 /** Left slot of the compact pill: animated agent glyph + what it's doing. */
 export function AgentCompactLeft({ hot, busyCount }: { hot: AgentSessionRef; busyCount: number }) {
   const { agent, session } = hot;
-  const label = session.status === "working" ? (session.activity ?? STATUS_TEXT.working) : STATUS_TEXT[session.status];
+  const t = useT();
+  const label =
+    session.status === "working"
+      ? (session.activity ?? t("agents.status.working"))
+      : session.status === "idle"
+        ? ""
+        : t(`agents.status.${session.status}`);
 
   return (
     <>

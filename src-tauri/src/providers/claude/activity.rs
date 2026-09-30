@@ -1,39 +1,84 @@
-//! Turns a tool call into a short, human label for the island.
+//! Turns a tool call into a short, language-neutral activity for the island.
+//!
+//! The backend only says *what* is happening (`kind` + optional `arg`); the
+//! frontend owns the wording in every language (`src/locales/*`, `activity.*`).
 
+use serde::Serialize;
 use serde_json::Value;
 
-pub const THINKING: &str = "Pensando…";
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Activity {
+    /// Translation key suffix: "thinking", "edit", "run", …
+    pub kind: &'static str,
+    /// File name, command, pattern… interpolated into the label.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub arg: Option<String>,
+    /// Waiting for the user to approve this action.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub permission: bool,
+}
 
-pub fn describe(tool: &str, input: &Value) -> String {
+impl Activity {
+    pub fn new(kind: &'static str) -> Self {
+        Self { kind, arg: None, permission: false }
+    }
+
+    fn with(kind: &'static str, arg: impl AsRef<str>) -> Self {
+        Self {
+            kind,
+            arg: Some(truncate(arg.as_ref().trim(), 50)),
+            permission: false,
+        }
+    }
+
+    pub fn thinking() -> Self {
+        Self::new("thinking")
+    }
+
+    /// Raw text from Claude Code (e.g. a notification message), shown as is.
+    pub fn message(text: &str) -> Self {
+        Self::with("message", text)
+    }
+
+    pub fn needs_permission(mut self) -> Self {
+        self.permission = true;
+        self
+    }
+}
+
+pub fn describe(tool: &str, input: &Value) -> Activity {
     let s = |key: &str| input.get(key).and_then(Value::as_str).unwrap_or("");
-    let file = || file_name(s("file_path")).or_else(|| file_name(s("notebook_path")));
+    let file = || {
+        file_name(s("file_path"))
+            .or_else(|| file_name(s("notebook_path")))
+            .unwrap_or_default()
+    };
 
-    let label = match tool {
+    match tool {
         "Bash" | "PowerShell" => {
             let what = if s("description").is_empty() { s("command") } else { s("description") };
-            format!("Executando {}", first_line(what))
+            Activity::with("run", first_line(what))
         }
-        "Read" => format!("Lendo {}", file().unwrap_or_default()),
-        "Edit" | "MultiEdit" | "NotebookEdit" => format!("Editando {}", file().unwrap_or_default()),
-        "Write" => format!("Escrevendo {}", file().unwrap_or_default()),
-        "Grep" => format!("Buscando \"{}\"", s("pattern")),
-        "Glob" => format!("Procurando {}", s("pattern")),
-        "WebSearch" => format!("Pesquisando \"{}\"", s("query")),
-        "WebFetch" => format!("Lendo {}", host(s("url"))),
-        "Task" | "Agent" => format!("Subagente: {}", s("description")),
-        "TodoWrite" | "TaskCreate" | "TaskUpdate" => "Atualizando tarefas".into(),
-        "Skill" => format!("Skill {}", s("skill")),
-        "AskUserQuestion" => "Aguardando sua resposta".into(),
-        "ExitPlanMode" => "Plano pronto".into(),
+        "Read" => Activity::with("read", file()),
+        "Edit" | "MultiEdit" | "NotebookEdit" => Activity::with("edit", file()),
+        "Write" => Activity::with("write", file()),
+        "Grep" => Activity::with("grep", s("pattern")),
+        "Glob" => Activity::with("glob", s("pattern")),
+        "WebSearch" => Activity::with("webSearch", s("query")),
+        "WebFetch" => Activity::with("webFetch", host(s("url"))),
+        "Task" | "Agent" => Activity::with("subagent", s("description")),
+        "TodoWrite" | "TaskCreate" | "TaskUpdate" => Activity::new("todos"),
+        "Skill" => Activity::with("skill", s("skill")),
+        "AskUserQuestion" => Activity::new("question"),
+        "ExitPlanMode" => Activity::new("plan"),
         t if t.starts_with("mcp__") => {
             let mut parts = t.splitn(3, "__").skip(1);
             let server = parts.next().unwrap_or("");
             let action = parts.next().unwrap_or("");
-            format!("{server}: {}", action.replace('_', " "))
+            Activity::with("tool", format!("{server}: {}", action.replace('_', " ")))
         }
-        t => t.to_string(),
-    };
-    truncate(label.trim(), 60)
+        t => Activity::with("tool", t),
+    }
 }
 
 fn file_name(path: &str) -> Option<String> {

@@ -1,0 +1,48 @@
+name: Release
+
+# Push a version tag (e.g. `bun run v patch && git push --follow-tags`) to build
+# the Windows installers and publish them as a GitHub release. Can also be run
+# by hand from the Actions tab; the release is named after the app version.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Installs the toolchain pinned in src-tauri/rust-toolchain.toml.
+      - name: Install Rust
+        working-directory: src-tauri
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tauriScript: bun tauri
+          tagName: v__VERSION__
+          releaseName: Dynamic Island v__VERSION__
+          releaseBody: |
+            Download **`Dynamic.Island_*_x64-setup.exe`** and run it (installs for the current user, no admin needed).
+            The `.msi` is there for managed installs.
+          releaseDraft: false
+          prerelease: false

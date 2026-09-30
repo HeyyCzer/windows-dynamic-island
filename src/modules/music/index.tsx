@@ -15,7 +15,7 @@ import "./music.css";
 
 export const musicModule: IslandModule = {
   id: "music",
-  title: "Música",
+  title: "music.title",
   settings: Object.values(musicSettings),
   useView(): ModuleView {
     const { music, active } = useMusic();

@@ -43,7 +43,7 @@ fn settings_path() -> PathBuf {
 fn read_settings() -> Result<Value, String> {
     match std::fs::read_to_string(settings_path()) {
         Ok(text) if !text.trim().is_empty() => {
-            serde_json::from_str(&text).map_err(|e| format!("settings.json inválido: {e}"))
+            serde_json::from_str(&text).map_err(|e| format!("invalid settings.json: {e}"))
         }
         _ => Ok(json!({})),
     }
@@ -54,7 +54,7 @@ fn write_settings(settings: &Value) -> Result<(), String> {
     if path.exists() {
         let stamp = chrono::Local::now().format("%Y%m%d-%H%M%S");
         let backup = path.with_file_name(format!("settings.json.island-backup-{stamp}"));
-        std::fs::copy(&path, backup).map_err(|e| format!("backup falhou: {e}"))?;
+        std::fs::copy(&path, backup).map_err(|e| format!("backup failed: {e}"))?;
     } else if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir).map_err(|e| e.to_string())?;
     }
@@ -92,14 +92,14 @@ pub fn status() -> Integration {
 
 pub fn install() -> Result<(), String> {
     let mut settings = read_settings()?;
-    let root = settings.as_object_mut().ok_or("settings.json não é um objeto")?;
+    let root = settings.as_object_mut().ok_or("settings.json is not an object")?;
 
     // --- hooks ---------------------------------------------------------------
     let hooks = root.entry("hooks").or_insert_with(|| json!({}));
-    let hooks = hooks.as_object_mut().ok_or("\"hooks\" não é um objeto")?;
+    let hooks = hooks.as_object_mut().ok_or("\"hooks\" is not an object")?;
     for event in EVENTS {
         let groups = hooks.entry(*event).or_insert_with(|| json!([]));
-        let groups = groups.as_array_mut().ok_or("grupo de hooks inválido")?;
+        let groups = groups.as_array_mut().ok_or("invalid hooks group")?;
         let present = groups
             .iter()
             .any(|g| g["hooks"].as_array().is_some_and(|h| h.iter().any(is_our_hook)));

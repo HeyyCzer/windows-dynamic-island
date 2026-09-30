@@ -1,12 +1,14 @@
 import { AnimatePresence, motion } from "motion/react";
+import { useT } from "../../../../core/i18n";
 import { formatAgo, formatElapsed } from "../format";
 import type { AgentSessionRef } from "../types";
 import { StatusGlyph } from "./StatusGlyph";
 
-/** "Agora" list: every recent session across agents, busiest first. */
+/** "Now" list: every recent session across agents, busiest first. */
 export function SessionList({ items, now }: { items: AgentSessionRef[]; now: number }) {
+  const t = useT();
   if (!items.length) {
-    return <div className="agents-empty">Nenhuma sessão recente</div>;
+    return <div className="agents-empty">{t("agents.noSessions")}</div>;
   }
 
   return (
@@ -16,7 +18,7 @@ export function SessionList({ items, now }: { items: AgentSessionRef[]; now: num
           const running = session.status === "working" || session.status === "waiting";
           const time = running && session.turnStartedAt
             ? formatElapsed(now - session.turnStartedAt)
-            : formatAgo(session.finishedAt ?? session.lastEventAt, now);
+            : formatAgo(t, session.finishedAt ?? session.lastEventAt, now);
           return (
             <motion.li
               key={`${agent.id}:${session.id}`}
@@ -31,7 +33,7 @@ export function SessionList({ items, now }: { items: AgentSessionRef[]; now: num
               <span className="agents-session-title">{session.title || agent.name}</span>
               <span className="agents-session-activity">{session.activity}</span>
               {session.contextPct != null && (
-                <span className="agents-session-ctx" title="Contexto usado">
+                <span className="agents-session-ctx" title={t("agents.contextUsed")}>
                   {Math.round(session.contextPct)}%
                 </span>
               )}

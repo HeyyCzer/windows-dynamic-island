@@ -74,7 +74,7 @@ pub fn open(app: &AppHandle) -> tauri::Result<()> {
         return win.set_focus();
     }
     WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
-        .title("Dynamic Island — Configurações")
+        .title(crate::i18n::t(app, "window.settings"))
         .inner_size(560.0, 680.0)
         .min_inner_size(460.0, 420.0)
         .center()

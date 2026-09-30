@@ -1,4 +1,5 @@
 mod hub;
+mod i18n;
 mod providers;
 mod settings;
 mod tray;
@@ -22,6 +23,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .manage(window::HitState::default())
+        .manage(i18n::Locale::default())
         .setup(|app| {
             let handle = app.handle().clone();
             app.manage(settings::Settings::load(&handle));
@@ -55,6 +57,7 @@ pub fn run() {
             settings::open_settings,
             settings::get_autostart,
             settings::set_autostart,
+            i18n::set_locale,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

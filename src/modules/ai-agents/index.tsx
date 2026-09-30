@@ -30,7 +30,7 @@ const PRIORITY: Record<AgentStatus, number> = { waiting: 90, done: 70, working: 
 
 export const aiAgentsModule: IslandModule = {
   id: "ai-agents",
-  title: "AI Agents",
+  title: "agents.title",
   settings: Object.values(agentSettings),
   SettingsSection: () => (
     <>

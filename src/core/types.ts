@@ -1,4 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
+import type { MessageKey } from "./i18n";
 import type { SettingDef } from "./settings";
 
 /** What a module wants the island to render right now. */
@@ -29,7 +30,8 @@ export interface ModuleView {
 
 export interface IslandModule {
   id: string;
-  title: string;
+  /** Translation key of the tab / settings card title. */
+  title: MessageKey;
   /**
    * React hook returning the module's current view. Called on every render of
    * the island, in registry order, so it must follow the rules of hooks.

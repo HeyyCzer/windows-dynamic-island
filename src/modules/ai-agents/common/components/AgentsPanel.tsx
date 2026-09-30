@@ -1,3 +1,4 @@
+import { useT } from "../../../../core/i18n";
 import { useNow } from "../format";
 import type { AgentDefinition, AgentSessionRef, AgentSnapshot } from "../types";
 import { AgentCard } from "./AgentCard";
@@ -15,6 +16,7 @@ export function AgentsPanel({
 }) {
   const busy = sessions.some((s) => s.session.status === "working" || s.session.status === "waiting");
   const now = useNow(busy ? 1000 : 30_000);
+  const t = useT();
 
   return (
     <div className="agents-panel">
@@ -22,7 +24,7 @@ export function AgentsPanel({
         <AgentCard key={agent.id} agent={agent} snapshot={snapshots[i]} now={now} />
       ))}
       <div className="agents-now">
-        <span className="agents-section-label">Agora</span>
+        <span className="agents-section-label">{t("agents.now")}</span>
         <SessionList items={sessions} now={now} />
       </div>
     </div>

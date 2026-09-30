@@ -57,8 +57,8 @@ pub struct Session {
     pub project: String,
     pub cwd: String,
     pub status: Status,
-    /// Human description of what is happening ("Editando App.tsx").
-    pub activity: Option<String>,
+    /// What is happening right now (worded by the frontend).
+    pub activity: Option<activity::Activity>,
     pub tool: Option<String>,
     /// When the current (or last) turn started — drives the live timer.
     pub turn_started_at: Option<u64>,

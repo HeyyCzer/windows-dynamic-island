@@ -6,6 +6,7 @@ import { useIslandController, type ModuleEntry } from "../core/useIslandControll
 import type { IslandMode } from "../core/types";
 import { command } from "../core/bridge";
 import { GearIcon } from "./icons";
+import { useSyncLocale, useT } from "../core/i18n";
 
 const IDLE = { width: 150, height: 8, radius: 8, ear: 6 };
 const COMPACT = { width: 300, height: 38, radius: 19, ear: 10 };
@@ -35,6 +36,7 @@ export function Island() {
   const ctl = useIslandController(modules);
   const { mode, primary, secondary, focused } = ctl;
   useHitRects();
+  useSyncLocale();
 
   // Always shown when expanded: it also hosts the settings button.
   const showTabs = true;
@@ -148,6 +150,7 @@ function Tabs({
   current: string | null;
   onSelect: (id: string) => void;
 }) {
+  const t = useT();
   return (
     <div className="tabs">
       {entries.map(({ module, view }) => (
@@ -160,13 +163,13 @@ function Tabs({
             <motion.span layoutId="tab-pill" className="tab-pill" transition={shellSpring} />
           )}
           <span className="tab-icon">{view.icon}</span>
-          <span className="tab-label">{module.title}</span>
+          <span className="tab-label">{t(module.title)}</span>
           {view.active && <span className="tab-dot" />}
         </button>
       ))}
       <motion.button
         className="tab-gear"
-        title="Configurações"
+        title={t("island.settings")}
         whileHover={{ rotate: 45 }}
         whileTap={{ scale: 0.85 }}
         transition={{ type: "spring", stiffness: 300, damping: 15 }}

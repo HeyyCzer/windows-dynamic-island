@@ -9,11 +9,13 @@
 import { useSyncExternalStore } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { command, isTauri } from "./bridge";
+import type { MessageKey } from "./i18n";
 
 export interface SettingDef<T = boolean> {
   key: string;
-  label: string;
-  description?: string;
+  /** Translation keys (see `src/locales`). */
+  label: MessageKey;
+  description?: MessageKey;
   default: T;
 }
 
@@ -79,7 +81,7 @@ export function setSetting<T>(def: SettingDef<T> | string, value: T) {
 }
 
 /** Every module gets an on/off switch. */
-export const moduleEnabled = (id: string, title: string): SettingDef => ({
+export const moduleEnabled = (id: string, title: MessageKey): SettingDef => ({
   key: `module.${id}.enabled`,
   label: title,
   default: true,
@@ -88,14 +90,14 @@ export const moduleEnabled = (id: string, title: string): SettingDef => ({
 export const generalSettings = {
   hideInFullscreen: {
     key: "island.hideInFullscreen",
-    label: "Ocultar em tela cheia",
-    description: "Esconde a island quando um jogo, vídeo ou app está em tela cheia.",
+    label: "settings.hideInFullscreen.label",
+    description: "settings.hideInFullscreen.desc",
     default: true,
   },
   expandOnHover: {
     key: "island.expandOnHover",
-    label: "Expandir ao passar o mouse",
-    description: "Desligado: expande só com clique.",
+    label: "settings.expandOnHover.label",
+    description: "settings.expandOnHover.desc",
     default: true,
   },
 } satisfies Record<string, SettingDef>;

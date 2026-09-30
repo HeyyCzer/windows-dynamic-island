@@ -8,7 +8,7 @@ use std::io::Read;
 use serde_json::Value;
 use tiny_http::{Header, Method, Response, Server};
 
-use super::activity::{self, THINKING};
+use super::activity::{self, Activity};
 use super::{now_ms, statusline, Ctx, Source, Status, HOOK_PORT};
 
 pub const HOOK_PATH: &str = "/claude/hook";
@@ -74,7 +74,7 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
                     s.turn_started_at = Some(now);
                     s.finished_at = None;
                     s.tool = None;
-                    s.activity = Some(THINKING.into());
+                    s.activity = Some(Activity::thinking());
                 }
                 "PreToolUse" => {
                     start_turn_if_needed(s, now);
@@ -85,12 +85,12 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
                 "PostToolUse" | "PostToolUseFailure" => {
                     start_turn_if_needed(s, now);
                     s.status = Status::Working;
-                    s.activity = Some(THINKING.into());
+                    s.activity = Some(Activity::thinking());
                 }
                 "PermissionRequest" => {
                     s.status = Status::Waiting;
                     s.tool = Some(tool.to_string());
-                    s.activity = Some(format!("Permissão: {}", activity::describe(tool, &v["tool_input"])));
+                    s.activity = Some(activity::describe(tool, &v["tool_input"]).needs_permission());
                 }
                 "Notification" => {
                     let message = str_of("message");
@@ -99,14 +99,14 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
                         kind == "permission_prompt" || message.to_lowercase().contains("permission");
                     if asks_permission && s.status != Status::Waiting {
                         s.status = Status::Waiting;
-                        s.activity = Some(activity::truncate(message, 60));
+                        s.activity = Some(Activity::message(message));
                     }
                 }
                 "Stop" | "StopFailure" => {
                     s.status = Status::Done;
                     s.finished_at = Some(now);
                     s.tool = None;
-                    s.activity = Some(if event == "Stop" { "Concluído".into() } else { "Falhou".into() });
+                    s.activity = Some(Activity::new(if event == "Stop" { "done" } else { "failed" }));
                 }
                 _ => {}
             }

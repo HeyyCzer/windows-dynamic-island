@@ -1,0 +1,161 @@
+// English — the reference locale. Every other file in this folder should have
+// the same keys; anything missing falls back to the text here.
+//
+// - The file name is the language's BCP 47 code (`pt-BR.json5`, `es.json5`…).
+// - Nested objects become dotted keys: `settings.general` → t("settings.general").
+// - `{name}` placeholders are filled in by the code; keep them as is.
+{
+  language: {
+    // Shown in the language picker, written in the language itself.
+    name: "English",
+  },
+
+  // Settings window
+  settings: {
+    subtitle: "Settings",
+    general: "General",
+    autostart: {
+      label: "Start with Windows",
+      appOnly: "Only available in the app.",
+    },
+    language: {
+      label: "Language",
+      desc: "Defaults to your system language.",
+      // {language}: the detected system language's name
+      auto: "System ({language})",
+    },
+    hideInFullscreen: {
+      label: "Hide in fullscreen",
+      desc: "Hides the island while a game, video or app is fullscreen.",
+    },
+    expandOnHover: {
+      label: "Expand on hover",
+      desc: "When off, the island only expands on click.",
+    },
+  },
+
+  // Rendered by the backend (src-tauri/src/i18n.rs)
+  tray: {
+    settings: "Settings…",
+    autostart: "Start with Windows",
+    recenter: "Recenter",
+    quit: "Quit",
+  },
+  window: {
+    settings: "Dynamic Island — Settings",
+  },
+
+  // Island chrome
+  island: {
+    settings: "Settings",
+  },
+
+  // Music module
+  music: {
+    title: "Music",
+    nothingPlaying: "Nothing playing",
+    autoExpand: {
+      label: "Expand on track change",
+      desc: "Shows the artwork and title for a few seconds when a new track starts.",
+    },
+    visualizer: {
+      label: "Audio visualizer",
+      desc: "Animated bars that follow the music.",
+    },
+  },
+
+  // AI Agents module (agent-agnostic UI)
+  agents: {
+    title: "AI Agents",
+    peekOnWaiting: {
+      label: "Expand when an agent needs your attention",
+      desc: "A permission request or a question waiting for your answer.",
+    },
+    peekOnDone: {
+      label: "Expand when an agent finishes",
+    },
+    status: {
+      working: "Working",
+      waiting: "Waiting for you",
+      done: "Done",
+    },
+    now: "Now",
+    noSessions: "No recent sessions",
+    contextUsed: "Context used",
+    noLimits: "No limit data yet",
+    tokensToday: "Tokens today",
+    tokens: {
+      input: "Input",
+      output: "Output",
+      cacheRead: "Cache read",
+      cacheWrite: "Cache write",
+    },
+    limit: {
+      fiveHour: "Session · 5h",
+      sevenDay: "Week · 7d",
+      // {time}: e.g. "2h 14m"
+      resetsIn: "resets in {time}",
+    },
+    setup: {
+      busy: "Enabling…",
+      failed: "Failed — try again",
+    },
+  },
+
+  // Relative time
+  time: {
+    now: "now",
+    minutesAgo: "{n} min ago",
+    hoursAgo: "{n} h ago",
+    daysAgo: "{n} d ago",
+    lessThanMinute: "< 1 min",
+  },
+
+  // Claude Code agent
+  claude: {
+    limitsHint: {
+      installed: "Limits show up after Claude Code's next reply",
+      missing: "Enable the integration to see your plan limits",
+    },
+    setup: {
+      message: "Live status and plan limits via Claude Code hooks (settings.json is backed up first).",
+      serverDown: "Local server unavailable (is port 47823 in use?).",
+      action: "Enable integration",
+    },
+    integration: {
+      title: "Claude Code integration",
+      // {file}: path of Claude Code's settings file
+      desc: "HTTP hooks for live status + statusline for plan limits. Your current statusline keeps working. A backup of {file} is created on every change.",
+      enable: "Enable",
+      remove: "Remove",
+      server: "Local server :47823",
+      restart: "Claude Code sessions that are already open must be restarted to load the hooks.",
+    },
+  },
+
+  // What a Claude session is doing. Kinds come from
+  // src-tauri/src/providers/claude/activity.rs; {arg} is a file name,
+  // command, search pattern…
+  activity: {
+    thinking: "Thinking…",
+    run: "Running {arg}",
+    read: "Reading {arg}",
+    edit: "Editing {arg}",
+    write: "Writing {arg}",
+    grep: "Searching “{arg}”",
+    glob: "Looking for {arg}",
+    webSearch: "Searching the web for “{arg}”",
+    webFetch: "Reading {arg}",
+    subagent: "Subagent: {arg}",
+    todos: "Updating tasks",
+    skill: "Skill {arg}",
+    question: "Waiting for your answer",
+    plan: "Plan ready",
+    tool: "{arg}",
+    message: "{arg}",
+    done: "Done",
+    failed: "Failed",
+    // {what}: one of the activities above
+    permission: "Permission: {what}",
+  },
+}

@@ -1,9 +1,11 @@
 import { motion } from "motion/react";
+import { useT } from "../../../../core/i18n";
 import { formatIn } from "../format";
 import type { UsageLimit } from "../types";
 
 /** Plan-limit meter: label, % used, animated bar and reset countdown. */
 export function LimitBar({ limit, color, now }: { limit: UsageLimit; color: string; now: number }) {
+  const t = useT();
   const pct = Math.max(0, Math.min(100, limit.usedPct));
   const tone = pct >= 90 ? "#ff5f57" : pct >= 75 ? "#ffbd2e" : color;
 
@@ -25,7 +27,7 @@ export function LimitBar({ limit, color, now }: { limit: UsageLimit; color: stri
         />
       </div>
       {limit.resetsAt && limit.resetsAt > now && (
-        <span className="agents-limit-reset">reseta em {formatIn(limit.resetsAt, now)}</span>
+        <span className="agents-limit-reset">{t("agents.limit.resetsIn", { time: formatIn(t, limit.resetsAt, now) })}</span>
       )}
     </div>
   );

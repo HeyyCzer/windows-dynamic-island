@@ -23,7 +23,7 @@ export interface AgentSession {
   /** Usually the project folder name. */
   title: string;
   status: AgentStatus;
-  /** What it's doing right now ("Editando App.tsx"). */
+  /** What it's doing right now, already translated ("Editing App.tsx"). */
   activity?: string | null;
   /** Unix ms — start of the current/last turn, drives the live timer. */
   turnStartedAt?: number | null;

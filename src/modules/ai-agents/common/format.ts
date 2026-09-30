@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import type { Translate } from "../../../core/i18n";
 
 export function formatTokens(n: number) {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(1)}B`;
@@ -16,20 +17,20 @@ export function formatElapsed(ms: number) {
   return h ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
-export function formatAgo(ms: number, now = Date.now()) {
+export function formatAgo(t: Translate, ms: number, now = Date.now()) {
   const d = Math.max(0, now - ms);
-  if (d < 45_000) return "agora";
+  if (d < 45_000) return t("time.now");
   const m = Math.round(d / 60_000);
-  if (m < 60) return `há ${m} min`;
+  if (m < 60) return t("time.minutesAgo", { n: m });
   const h = Math.round(m / 60);
-  if (h < 24) return `há ${h} h`;
-  return `há ${Math.round(h / 24)} d`;
+  if (h < 24) return t("time.hoursAgo", { n: h });
+  return t("time.daysAgo", { n: Math.round(h / 24) });
 }
 
-export function formatIn(ms: number, now = Date.now()) {
+export function formatIn(t: Translate, ms: number, now = Date.now()) {
   const d = Math.max(0, ms - now);
   const m = Math.round(d / 60_000);
-  if (m < 1) return "< 1 min";
+  if (m < 1) return t("time.lessThanMinute");
   if (m < 60) return `${m} min`;
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h ${String(m % 60).padStart(2, "0")}m`;

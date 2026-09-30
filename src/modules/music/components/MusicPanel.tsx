@@ -5,6 +5,7 @@ import { formatTime, musicAction, useLivePosition, type MusicState } from "../ho
 import { Artwork } from "./Artwork";
 import { Controls } from "./Controls";
 import { Visualizer } from "./Visualizer";
+import { useT } from "../../../core/i18n";
 
 /** Expanded now-playing panel. */
 export function MusicPanel({
@@ -17,12 +18,13 @@ export function MusicPanel({
   showVisualizer?: boolean;
 }) {
   const position = useLivePosition(music);
+  const t = useT();
 
   if (!music?.available) {
     return (
       <div className="music-empty">
         <MusicIcon size={26} />
-        <span>Nada tocando</span>
+        <span>{t("music.nothingPlaying")}</span>
       </div>
     );
   }

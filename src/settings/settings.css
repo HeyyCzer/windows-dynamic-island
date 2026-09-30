@@ -147,6 +147,31 @@ body:has(.settings) {
   color: #ff6b63;
 }
 
+.settings-select {
+  flex: none;
+  height: 32px;
+  padding: 0 32px 0 12px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08)
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23aaa' stroke-width='1.6' stroke-linecap='round'/></svg>")
+    no-repeat right 12px center;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  appearance: none;
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--hairline);
+}
+.settings-select:focus-visible {
+  outline: 2px solid #d97757;
+  outline-offset: 1px;
+}
+.settings-select option {
+  background: #1c1c22;
+  color: #fff;
+}
+
 /* switch */
 .toggle {
   position: relative;

@@ -17,7 +17,7 @@ use std::time::{Duration, UNIX_EPOCH};
 use chrono::{DateTime, Local, NaiveDate};
 use serde_json::Value;
 
-use super::activity::{self, THINKING};
+use super::activity::{self, Activity};
 use super::integration::claude_dir;
 use super::{now_ms, project_name, Ctx, Source, Status, TokenStats};
 
@@ -36,7 +36,7 @@ struct FileState {
     ended: bool,
     last_ts: u64,
     turn_started_at: Option<u64>,
-    activity: Option<String>,
+    activity: Option<Activity>,
 }
 
 pub fn scan_loop(ctx: Ctx) {
@@ -170,7 +170,7 @@ fn process_line(v: &Value, st: &mut FileState, today: NaiveDate, seen: &mut Hash
             {
                 st.activity = Some(activity::describe(tool["name"].as_str().unwrap_or(""), &tool["input"]));
             } else if !st.ended {
-                st.activity = Some(THINKING.into());
+                st.activity = Some(Activity::thinking());
             }
         }
         Some("user") => {
@@ -183,7 +183,7 @@ fn process_line(v: &Value, st: &mut FileState, today: NaiveDate, seen: &mut Hash
                     .is_some_and(|c| c.iter().any(|b| b["type"] == "text"));
             if is_prompt && !v["isMeta"].as_bool().unwrap_or(false) {
                 st.turn_started_at = ts_ms;
-                st.activity = Some(THINKING.into());
+                st.activity = Some(Activity::thinking());
             }
         }
         _ => {}
@@ -205,7 +205,7 @@ fn apply_sessions(store: &mut super::Store, files: &HashMap<PathBuf, FileState>)
             continue; // hooks are authoritative
         }
         let (status, activity) = if st.ended {
-            (Status::Done, Some("Concluído".to_string()))
+            (Status::Done, Some(Activity::new("done")))
         } else if now.saturating_sub(st.mtime) < WORKING_WINDOW_MS {
             (Status::Working, st.activity.clone())
         } else {

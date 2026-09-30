@@ -1,23 +1,33 @@
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::{AppHandle, Manager};
+use tauri::{AppHandle, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
 
+use crate::i18n;
 use crate::window::{position_top_center, ISLAND_LABEL};
 
+/// Menu items kept around so their labels can follow the UI language.
+struct TrayItems {
+    settings: MenuItem<Wry>,
+    autostart: CheckMenuItem<Wry>,
+    recenter: MenuItem<Wry>,
+    quit: MenuItem<Wry>,
+}
+
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
+    let t = |key| i18n::t(app, key);
     let autostart_on = app.autolaunch().is_enabled().unwrap_or(false);
     let autostart = CheckMenuItem::with_id(
         app,
         "autostart",
-        "Iniciar com o Windows",
+        t("tray.autostart"),
         true,
         autostart_on,
         None::<&str>,
     )?;
-    let settings = MenuItem::with_id(app, "settings", "Configurações…", true, None::<&str>)?;
-    let recenter = MenuItem::with_id(app, "recenter", "Recentralizar", true, None::<&str>)?;
-    let quit = MenuItem::with_id(app, "quit", "Sair", true, None::<&str>)?;
+    let settings = MenuItem::with_id(app, "settings", t("tray.settings"), true, None::<&str>)?;
+    let recenter = MenuItem::with_id(app, "recenter", t("tray.recenter"), true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", t("tray.quit"), true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
         &[
@@ -28,6 +38,12 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             &quit,
         ],
     )?;
+    app.manage(TrayItems {
+        settings: settings.clone(),
+        autostart: autostart.clone(),
+        recenter: recenter.clone(),
+        quit: quit.clone(),
+    });
 
     let mut builder = TrayIconBuilder::with_id("main")
         .tooltip("Dynamic Island")
@@ -60,6 +76,18 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     }
     builder.build(app)?;
     Ok(())
+}
+
+/// Re-apply labels after the UI language changed.
+pub fn relabel(app: &AppHandle) {
+    let Some(items) = app.try_state::<TrayItems>() else {
+        return;
+    };
+    let t = |key| i18n::t(app, key);
+    let _ = items.settings.set_text(t("tray.settings"));
+    let _ = items.autostart.set_text(t("tray.autostart"));
+    let _ = items.recenter.set_text(t("tray.recenter"));
+    let _ = items.quit.set_text(t("tray.quit"));
 }
 
 /// Register autostart the first time the installed app runs.
