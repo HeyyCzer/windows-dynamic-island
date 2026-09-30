@@ -55,6 +55,8 @@ export interface AgentSnapshot {
   limits: UsageLimit[];
   /** Shown when `limits` is empty. */
   limitsHint?: string;
+  /** Called (throttled by the backend) while the agent's card is on screen. Must be stable. */
+  refreshLimits?: () => void;
   tokensToday?: TokenUsage;
   model?: string | null;
   /** Call-to-action when the integration needs to be set up. */

@@ -1,15 +1,26 @@
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useT } from "../../../../core/i18n";
 import { formatTokens } from "../format";
 import type { AgentDefinition, AgentSnapshot } from "../types";
 import { LimitBar } from "./LimitBar";
+
+const LIMITS_REFRESH_MS = 2 * 60_000;
 
 /** One agent's summary: plan limits on the left, today's tokens on the right. */
 export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; snapshot: AgentSnapshot; now: number }) {
   const tr = useT();
   const t = snapshot.tokensToday;
   const total = t ? t.input + t.output + t.cacheRead + t.cacheWrite : 0;
+
+  // The card is only mounted while the panel is visible.
+  const { refreshLimits } = snapshot;
+  useEffect(() => {
+    if (!refreshLimits) return;
+    refreshLimits();
+    const id = setInterval(refreshLimits, LIMITS_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [refreshLimits]);
 
   return (
     <div className="agents-card" style={{ "--agent": agent.color } as React.CSSProperties}>

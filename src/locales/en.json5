@@ -129,8 +129,7 @@
   // Claude Code agent
   claude: {
     limitsHint: {
-      installed: "Limits show up after Claude Code's next reply",
-      missing: "Enable the integration to see your plan limits",
+      loading: "Loading plan limits…",
     },
     setup: {
       message: "Live status and plan limits via Claude Code hooks (settings.json is backed up first).",

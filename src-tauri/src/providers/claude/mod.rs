@@ -5,6 +5,8 @@
 //!   local HTTP server → real-time "working / waiting / done" + current tool.
 //! - **statusline** (`statusline.rs`): the statusline payload carries the plan
 //!   `rate_limits` (5h / 7d), model and context usage.
+//! - **usage** (`usage.rs`): plan limits from Anthropic on demand, for when the
+//!   statusline never runs (IDE extensions).
 //! - **transcripts** (`transcripts.rs`): the JSONL logs give today's token
 //!   totals, and a best-effort status when hooks aren't installed.
 //!
@@ -15,6 +17,7 @@ mod hooks;
 pub mod integration;
 pub mod statusline;
 mod transcripts;
+mod usage;
 
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -215,6 +218,10 @@ impl Provider for ClaudeProvider {
             "install" => integration::install()?,
             "uninstall" => integration::uninstall()?,
             "refresh" => {}
+            "refreshLimits" => {
+                usage::request(&ctx, usage::VIEW_MIN_AGE_MS);
+                return Ok(Value::Null);
+            }
             _ => return Err(format!("claude: unknown action '{action}'")),
         }
         {

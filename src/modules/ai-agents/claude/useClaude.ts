@@ -37,6 +37,8 @@ interface Activity {
 
 const PROVIDER = "claude";
 
+const refreshLimits = () => void providerAction(PROVIDER, "refreshLimits").catch(() => {});
+
 export function useClaude(): AgentSnapshot {
   const state = useProvider<ClaudeState>(PROVIDER);
   const t = useT();
@@ -55,9 +57,8 @@ export function useClaude(): AgentSnapshot {
     model: state.model,
     tokensToday: state.tokensToday,
     limits,
-    limitsHint: installed
-      ? t("claude.limitsHint.installed")
-      : t("claude.limitsHint.missing"),
+    limitsHint: t("claude.limitsHint.loading"),
+    refreshLimits,
     sessions: state.sessions.map((s) => ({
       id: s.id,
       title: s.project,

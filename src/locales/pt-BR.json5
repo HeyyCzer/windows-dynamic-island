@@ -119,8 +119,7 @@
   // Claude Code
   claude: {
     limitsHint: {
-      installed: "Limites aparecem na próxima resposta do Claude Code",
-      missing: "Ative a integração para ver os limites do plano",
+      loading: "Carregando limites do plano…",
     },
     setup: {
       message: "Status em tempo real e limites do plano via hooks do Claude Code (backup do settings.json é criado).",

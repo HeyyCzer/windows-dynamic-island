@@ -9,7 +9,7 @@ use serde_json::Value;
 use tiny_http::{Header, Method, Response, Server};
 
 use super::activity::{self, Activity};
-use super::{now_ms, statusline, Ctx, Source, Status, HOOK_PORT};
+use super::{now_ms, statusline, usage, Ctx, Source, Status, HOOK_PORT};
 
 pub const HOOK_PATH: &str = "/claude/hook";
 pub const STATUSLINE_PATH: &str = "/claude/statusline";
@@ -113,6 +113,11 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
         }
     }
     ctx.publish();
+
+    // A session starting or a turn ending is when the plan usage moves.
+    if matches!(event, "SessionStart" | "Stop") {
+        usage::request(ctx, usage::HOOK_MIN_AGE_MS);
+    }
 }
 
 fn start_turn_if_needed(s: &mut super::Session, now: u64) {

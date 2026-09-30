@@ -83,7 +83,7 @@ pub fn load_limits() -> Option<Limits> {
     serde_json::from_str(&text).ok()
 }
 
-fn save_limits(limits: &Limits) {
+pub fn save_limits(limits: &Limits) {
     let dir = config_dir();
     let _ = std::fs::create_dir_all(&dir);
     if let Ok(text) = serde_json::to_string(limits) {
