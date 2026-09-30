@@ -95,3 +95,7 @@ git push --follow-tags
 ```
 
 The tag triggers [the release workflow](.github/workflows/release.yml), which builds the installers and publishes them as a GitHub release.
+
+## License
+
+Copyright © HeyyCzer. Licensed under the [GNU General Public License v3.0](LICENSE) or later.

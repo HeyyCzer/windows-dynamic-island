@@ -2,6 +2,7 @@
   "name": "windows-dynamic-island",
   "private": true,
   "version": "0.1.2",
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite",
