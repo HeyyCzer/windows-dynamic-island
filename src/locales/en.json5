@@ -42,6 +42,8 @@
 
   // Rendered by the backend (src-tauri/src/i18n.rs)
   tray: {
+    // {version}: the new version, e.g. 1.2.3
+    update: "Restart to update to v{version}",
     settings: "Settings…",
     autostart: "Start with Windows",
     recenter: "Recenter",

@@ -36,6 +36,7 @@
 
   // Renderizado pelo backend (src-tauri/src/i18n.rs)
   tray: {
+    update: "Reiniciar para atualizar para v{version}",
     settings: "Configurações…",
     autostart: "Iniciar com o Windows",
     recenter: "Recentralizar",

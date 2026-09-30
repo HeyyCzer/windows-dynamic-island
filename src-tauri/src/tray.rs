@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::{AppHandle, Manager, Wry};
@@ -8,6 +10,9 @@ use crate::window::{position_top_center, ISLAND_LABEL};
 
 /// Menu items kept around so their labels can follow the UI language.
 struct TrayItems {
+    menu: Menu<Wry>,
+    /// Added once an update is downloaded, with its version.
+    update: Mutex<Option<(MenuItem<Wry>, String)>>,
     settings: MenuItem<Wry>,
     autostart: CheckMenuItem<Wry>,
     recenter: MenuItem<Wry>,
@@ -39,6 +44,8 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         ],
     )?;
     app.manage(TrayItems {
+        menu: menu.clone(),
+        update: Mutex::default(),
         settings: settings.clone(),
         autostart: autostart.clone(),
         recenter: recenter.clone(),
@@ -68,6 +75,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                     let _ = position_top_center(&win);
                 }
             }
+            "update" => crate::updater::install(app),
             "quit" => app.exit(0),
             _ => {}
         });
@@ -88,6 +96,35 @@ pub fn relabel(app: &AppHandle) {
     let _ = items.autostart.set_text(t("tray.autostart"));
     let _ = items.recenter.set_text(t("tray.recenter"));
     let _ = items.quit.set_text(t("tray.quit"));
+    if let Some((item, version)) = &*items.update.lock().unwrap() {
+        let _ = item.set_text(update_label(app, version));
+    }
+}
+
+/// Offer a downloaded update at the top of the menu.
+pub fn show_update(app: &AppHandle, version: &str) {
+    let Some(items) = app.try_state::<TrayItems>() else {
+        return;
+    };
+    let mut update = items.update.lock().unwrap();
+    if let Some((item, current)) = &mut *update {
+        *current = version.to_string();
+        let _ = item.set_text(update_label(app, version));
+        return;
+    }
+    let Ok(item) = MenuItem::with_id(app, "update", update_label(app, version), true, None::<&str>)
+    else {
+        return;
+    };
+    let _ = items.menu.insert(&item, 0);
+    if let Ok(separator) = PredefinedMenuItem::separator(app) {
+        let _ = items.menu.insert(&separator, 1);
+    }
+    *update = Some((item, version.to_string()));
+}
+
+fn update_label(app: &AppHandle, version: &str) -> String {
+    i18n::t(app, "tray.update").replace("{version}", version)
 }
 
 /// Register autostart the first time the installed app runs.

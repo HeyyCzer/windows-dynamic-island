@@ -37,6 +37,10 @@ jobs:
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Signs the updater artifacts; the app checks them against the
+          # `plugins.updater.pubkey` in tauri.conf.json.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tauriScript: bun tauri
           tagName: v__VERSION__
@@ -44,5 +48,8 @@ jobs:
           releaseBody: |
             Download **`Dynamic.Island_*_x64-setup.exe`** and run it (installs for the current user, no admin needed).
             The `.msi` is there for managed installs.
+          # `latest.json` is what installed apps poll to find updates.
+          uploadUpdaterJson: true
+          updaterJsonPreferNsis: true
           releaseDraft: false
           prerelease: false

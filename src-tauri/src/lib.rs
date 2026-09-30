@@ -3,6 +3,7 @@ mod i18n;
 mod providers;
 mod settings;
 mod tray;
+mod updater;
 mod window;
 
 use std::sync::Arc;
@@ -22,6 +23,7 @@ pub fn run() {
             let _ = settings::open(app);
         }))
         .plugin(tauri_plugin_autostart::Builder::new().build())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(window::HitState::default())
         .manage(i18n::Locale::default())
         .setup(|app| {
@@ -45,6 +47,7 @@ pub fn run() {
 
             tray::setup(&handle)?;
             tray::enable_autostart_on_first_run(&handle);
+            updater::spawn(handle.clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

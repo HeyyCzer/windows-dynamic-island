@@ -16,6 +16,7 @@ export type MessageKey =
   | "settings.hideInFullscreen.desc"
   | "settings.expandOnHover.label"
   | "settings.expandOnHover.desc"
+  | "tray.update"
   | "tray.settings"
   | "tray.autostart"
   | "tray.recenter"
