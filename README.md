@@ -20,7 +20,9 @@ An iPhone-style Dynamic Island that lives at the top of your Windows desktop —
 - Play/pause, previous and next
 - Audio visualizer that follows the music
 
-<img src="docs/screenshots/music.png" width="700" alt="Expanded music panel" />
+<p align="center">
+  <img src="docs/screenshots/music.png" width="700" alt="Expanded music panel" />
+</p>
 
 **AI Agents** — live status of your [Claude Code](https://claude.com/claude-code) sessions.
 
@@ -29,7 +31,9 @@ An iPhone-style Dynamic Island that lives at the top of your Windows desktop —
 - Tokens used today
 - Optionally pops open when an agent needs your attention or finishes
 
-<img src="docs/screenshots/agents.png" width="700" alt="Expanded AI Agents panel with Claude Code sessions" />
+<p align="center">
+  <img src="docs/screenshots/agents.png" width="700" alt="Expanded AI Agents panel with Claude Code sessions" />
+</p>
 
 **And also**
 
@@ -38,7 +42,9 @@ An iPhone-style Dynamic Island that lives at the top of your Windows desktop —
 - Starts with Windows, lives in the tray
 - English and Portuguese (Brazil), following your system language by default
 
-<img src="docs/screenshots/settings.png" width="520" alt="Settings window" />
+<p align="center">
+  <img src="docs/screenshots/settings.png" width="520" alt="Settings window" />
+</p>
 
 ## Install
 
