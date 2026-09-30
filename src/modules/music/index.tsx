@@ -6,8 +6,8 @@
 import { MusicIcon } from "../../components/icons";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { Artwork } from "./components/Artwork";
+import { MusicCompactLeft, MusicCompactRight } from "./components/MusicCompact";
 import { MusicPanel } from "./components/MusicPanel";
-import { Visualizer } from "./components/Visualizer";
 import { useAccentColor } from "./hooks/useAccentColor";
 import { useMusic } from "./hooks/useMusic";
 import { musicSettings } from "./settings";
@@ -30,8 +30,9 @@ export const musicModule: IslandModule = {
       priority: music?.playing ? 50 : 10,
       icon: <Artwork src={music?.thumbnail} size={22} radius={11} />,
       compact: music && {
-        left: <Artwork src={music.thumbnail} size={24} radius={7} trackKey={music.title} />,
-        right: showVisualizer ? <Visualizer playing={music.playing} color={accent} /> : null,
+        left: <MusicCompactLeft music={music} />,
+        right: <MusicCompactRight music={music} accent={accent} showVisualizer={showVisualizer} />,
+        width: 340,
       },
       expanded: <MusicPanel music={music} accent={accent} showVisualizer={showVisualizer} />,
       expandedSize: { width: 560, height: 176 },
