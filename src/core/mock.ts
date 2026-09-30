@@ -30,6 +30,7 @@ export function startMock() {
 
   publish();
   setInterval(publish, 1000);
+  publishClaude(start);
   setInterval(() => {
     if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
   }, 33);
@@ -40,5 +41,63 @@ export function startMock() {
       playing = !playing;
       publish();
     }
+  });
+}
+
+function publishClaude(now: number) {
+  const sec = (s: number) => Math.floor((now + s * 1000) / 1000);
+  publishLocal("claude", {
+    sessions: [
+      {
+        id: "a",
+        project: "dynamic-island",
+        cwd: "~/projects/dynamic-island",
+        status: "working",
+        activity: "Editando Island.tsx",
+        tool: "Edit",
+        turnStartedAt: now - 84_000,
+        finishedAt: null,
+        lastEventAt: now,
+        model: "Opus",
+        contextPct: 42,
+        source: "hooks",
+      },
+      {
+        id: "b",
+        project: "api-server",
+        cwd: "~/projects/api-server",
+        status: "waiting",
+        activity: "Aguardando permissão · Bash",
+        tool: "Bash",
+        turnStartedAt: now - 310_000,
+        finishedAt: null,
+        lastEventAt: now - 20_000,
+        model: "Sonnet",
+        contextPct: 18,
+        source: "hooks",
+      },
+      {
+        id: "c",
+        project: "landing-page",
+        cwd: "~/projects/landing-page",
+        status: "done",
+        activity: null,
+        tool: null,
+        turnStartedAt: now - 900_000,
+        finishedAt: now - 600_000,
+        lastEventAt: now - 600_000,
+        model: "Opus",
+        contextPct: 67,
+        source: "transcript",
+      },
+    ],
+    limits: {
+      fiveHour: { usedPct: 38, resetsAt: sec(2 * 3600 + 14 * 60) },
+      sevenDay: { usedPct: 61, resetsAt: sec(3 * 86400) },
+      updatedAt: now,
+    },
+    model: "Opus",
+    tokensToday: { input: 184_000, output: 92_500, cacheRead: 4_200_000, cacheWrite: 310_000, messages: 146 },
+    integration: { hooks: true, statusline: true, serverOk: true },
   });
 }
