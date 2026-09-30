@@ -129,6 +129,59 @@
     },
   },
 
+  // GitHub module
+  github: {
+    title: "GitHub",
+    openIssues: "Open issues",
+    refresh: "Refresh",
+    loading: "Updating…",
+    // {time}: relative time, e.g. "5 min ago"
+    updated: "Updated {time}",
+    // {time}: clock time, e.g. 14:05
+    rateLimited: "Rate limited until {time}",
+    empty: "No repositories yet",
+    addInSettings: "Add one in settings",
+    newIssue: "New",
+    noIssues: "No open issues",
+    showBubble: {
+      label: "Side bubble",
+      desc: "Shows the total of open issues next to the island.",
+    },
+    peekOnNew: {
+      label: "Expand on new issue",
+      desc: "Opens the island for a few seconds when someone opens an issue.",
+    },
+    error: {
+      notFound: "Not found or no access",
+      unauthorized: "Token rejected by GitHub",
+      rateLimited: "Rate limited",
+      network: "Offline",
+      http: "GitHub error",
+    },
+    repos: {
+      title: "Repositories",
+      desc: "Type owner/repo or paste a GitHub link. Counts refresh every 5 minutes.",
+      placeholder: "owner/repo",
+      add: "Add",
+      remove: "Remove",
+      invalid: "Use owner/repo or a github.com link.",
+      duplicate: "Already added.",
+    },
+    account: {
+      title: "GitHub account",
+      // {login}: GitHub username
+      token: "Signed in as {login} with a token.",
+      gh: "Using the GitHub CLI login ({login}).",
+      none: "Not signed in: public repositories only, with a lower rate limit. A GitHub CLI login is picked up automatically.",
+      rejected: "The saved token was rejected by GitHub.",
+      placeholder: "Personal access token",
+      save: "Save",
+      remove: "Remove token",
+      stored: "Kept in the Windows Credential Manager, never in the settings file.",
+      create: "Create a token",
+    },
+  },
+
   // Relative time
   time: {
     now: "now",

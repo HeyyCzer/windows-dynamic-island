@@ -1,0 +1,242 @@
+/* GitHub module styles (island + settings window). */
+
+/* --- side bubble ----------------------------------------------------------- */
+/* Bottom corner: the bubble touches the top edge of the screen. */
+.gh-badge {
+  position: absolute;
+  bottom: -4px;
+  right: -6px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 750;
+  color: #fff;
+  background: #238636;
+  box-shadow: 0 0 0 2px var(--island);
+}
+.gh-badge.is-new {
+  background: #d29922;
+  animation: gh-pulse 1.6s ease-in-out infinite;
+}
+@keyframes gh-pulse {
+  50% {
+    box-shadow:
+      0 0 0 2px var(--island),
+      0 0 0 5px rgba(210, 153, 34, 0.35);
+  }
+}
+
+/* --- panel ----------------------------------------------------------------- */
+.gh-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+.gh-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 22px;
+  flex: none;
+}
+.gh-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.gh-meta {
+  flex: 1;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.gh-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  transition: color 0.2s, background 0.2s;
+}
+.gh-icon-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+}
+.gh-icon-btn.is-spinning svg {
+  animation: gh-spin 0.9s linear infinite;
+}
+@keyframes gh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.gh-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.gh-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 12px;
+  text-align: left;
+  transition: background 0.15s;
+}
+.gh-row:hover {
+  background: var(--card);
+}
+.gh-row.is-new {
+  background: rgba(210, 153, 34, 0.1);
+}
+.gh-row-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.gh-repo,
+.gh-sub {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gh-repo {
+  font-size: 13px;
+  font-weight: 650;
+}
+.gh-owner {
+  font-weight: 500;
+  color: var(--text-dim);
+}
+.gh-sub {
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+.gh-sub.is-error {
+  color: #ff6b63;
+}
+.gh-new-tag {
+  margin-right: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 750;
+  text-transform: uppercase;
+  color: #000;
+  background: #d29922;
+}
+.gh-count {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: #3fb950;
+}
+.gh-count.is-zero {
+  color: var(--text-faint);
+}
+
+.gh-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.gh-link {
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--accent);
+}
+.gh-link:hover {
+  text-decoration: underline;
+}
+
+/* --- settings window ------------------------------------------------------- */
+.gh-divider {
+  height: 1px;
+  margin: 0 0 4px;
+  background: var(--hairline);
+}
+.gh-add {
+  display: flex;
+  gap: 8px;
+}
+.gh-add .settings-input {
+  flex: 1;
+}
+.gh-repo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.gh-repo-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 6px 0 12px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.gh-repo-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 550;
+}
+.gh-repo-status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #3fb950;
+}
+.gh-repo-status.is-error {
+  color: #ff6b63;
+  font-weight: 500;
+}
+.gh-remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  transition: color 0.2s, background 0.2s;
+}
+.gh-remove:hover {
+  color: #ff6b63;
+  background: rgba(255, 95, 87, 0.12);
+}
+.settings-desc.gh-warn {
+  color: #ffbd2e;
+}

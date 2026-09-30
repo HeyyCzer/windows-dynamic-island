@@ -1,5 +1,6 @@
 import type { IslandModule } from "../core/types";
 import { aiAgentsModule } from "./ai-agents";
+import { githubModule } from "./github";
 import { musicModule } from "./music";
 
 /**
@@ -10,4 +11,4 @@ import { musicModule } from "./music";
  * If it needs data from the OS, add a matching provider in
  * `src-tauri/src/providers/<name>/`.
  */
-export const modules: IslandModule[] = [musicModule, aiAgentsModule];
+export const modules: IslandModule[] = [musicModule, aiAgentsModule, githubModule];

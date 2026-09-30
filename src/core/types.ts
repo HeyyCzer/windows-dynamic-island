@@ -17,6 +17,12 @@ export interface ModuleView {
     /** Pill width in px (default 300). */
     width?: number;
   };
+  /**
+   * Persistent bubble on the island's left while it is collapsed, shown even
+   * when the module isn't `active` (e.g. a counter). Clicking it opens the
+   * module's tab.
+   */
+  ambient?: ReactNode;
   /** Full panel shown on hover / peek. */
   expanded: ReactNode;
   /** Panel size in px (default 560×190). */

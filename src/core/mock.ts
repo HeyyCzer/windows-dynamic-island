@@ -31,6 +31,7 @@ export function startMock() {
   publish();
   setInterval(publish, 1000);
   publishClaude(start);
+  publishGithub(start);
   setInterval(() => {
     if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
   }, 33);
@@ -99,5 +100,30 @@ function publishClaude(now: number) {
     model: "Opus",
     tokensToday: { input: 184_000, output: 92_500, cacheRead: 4_200_000, cacheWrite: 310_000, messages: 146 },
     integration: { hooks: true, statusline: true, serverOk: true },
+  });
+}
+
+function publishGithub(now: number) {
+  const issue = (number: number, title: string, repo: string) => ({
+    number,
+    title,
+    url: `https://github.com/${repo}/issues/${number}`,
+    author: "octocat",
+    createdAt: new Date(now - 3_600_000).toISOString(),
+  });
+  const newest = issue(128, "Island flickers when switching monitors", "HeyyCzer/windows-dynamic-island");
+  publishLocal("github", {
+    repos: [
+      { name: "HeyyCzer/windows-dynamic-island", openIssues: 7, latest: newest, error: null },
+      { name: "tauri-apps/tauri", openIssues: 1284, latest: issue(14210, "[bug] Webview2 crash on resume", "tauri-apps/tauri"), error: null },
+      { name: "someone/private-thing", openIssues: null, latest: null, error: "notFound" },
+    ],
+    auth: "gh",
+    login: "octocat",
+    authError: false,
+    rateLimitedUntil: null,
+    loading: false,
+    updatedAt: now - 90_000,
+    newIssue: { repo: "HeyyCzer/windows-dynamic-island", issue: newest, seenAt: now },
   });
 }
