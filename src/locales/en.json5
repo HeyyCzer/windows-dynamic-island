@@ -181,6 +181,7 @@
     message: "{arg}",
     done: "Done",
     failed: "Failed",
+    interrupted: "Interrupted",
     // {what}: one of the activities above
     permission: "Permission: {what}",
   },

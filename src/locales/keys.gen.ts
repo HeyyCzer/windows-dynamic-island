@@ -96,4 +96,5 @@ export type MessageKey =
   | "activity.message"
   | "activity.done"
   | "activity.failed"
+  | "activity.interrupted"
   | "activity.permission";

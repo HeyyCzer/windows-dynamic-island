@@ -22,18 +22,27 @@ use super::integration::claude_dir;
 use super::{now_ms, project_name, Ctx, Source, Status, TokenStats};
 
 const SCAN_EVERY: Duration = Duration::from_secs(3);
-/// A transcript untouched for this long can't be "working" anymore.
+/// A transcript with no new message for this long can't be "working" anymore.
 const WORKING_WINDOW_MS: u64 = 60_000;
 /// Only surface transcript-derived sessions active this recently.
 const RECENT_MS: u64 = 30 * 60_000;
 
+/// How the last turn ended, as logged in the transcript.
+#[derive(Clone, Copy)]
+struct TurnEnd {
+    /// Activity kind: "done", "failed" or "interrupted".
+    kind: &'static str,
+    at: u64,
+}
+
 #[derive(Default)]
 struct FileState {
     offset: u64,
-    mtime: u64,
     session_id: String,
     cwd: String,
-    ended: bool,
+    end: Option<TurnEnd>,
+    /// Latest message timestamp. Not the file mtime: Claude Code keeps
+    /// appending untimestamped bookkeeping lines to idle sessions.
     last_ts: u64,
     turn_started_at: Option<u64>,
     activity: Option<Activity>,
@@ -69,7 +78,6 @@ pub fn scan_loop(ctx: Ctx) {
                 continue;
             }
             let st = files.entry(path.clone()).or_default();
-            st.mtime = mtime;
             if meta.len() < st.offset {
                 st.offset = 0; // rewritten
             }
@@ -163,25 +171,42 @@ fn process_line(v: &Value, st: &mut FileState, today: NaiveDate, seen: &mut Hash
                     totals.messages += 1;
                 }
             }
-            st.ended = msg["stop_reason"].as_str() == Some("end_turn");
+            // Errors (auth, network, overload…) are logged as a synthetic
+            // assistant message, and no Stop hook fires for them.
+            let kind = if v["isApiErrorMessage"].as_bool().unwrap_or(false) {
+                Some("failed")
+            } else {
+                matches!(msg["stop_reason"].as_str(), Some("end_turn" | "stop_sequence" | "refusal")).then_some("done")
+            };
+            st.end = kind.map(|kind| TurnEnd { kind, at: ts_ms.unwrap_or(st.last_ts) });
             if let Some(tool) = msg["content"]
                 .as_array()
                 .and_then(|c| c.iter().rev().find(|b| b["type"] == "tool_use"))
             {
                 st.activity = Some(activity::describe(tool["name"].as_str().unwrap_or(""), &tool["input"]));
-            } else if !st.ended {
+            } else if st.end.is_none() {
                 st.activity = Some(Activity::thinking());
             }
         }
         Some("user") => {
-            st.ended = false;
-            // A plain-text user message (not a tool result) starts a new turn.
             let content = &v["message"]["content"];
-            let is_prompt = content.is_string()
-                || content
-                    .as_array()
-                    .is_some_and(|c| c.iter().any(|b| b["type"] == "text"));
-            if is_prompt && !v["isMeta"].as_bool().unwrap_or(false) {
+            let texts: Vec<&str> = match content {
+                Value::String(s) => vec![s.as_str()],
+                Value::Array(blocks) => blocks
+                    .iter()
+                    .filter(|b| b["type"] == "text")
+                    .filter_map(|b| b["text"].as_str())
+                    .collect(),
+                _ => vec![],
+            };
+            // Esc mid-turn: logged as a user message, no Stop hook either.
+            if texts.iter().any(|t| t.starts_with("[Request interrupted by user")) {
+                st.end = Some(TurnEnd { kind: "interrupted", at: ts_ms.unwrap_or(st.last_ts) });
+                return;
+            }
+            st.end = None;
+            // A plain-text user message (not a tool result) starts a new turn.
+            if !texts.is_empty() && !v["isMeta"].as_bool().unwrap_or(false) {
                 st.turn_started_at = ts_ms;
                 st.activity = Some(Activity::thinking());
             }
@@ -194,19 +219,29 @@ fn apply_sessions(store: &mut super::Store, files: &HashMap<PathBuf, FileState>)
     let now = now_ms();
     for (path, st) in files {
         let is_subagent = path.components().any(|c| c.as_os_str() == "subagents");
-        if is_subagent || st.session_id.is_empty() || now.saturating_sub(st.mtime) > RECENT_MS {
+        if is_subagent || st.session_id.is_empty() || now.saturating_sub(st.last_ts) > RECENT_MS {
             continue;
         }
-        if store
-            .sessions
-            .get(&st.session_id)
-            .is_some_and(|s| s.source == Source::Hooks)
+        if let Some(s) = store.sessions.get_mut(&st.session_id)
+            && s.source == Source::Hooks
         {
-            continue; // hooks are authoritative
+            // Hooks are authoritative, except for turns that end without a
+            // Stop hook (API errors, Esc): trust the transcript for those.
+            if let Some(end) = st.end
+                && matches!(s.status, Status::Working | Status::Waiting)
+                && end.at > s.last_event_at
+            {
+                s.status = end_status(end);
+                s.activity = Some(Activity::new(end.kind));
+                s.tool = None;
+                s.finished_at = Some(end.at);
+                s.last_event_at = end.at;
+            }
+            continue;
         }
-        let (status, activity) = if st.ended {
-            (Status::Done, Some(Activity::new("done")))
-        } else if now.saturating_sub(st.mtime) < WORKING_WINDOW_MS {
+        let (status, activity) = if let Some(end) = st.end {
+            (end_status(end), Some(Activity::new(end.kind)))
+        } else if now.saturating_sub(st.last_ts) < WORKING_WINDOW_MS {
             (Status::Working, st.activity.clone())
         } else {
             (Status::Idle, None)
@@ -220,7 +255,11 @@ fn apply_sessions(store: &mut super::Store, files: &HashMap<PathBuf, FileState>)
         s.status = status;
         s.activity = activity;
         s.turn_started_at = st.turn_started_at;
-        s.finished_at = st.ended.then_some(st.last_ts);
-        s.last_event_at = st.mtime;
+        s.finished_at = st.end.map(|e| e.at);
+        s.last_event_at = st.last_ts;
     }
+}
+
+fn end_status(end: TurnEnd) -> Status {
+    if end.kind == "interrupted" { Status::Idle } else { Status::Done }
 }

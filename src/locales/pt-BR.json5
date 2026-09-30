@@ -167,6 +167,7 @@
     message: "{arg}",
     done: "Concluído",
     failed: "Falhou",
+    interrupted: "Interrompido",
     permission: "Permissão: {what}",
   },
 }
