@@ -100,6 +100,27 @@ fn create(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
+const REPO_URL: &str = "https://github.com/HeyyCzer/windows-dynamic-island";
+
+/// Open the GitHub repo in the default browser (About page).
+#[tauri::command]
+pub fn open_repo() {
+    #[cfg(windows)]
+    unsafe {
+        use windows::Win32::UI::Shell::ShellExecuteW;
+        use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+        use windows::core::{HSTRING, PCWSTR, w};
+        ShellExecuteW(
+            None,
+            w!("open"),
+            &HSTRING::from(REPO_URL),
+            PCWSTR::null(),
+            PCWSTR::null(),
+            SW_SHOWNORMAL,
+        );
+    }
+}
+
 #[tauri::command]
 pub fn get_autostart(app: AppHandle) -> bool {
     app.autolaunch().is_enabled().unwrap_or(false)

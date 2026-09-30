@@ -32,6 +32,12 @@
       label: "Expandir ao passar o mouse",
       desc: "Desligado: expande só com clique.",
     },
+    about: {
+      title: "Sobre",
+      version: "Versão {version}",
+      source: "Código-fonte",
+      license: "Licença",
+    },
   },
 
   // Renderizado pelo backend (src-tauri/src/i18n.rs)

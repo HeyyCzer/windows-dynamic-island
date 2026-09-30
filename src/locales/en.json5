@@ -38,6 +38,13 @@
       label: "Expand on hover",
       desc: "When off, the island only expands on click.",
     },
+    about: {
+      title: "About",
+      // {version}: the app version, e.g. 1.2.3
+      version: "Version {version}",
+      source: "Source code",
+      license: "License",
+    },
   },
 
   // Rendered by the backend (src-tauri/src/i18n.rs)

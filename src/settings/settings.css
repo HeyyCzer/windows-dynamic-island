@@ -76,6 +76,9 @@ body:has(.settings) {
   gap: 2px;
   padding: 8px 10px 16px;
 }
+.settings-nav-spacer {
+  flex: 1;
+}
 .settings-nav-item {
   position: relative;
   display: flex;
@@ -88,6 +91,9 @@ body:has(.settings) {
   font-weight: 550;
   color: var(--text-dim);
   text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-user-drag: none;
   transition: color 0.15s, background 0.15s;
 }
 .settings-nav-item:hover {
@@ -294,6 +300,44 @@ body:has(.settings) {
 .settings-select option {
   background: #1c1c22;
   color: #fff;
+}
+
+/* about page */
+.about-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 0 10px;
+}
+.about-hero svg {
+  filter: drop-shadow(0 8px 24px rgba(143, 148, 255, 0.18));
+}
+.about-name {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.about-version {
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.06);
+}
+.about-row {
+  cursor: default;
+}
+.about-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--hairline);
 }
 
 /* switch */

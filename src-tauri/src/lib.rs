@@ -60,6 +60,7 @@ pub fn run() {
             settings::open_settings,
             settings::get_autostart,
             settings::set_autostart,
+            settings::open_repo,
             i18n::set_locale,
         ])
         .run(tauri::generate_context!())

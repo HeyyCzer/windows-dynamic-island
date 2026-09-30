@@ -1,0 +1,51 @@
+import { motion } from "motion/react";
+import { Navigate, useParams } from "react-router";
+import { useT } from "../../core/i18n";
+import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
+import { modules } from "../../modules";
+import { Toggle, ToggleRow } from "../components/Toggle";
+
+export function ModulePage({ values }: { values: Record<string, unknown> }) {
+  const { id } = useParams();
+  const t = useT();
+  const module = modules.find((m) => m.id === id);
+  if (!module) return <Navigate to="/" replace />;
+
+  const enabledDef = moduleEnabled(module.id, module.title);
+  const enabled = readSetting(values, enabledDef);
+  const Section = module.SettingsSection;
+
+  return (
+    <>
+      <h1 className="settings-title">{t(module.title)}</h1>
+      <section className="settings-card">
+        <label className="settings-row">
+          <div className="settings-text">
+            <span className="settings-label">{t("settings.module.label")}</span>
+            <span className="settings-desc">{t("settings.module.desc")}</span>
+          </div>
+          <Toggle checked={enabled} onChange={(v) => setSetting(enabledDef, v)} />
+        </label>
+      </section>
+      <motion.div
+        className="settings-group"
+        initial={false}
+        animate={{ opacity: enabled ? 1 : 0.4 }}
+        style={{ pointerEvents: enabled ? "auto" : "none" }}
+      >
+        {!!module.settings?.length && (
+          <section className="settings-card">
+            {module.settings.map((def) => (
+              <ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
+            ))}
+          </section>
+        )}
+        {Section && (
+          <section className="settings-card">
+            <Section />
+          </section>
+        )}
+      </motion.div>
+    </>
+  );
+}
