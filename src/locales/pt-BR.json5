@@ -32,6 +32,14 @@
       label: "Expandir ao passar o mouse",
       desc: "Desligado: expande só com clique.",
     },
+    returnToCenter: {
+      label: "Voltar ao centro",
+      desc: "Arraste a ilha para a esquerda ou direita no topo. Desligado: ela fica onde você soltar.",
+    },
+    returnDelay: {
+      label: "Voltar depois de",
+      desc: "Segundos até a ilha arrastada deslizar de volta ao meio.",
+    },
     about: {
       title: "Sobre",
       version: "Versão {version}",

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { modules } from "../modules";
 import { useHitRects } from "../core/useHitRects";
 import { useIslandController, type ModuleEntry } from "../core/useIslandController";
+import { useIslandDrag } from "../core/useIslandDrag";
 import type { IslandMode } from "../core/types";
 import { command } from "../core/bridge";
 import { GearIcon } from "./icons";
@@ -12,6 +13,8 @@ const IDLE = { width: 150, height: 8, radius: 8, ear: 6 };
 const COMPACT = { width: 265, height: 38, radius: 19, ear: 10 };
 const EXPANDED = { width: 560, height: 190, radius: 32, ear: 14 };
 const TAB_BAR = 46;
+const BUBBLE = 38;
+const BUBBLE_GAP = 10;
 
 const shellSpring: Transition = { type: "spring", stiffness: 420, damping: 34, mass: 0.9 };
 const expandSpring: Transition = { type: "spring", stiffness: 330, damping: 27, mass: 0.9 };
@@ -44,6 +47,15 @@ export function Island() {
 	const big = mode === "expanded" || mode === "peek";
 	const hidden = mode === "hidden";
 
+	const ambientCount = mode === "compact" || mode === "idle" ? ctl.entries.filter((e) => e.view.ambient).length : 0;
+	const drag = useIslandDrag({
+		width: g.width,
+		leftExtra: g.ear + (ambientCount ? BUBBLE_GAP + ambientCount * BUBBLE + (ambientCount - 1) * 8 : 0),
+		rightExtra: g.ear + (mode === "compact" && secondary ? BUBBLE_GAP + BUBBLE : 0),
+		canReturn: !big,
+		onDragChange: ctl.lockHover,
+	});
+
 	let contentKey: string;
 	let content: ReactNode = null;
 	if (mode === "compact" && primary?.view.compact) {
@@ -71,9 +83,13 @@ export function Island() {
 	return (
 		<div className="stage">
 			<motion.div
-				className="shell"
+				className={`shell ${drag.dragging ? "is-dragging" : ""}`}
 				{...(hidden ? {} : { "data-hit": true })}
 				{...ctl.domHover}
+				style={drag.style}
+				onPointerDown={drag.onPointerDown}
+				onClickCapture={drag.onClickCapture}
+				onUpdate={drag.onShellUpdate}
 				initial={false}
 				animate={{
 					width: g.width,

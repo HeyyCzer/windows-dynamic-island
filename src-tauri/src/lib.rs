@@ -25,6 +25,7 @@ pub fn run() {
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(window::HitState::default())
+        .manage(window::DragState::default())
         .manage(i18n::Locale::default())
         .setup(|app| {
             let handle = app.handle().clone();
@@ -54,6 +55,7 @@ pub fn run() {
             providers::get_snapshot,
             providers::provider_action,
             window::set_hit_rects,
+            window::set_dragging,
             window::is_fullscreen_active,
             settings::get_settings,
             settings::set_setting,
@@ -61,6 +63,7 @@ pub fn run() {
             settings::get_autostart,
             settings::set_autostart,
             settings::open_repo,
+            settings::open_external,
             updater::check_update,
             updater::install_update,
             i18n::set_locale,

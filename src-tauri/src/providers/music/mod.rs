@@ -4,6 +4,7 @@
 //! Works with any app that integrates with the Windows media overlay:
 //! Spotify, browsers (YouTube, SoundCloud…), Apple Music, VLC, etc.
 
+mod focus;
 mod level;
 mod smtc;
 

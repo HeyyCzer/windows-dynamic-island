@@ -12,6 +12,8 @@ export interface AgentDefinition {
   Icon: (props: { size: number; state?: AgentStatus }) => ReactNode;
   /** React hook returning the agent's live snapshot. */
   useAgent: () => AgentSnapshot;
+  /** Web page with the plan's usage; clicking the limits opens it. */
+  usageUrl?: string;
   /** Agent-specific block in the settings window (integration setup…). */
   SettingsSection?: ComponentType;
 }

@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { command } from "../../../../core/bridge";
 import { useT } from "../../../../core/i18n";
 import { formatTokens } from "../format";
 import type { AgentDefinition, AgentSnapshot } from "../types";
@@ -31,11 +32,18 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
           {snapshot.model && <span className="agents-badge">{snapshot.model}</span>}
         </div>
         {snapshot.limits.length ? (
-          <div className="agents-limits">
+          <button
+            className="agents-limits"
+            disabled={!agent.usageUrl}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (agent.usageUrl) command("open_external", { url: agent.usageUrl });
+            }}
+          >
             {snapshot.limits.map((l) => (
               <LimitBar key={l.id} limit={l} color={agent.color} now={now} />
             ))}
-          </div>
+          </button>
         ) : (
           <p className="agents-hint">{snapshot.limitsHint ?? tr("agents.noLimits")}</p>
         )}

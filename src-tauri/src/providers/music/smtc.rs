@@ -70,6 +70,11 @@ pub fn control(action: &str, payload: Value) -> Result<()> {
         "pause" => session.TryPauseAsync()?.join()?,
         "next" => session.TrySkipNextAsync()?.join()?,
         "previous" => session.TrySkipPreviousAsync()?.join()?,
+        "focus" => {
+            let title = session.TryGetMediaPropertiesAsync()?.join()?.Title()?.to_string();
+            super::focus::focus(&session.SourceAppUserModelId()?.to_string(), &title);
+            true
+        }
         "seek" => {
             let ms = payload.as_u64().unwrap_or(0) as i64;
             session.TryChangePlaybackPositionAsync(ms * 10_000)?.join()?

@@ -184,3 +184,25 @@
 .music-compact-time.is-paused {
   color: var(--text-faint);
 }
+
+/* artwork / title / app name open the player */
+.music-open {
+  display: block;
+  flex: none;
+  text-align: left;
+  transition: opacity 0.2s, color 0.2s, transform 0.2s;
+}
+.music-open:hover {
+  opacity: 0.82;
+}
+.music-open:active {
+  transform: scale(0.97);
+}
+.music-open-title {
+  width: 100%;
+  min-width: 0;
+}
+.music-app.music-open:hover {
+  color: var(--text-dim);
+  opacity: 1;
+}

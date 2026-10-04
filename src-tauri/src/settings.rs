@@ -113,6 +113,16 @@ pub fn open_repo() {
     open_url(REPO_URL);
 }
 
+/// Open a web page in the default browser (island links, e.g. usage pages).
+#[tauri::command]
+pub fn open_external(url: String) -> Result<(), String> {
+    if !url.starts_with("https://") {
+        return Err("only https links".into());
+    }
+    open_url(&url);
+    Ok(())
+}
+
 /// Open a URL in the default browser.
 pub fn open_url(url: &str) {
     #[cfg(windows)]

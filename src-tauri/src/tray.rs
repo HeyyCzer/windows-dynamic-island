@@ -2,11 +2,11 @@ use std::sync::Mutex;
 
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
-use tauri::{AppHandle, Manager, Wry};
+use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
 
 use crate::i18n;
-use crate::window::{position_top_center, ISLAND_LABEL};
+use crate::window::{position_top_center, ISLAND_LABEL, RECENTER_EVENT};
 
 /// Menu items kept around so their labels can follow the UI language.
 struct TrayItems {
@@ -74,6 +74,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
                 if let Some(win) = app.get_webview_window(ISLAND_LABEL) {
                     let _ = position_top_center(&win);
                 }
+                let _ = app.emit(RECENTER_EVENT, ());
             }
             "update" => crate::updater::install(app),
             "quit" => app.exit(0),

@@ -119,6 +119,18 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  margin: -6px;
+  padding: 6px;
+  width: calc(100% + 12px);
+  border-radius: 10px;
+  text-align: left;
+  transition: background 0.2s;
+}
+.agents-limits:disabled {
+  cursor: default;
+}
+.agents-limits:not(:disabled):hover {
+  background: rgba(255, 255, 255, 0.05);
 }
 .agents-limit-head {
   display: flex;

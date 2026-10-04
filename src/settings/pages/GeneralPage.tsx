@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { command, isTauri } from "../../core/bridge";
 import { languageSetting, locales, systemLocale, useT, type LanguagePref } from "../../core/i18n";
-import { generalSettings, readSetting, setSetting } from "../../core/settings";
+import { generalSettings, positionSettings, readSetting, setSetting } from "../../core/settings";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
 export function GeneralPage({ values }: { values: Record<string, unknown> }) {
@@ -15,6 +15,13 @@ export function GeneralPage({ values }: { values: Record<string, unknown> }) {
         {Object.values(generalSettings).map((def) => (
           <ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
         ))}
+      </section>
+      <section className="settings-card">
+        <ToggleRow def={positionSettings.returnToCenter} value={readSetting(values, positionSettings.returnToCenter)} />
+        <SecondsRow
+          value={readSetting(values, positionSettings.returnDelay)}
+          disabled={!readSetting(values, positionSettings.returnToCenter)}
+        />
       </section>
     </>
   );
@@ -67,6 +74,41 @@ function AutostartRow() {
           if (typeof result === "boolean") setOn(result);
         }}
       />
+    </label>
+  );
+}
+
+function SecondsRow({ value, disabled }: { value: number; disabled: boolean }) {
+  const t = useT();
+  const def = positionSettings.returnDelay;
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => {
+    const n = Math.round(Number(draft));
+    if (Number.isFinite(n) && n >= 1 && n <= 3600) setSetting(def, n);
+    else setDraft(String(value));
+  };
+
+  return (
+    <label className={`settings-row ${disabled ? "is-disabled" : ""}`}>
+      <div className="settings-text">
+        <span className="settings-label">{t(def.label)}</span>
+        <span className="settings-desc">{t(def.description)}</span>
+      </div>
+      <span className="settings-number">
+        <input
+          type="number"
+          min={1}
+          max={3600}
+          step={1}
+          value={draft}
+          disabled={disabled}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+        />
+        <span className="settings-unit">s</span>
+      </span>
     </label>
   );
 }

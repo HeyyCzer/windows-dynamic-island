@@ -45,8 +45,15 @@ export function useIslandController(modules: IslandModule[]) {
     else hoverTimer.current = window.setTimeout(apply, inside ? HOVER_IN_DELAY : HOVER_OUT_DELAY);
   }, []);
   // Leaving always collapses; entering only expands when hover-to-expand is on.
+  // Dragging the island keeps it as it is (the pointer may leave its shape).
+  const hoverLocked = useRef(false);
+  const lockHover = useCallback((locked: boolean) => {
+    hoverLocked.current = locked;
+    if (locked) window.clearTimeout(hoverTimer.current);
+  }, []);
   const onPointer = useCallback(
     (inside: boolean) => {
+      if (hoverLocked.current) return;
       if (!inside || expandOnHoverRef.current) setHover(inside);
       else window.clearTimeout(hoverTimer.current);
     },
@@ -118,6 +125,7 @@ export function useIslandController(modules: IslandModule[]) {
     tab: focusedId,
     setTab,
     expand,
+    lockHover,
     /** Browser-only hover handlers (Tauri uses the backend hit-test). */
     domHover: isTauri
       ? {}

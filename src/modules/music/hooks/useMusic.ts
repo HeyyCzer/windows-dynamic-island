@@ -24,7 +24,8 @@ export const LEVEL_EVENT = "music://level";
 /** How long a paused track keeps its spot in the compact island. */
 const PAUSE_GRACE_MS = 15_000;
 
-export const musicAction = (action: "toggle" | "next" | "previous" | "seek", payload?: number) =>
+/** `focus` brings the player's window to the front. */
+export const musicAction = (action: "toggle" | "next" | "previous" | "seek" | "focus", payload?: number) =>
   providerAction(MUSIC_PROVIDER, action, payload);
 
 export function useMusic() {

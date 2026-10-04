@@ -1,20 +1,27 @@
 //! Island window placement and click-through handling.
 //!
-//! The window is a fixed-size transparent overlay pinned to the top-center of
-//! the primary monitor. Everything outside the island shape must let clicks
+//! The window is a transparent overlay strip spanning the full width of the
+//! primary monitor's top edge, so the island can be dragged left/right inside
+//! it. Everything outside the island shape must let clicks
 //! pass through to the apps below, so the window ignores cursor events by
 //! default and a background thread turns them back on only while the cursor
 //! is inside one of the rects reported by the frontend.
 
 use std::sync::Mutex;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use serde::Deserialize;
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
 
 pub const ISLAND_LABEL: &str = "island";
 pub const HOVER_EVENT: &str = "island://hover";
 pub const FULLSCREEN_EVENT: &str = "island://fullscreen";
+/// Tray "Recenter": the frontend snaps the island back to the middle.
+pub const RECENTER_EVENT: &str = "island://recenter";
+
+/// Strip height in logical pixels (fits the tallest expanded panel + shadow).
+const STRIP_HEIGHT: f64 = 480.0;
 
 #[tauri::command]
 pub fn is_fullscreen_active(app: AppHandle) -> bool {
@@ -40,16 +47,27 @@ pub fn set_hit_rects(state: tauri::State<HitState>, rects: Vec<HitRect>) {
     *state.0.lock().unwrap() = rects;
 }
 
+/// While the island is being dragged the whole window takes the cursor, so
+/// the drag survives the pointer leaving the island's shape.
+#[derive(Default)]
+pub struct DragState(pub AtomicBool);
+
+#[tauri::command]
+pub fn set_dragging(state: tauri::State<DragState>, dragging: bool) {
+    state.0.store(dragging, Ordering::Relaxed);
+}
+
+/// Stretch the window across the top edge of the primary monitor.
 pub fn position_top_center(win: &WebviewWindow) -> tauri::Result<()> {
     let monitor = match win.primary_monitor()? {
         Some(m) => Some(m),
         None => win.current_monitor()?,
     };
     if let Some(monitor) = monitor {
-        let size = win.outer_size()?;
         let origin = monitor.position();
-        let x = origin.x + (monitor.size().width as i32 - size.width as i32) / 2;
-        win.set_position(PhysicalPosition::new(x, origin.y))?;
+        let height = (STRIP_HEIGHT * monitor.scale_factor()).round() as u32;
+        win.set_size(PhysicalSize::new(monitor.size().width, height))?;
+        win.set_position(PhysicalPosition::new(origin.x, origin.y))?;
     }
     Ok(())
 }
@@ -76,7 +94,8 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
             tick = tick.wrapping_add(1);
 
-            let inside = !fullscreen && cursor_inside(&app, &win);
+            let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
+            let inside = !fullscreen && (dragging || cursor_inside(&app, &win));
 
             let ignore = !inside;
             if ignoring != Some(ignore) && win.set_ignore_cursor_events(ignore).is_ok() {

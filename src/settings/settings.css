@@ -302,6 +302,45 @@ body:has(.settings) {
   color: #fff;
 }
 
+.settings-row.is-disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.settings-number {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.settings-number input {
+  width: 52px;
+  height: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: right;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.settings-number input::-webkit-inner-spin-button,
+.settings-number input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.settings-number:focus-within {
+  outline: 2px solid #d97757;
+  outline-offset: 1px;
+}
+.settings-unit {
+  color: var(--text-dim, rgba(245, 245, 247, 0.56));
+  font-size: 13px;
+}
+
 /* about page */
 .about-hero {
   display: flex;

@@ -52,6 +52,11 @@ button {
   position: relative;
   pointer-events: auto;
   will-change: width, height, transform;
+  touch-action: none;
+}
+.shell.is-dragging,
+.shell.is-dragging * {
+  cursor: grabbing;
 }
 
 /* Concave "ears" that blend the island into the top edge of the screen. */

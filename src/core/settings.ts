@@ -101,3 +101,22 @@ export const generalSettings = {
     default: true,
   },
 } satisfies Record<string, SettingDef>;
+
+/** Where the island goes after being dragged along the top edge. */
+export const positionSettings = {
+  returnToCenter: {
+    key: "island.returnToCenter",
+    label: "settings.returnToCenter.label",
+    description: "settings.returnToCenter.desc",
+    default: true,
+  } satisfies SettingDef,
+  returnDelay: {
+    key: "island.returnDelay",
+    label: "settings.returnDelay.label",
+    description: "settings.returnDelay.desc",
+    default: 5,
+  } satisfies SettingDef<number>,
+};
+
+/** Last drag offset from the center in CSS px (kept only when not returning). */
+export const ISLAND_OFFSET_KEY = "island.offset";

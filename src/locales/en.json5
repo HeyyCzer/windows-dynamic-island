@@ -38,6 +38,14 @@
       label: "Expand on hover",
       desc: "When off, the island only expands on click.",
     },
+    returnToCenter: {
+      label: "Return to center",
+      desc: "Drag the island left or right along the top. When off, it stays where you drop it.",
+    },
+    returnDelay: {
+      label: "Return after",
+      desc: "Seconds before a dragged island slides back to the middle.",
+    },
     about: {
       title: "About",
       // {version}: the app version, e.g. 1.2.3

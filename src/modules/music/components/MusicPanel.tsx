@@ -31,15 +31,23 @@ export function MusicPanel({
 
   const progress = music.durationMs ? position / music.durationMs : 0;
   const subtitle = [music.artist, music.album].filter(Boolean).join(" — ") || music.appName;
+  const openPlayer = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    musicAction("focus");
+  };
 
   return (
     <div className="music-panel" style={{ "--accent": accent } as React.CSSProperties}>
-      <Artwork src={music.thumbnail} size={112} radius={20} trackKey={music.title} glow={accent} />
+      <button className="music-open" title={music.appName} onClick={openPlayer}>
+        <Artwork src={music.thumbnail} size={112} radius={20} trackKey={music.title} glow={accent} />
+      </button>
 
       <div className="music-info">
         <div className="music-head">
           <div className="music-titles">
-            <Marquee text={music.title} className="music-title" />
+            <button className="music-open music-open-title" title={music.appName} onClick={openPlayer}>
+              <Marquee text={music.title} className="music-title" />
+            </button>
             <Marquee text={subtitle} className="music-artist" />
           </div>
           {showVisualizer && <Visualizer playing={music.playing} color={accent} height={30} barWidth={4.5} />}
@@ -68,7 +76,9 @@ export function MusicPanel({
         </div>
 
         <div className="music-footer">
-          <span className="music-app">{music.appName}</span>
+          <button className="music-app music-open" onClick={openPlayer}>
+            {music.appName}
+          </button>
           <Controls music={music} />
           <span className="music-app ghost">{music.appName}</span>
         </div>

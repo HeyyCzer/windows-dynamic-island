@@ -12,5 +12,6 @@ export const claudeAgent: AgentDefinition = {
   color: "#D97757",
   Icon: ClaudeIcon,
   useAgent: useClaude,
+  usageUrl: "https://claude.ai/settings/usage",
   SettingsSection: ClaudeSettings,
 };
