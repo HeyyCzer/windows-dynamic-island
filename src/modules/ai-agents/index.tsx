@@ -26,63 +26,73 @@ const agents: AgentDefinition[] = [claudeAgent];
 const DONE_VISIBLE_MS = 8_000;
 const RECENT_MS = 30 * 60_000;
 
-const RANK: Record<AgentStatus, number> = { waiting: 0, working: 1, done: 2, idle: 3 };
-const PRIORITY: Record<AgentStatus, number> = { waiting: 90, done: 70, working: 60, idle: 0 };
+const RANK: Record<AgentStatus, number> = { waiting: 0, limitsReset: 1, working: 2, done: 3, idle: 4 };
+const PRIORITY: Record<AgentStatus, number> = { waiting: 90, limitsReset: 80, done: 70, working: 60, idle: 0 };
 
 export const aiAgentsModule: IslandModule = {
-  id: "ai-agents",
-  title: "agents.title",
-  settingsIcon: <SparkleIcon size={15} />,
-  settings: Object.values(agentSettings),
-  SettingsSection: () => (
-    <>
-      {agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}
-    </>
-  ),
-  useView(): ModuleView {
-    const peekOnWaiting = useSetting(agentSettings.peekOnWaiting);
-    const peekOnDone = useSetting(agentSettings.peekOnDone);
-    // Static list → stable hook order.
-    const snapshots = agents.map((a) => a.useAgent());
+	id: "ai-agents",
+	title: "agents.title",
+	settingsIcon: <SparkleIcon size={15} />,
+	settings: Object.values(agentSettings),
+	SettingsSection: () => (
+		<>
+			{agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}
+		</>
+	),
+	useView(): ModuleView {
+		const peekOnWaiting = useSetting(agentSettings.peekOnWaiting);
+		const peekOnDone = useSetting(agentSettings.peekOnDone);
+		const peekOnLimitsReset = useSetting(agentSettings.peekOnLimitsReset);
+		const peekOn: Partial<Record<AgentStatus, boolean>> = {
+			waiting: peekOnWaiting,
+			done: peekOnDone,
+			limitsReset: peekOnLimitsReset,
+		};
 
-    const sessions: AgentSessionRef[] = agents
-      .flatMap((agent, i) => snapshots[i].sessions.map((session) => ({ agent, session })))
-      .sort(
-        (a, b) =>
-          RANK[a.session.status] - RANK[b.session.status] || b.session.lastEventAt - a.session.lastEventAt,
-      );
+		// Static list → stable hook order.
+		const snapshots = agents.map((a) => a.useAgent());
 
-    const hasDone = sessions.some((s) => s.session.status === "done");
-    const now = useNow(1000, hasDone);
+		const sessions: AgentSessionRef[] = agents
+			.flatMap((agent, i) => snapshots[i].sessions.map((session) => ({ agent, session })))
+			.sort(
+				(a, b) =>
+					RANK[a.session.status] - RANK[b.session.status] || b.session.lastEventAt - a.session.lastEventAt,
+			);
 
-    const isHot = ({ session: s }: AgentSessionRef) =>
-      s.status === "working" ||
-      s.status === "waiting" ||
-      (s.status === "done" && now - (s.finishedAt ?? 0) < DONE_VISIBLE_MS);
-    const hot = sessions.find(isHot);
-    const busyCount = sessions.filter((s) => s.session.status === "working" || s.session.status === "waiting").length;
-    const recent = sessions
-      .filter((s) => s.session.status !== "idle" || now - s.session.lastEventAt < RECENT_MS)
-      .slice(0, 4);
+		const hasDone = sessions.some((s) => s.session.status === "done");
+		const now = useNow(1000, hasDone);
 
-    const primary = agents[0];
-    return {
-      active: !!hot,
-      priority: hot ? PRIORITY[hot.session.status] : 0,
-      icon: <StatusGlyph agent={hot?.agent ?? primary} status={hot?.session.status ?? "idle"} size={18} />,
-      compact: hot && {
-        left: <AgentCompactLeft hot={hot} busyCount={busyCount} />,
-        right: <AgentCompactRight hot={hot} />,
-        width: 340,
-      },
-      expanded: <AgentsPanel agents={agents} snapshots={snapshots} sessions={recent} />,
-      expandedSize: { width: 620, height: 236 + Math.max(1, recent.length) * 30 },
-      // Peek when an agent needs you or just finished (each is a setting).
-      activityKey:
-        hot &&
-        ((hot.session.status === "waiting" && peekOnWaiting) || (hot.session.status === "done" && peekOnDone))
-          ? `${hot.agent.id}:${hot.session.id}:${hot.session.status}:${hot.session.finishedAt ?? hot.session.lastEventAt}`
-          : undefined,
-    };
-  },
+		const isHot = ({ session: s }: AgentSessionRef) =>
+			s.status === "working" ||
+			s.status === "waiting" ||
+			// Only present while fresh — the agent drops it.
+			s.status === "limitsReset" ||
+			(s.status === "done" && now - (s.finishedAt ?? 0) < DONE_VISIBLE_MS);
+
+		const hot = sessions.find(isHot);
+		const busyCount = sessions.filter((s) => s.session.status === "working" || s.session.status === "waiting").length;
+		const recent = sessions
+			.filter((s) => s.session.status !== "idle" || now - s.session.lastEventAt < RECENT_MS)
+			.slice(0, 4);
+
+		const primary = agents[0];
+
+		return {
+			active: !!hot,
+			priority: hot ? PRIORITY[hot.session.status] : 0,
+			icon: <StatusGlyph agent={hot?.agent ?? primary} status={hot?.session.status ?? "idle"} size={18} />,
+			compact: hot && {
+				left: <AgentCompactLeft hot={hot} busyCount={busyCount} />,
+				right: <AgentCompactRight hot={hot} />,
+				width: 340,
+			},
+			expanded: <AgentsPanel agents={agents} snapshots={snapshots} sessions={recent} />,
+			expandedSize: { width: 620, height: 236 + Math.max(1, recent.length) * 30 },
+			// Peek when an agent needs you, just finished or its limits reset (each is a setting).
+			activityKey:
+				hot && peekOn[hot.session.status]
+					? `${hot.agent.id}:${hot.session.id}:${hot.session.status}:${hot.session.finishedAt ?? hot.session.lastEventAt}`
+					: undefined,
+		};
+	},
 };

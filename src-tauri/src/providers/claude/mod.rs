@@ -34,6 +34,12 @@ pub const HOOK_PORT: u16 = 47823;
 
 /// Without new events, a "working" session is considered abandoned after this.
 const STALE_WORKING_MS: u64 = 30 * 60 * 1000;
+/// How long `limitsResetAt` stays set (the frontend peeks while it is).
+/// Cleared by the 5s tick, so it lasts 6–11s.
+const LIMITS_RESET_VISIBLE_MS: u64 = 6 * 1000;
+/// A window that rolled over longer ago than this (e.g. while the island was
+/// closed) is refreshed silently instead of announced.
+const LIMITS_RESET_ANNOUNCE_MS: u64 = 10 * 60 * 1000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
@@ -80,12 +86,25 @@ pub struct LimitWindow {
     pub resets_at: Option<u64>,
 }
 
+impl LimitWindow {
+    /// Past its `resets_at` — the usage it reports no longer applies.
+    fn expired(&self, now_s: u64) -> bool {
+        self.resets_at.is_some_and(|t| t <= now_s)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Limits {
     pub five_hour: Option<LimitWindow>,
     pub seven_day: Option<LimitWindow>,
     pub updated_at: u64,
+}
+
+impl Limits {
+    fn windows_mut(&mut self) -> impl Iterator<Item = &mut LimitWindow> {
+        [&mut self.five_hour, &mut self.seven_day].into_iter().flatten()
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
@@ -111,6 +130,8 @@ pub struct Integration {
 pub struct ClaudeState {
     pub sessions: Vec<Session>,
     pub limits: Option<Limits>,
+    /// Unix ms — a used limit window just rolled over (cleared shortly after).
+    pub limits_reset_at: Option<u64>,
     pub model: Option<String>,
     pub tokens_today: TokenStats,
     pub integration: Integration,
@@ -120,7 +141,9 @@ pub struct ClaudeState {
 #[derive(Default)]
 pub struct Store {
     pub sessions: HashMap<String, Session>,
+    /// Write through `set_limits` so resets are detected.
     pub limits: Option<Limits>,
+    pub limits_reset_at: Option<u64>,
     pub model: Option<String>,
     pub tokens_today: TokenStats,
     pub integration: Integration,
@@ -139,6 +162,46 @@ impl Store {
         s
     }
 
+    /// Stores fresh limits (statusline or usage endpoint). Windows already past
+    /// their reset time are stale — e.g. an idle Claude Code still forwarding
+    /// old `rate_limits` — and count as reset.
+    pub fn set_limits(&mut self, mut limits: Limits) {
+        let now = now_ms();
+        self.expire_limits(now);
+        for w in limits.windows_mut() {
+            if w.expired(now / 1000) {
+                *w = LimitWindow::default();
+            }
+        }
+        statusline::save_limits(&limits);
+        self.limits = Some(limits);
+    }
+
+    /// Rolls over every window past its reset time. Returns whether any did;
+    /// a used one that just reset also sets `limits_reset_at`.
+    fn expire_limits(&mut self, now: u64) -> bool {
+        let Some(limits) = self.limits.as_mut() else {
+            return false;
+        };
+        let mut expired = false;
+        let mut announce = false;
+        for w in limits.windows_mut() {
+            if let Some(resets_at) = w.resets_at.filter(|_| w.expired(now / 1000)) {
+                expired = true;
+                announce |= w.used_pct > 0.0 && now.saturating_sub(resets_at * 1000) < LIMITS_RESET_ANNOUNCE_MS;
+                *w = LimitWindow::default();
+            }
+        }
+        if expired {
+            statusline::save_limits(limits);
+        }
+        if announce {
+            log::info!("claude: plan limits reset");
+            self.limits_reset_at = Some(now);
+        }
+        expired
+    }
+
     fn snapshot(&self) -> ClaudeState {
         let mut sessions: Vec<Session> = self.sessions.values().cloned().collect();
         let rank = |s: &Session| match s.status {
@@ -152,6 +215,7 @@ impl Store {
         ClaudeState {
             sessions,
             limits: self.limits.clone(),
+            limits_reset_at: self.limits_reset_at,
             model: self.model.clone(),
             tokens_today: self.tokens_today.clone(),
             integration: self.integration.clone(),
@@ -237,15 +301,24 @@ impl Provider for ClaudeProvider {
     }
 }
 
-/// Housekeeping: expire stale sessions and pick up external settings edits.
+/// Housekeeping: expire stale sessions, roll over limit windows at their reset
+/// time (then refetch the real numbers) and pick up external settings edits.
 fn tick_loop(ctx: Ctx) {
     let mut tick = 0u32;
     loop {
         std::thread::sleep(Duration::from_secs(5));
         tick += 1;
+        let limits_expired;
         {
             let mut store = ctx.store.lock().unwrap();
             let now = now_ms();
+            limits_expired = store.expire_limits(now);
+            if store
+                .limits_reset_at
+                .is_some_and(|t| now.saturating_sub(t) >= LIMITS_RESET_VISIBLE_MS)
+            {
+                store.limits_reset_at = None;
+            }
             for s in store.sessions.values_mut() {
                 if matches!(s.status, Status::Working | Status::Waiting)
                     && now.saturating_sub(s.last_event_at) > STALE_WORKING_MS
@@ -267,5 +340,8 @@ fn tick_loop(ctx: Ctx) {
             }
         }
         ctx.publish();
+        if limits_expired {
+            usage::request(&ctx, usage::RESET_MIN_AGE_MS);
+        }
     }
 }
