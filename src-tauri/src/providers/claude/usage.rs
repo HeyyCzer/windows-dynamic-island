@@ -15,7 +15,7 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use super::{now_ms, statusline, Ctx, LimitWindow, Limits};
+use super::{now_ms, Ctx, LimitWindow, Limits};
 
 const URL: &str = "https://api.anthropic.com/api/oauth/usage";
 const BETA: &str = "oauth-2025-04-20";
@@ -24,6 +24,8 @@ const BETA: &str = "oauth-2025-04-20";
 pub const VIEW_MIN_AGE_MS: u64 = 60 * 1000;
 /// Hooks fire constantly; only refresh from them every 5 minutes.
 pub const HOOK_MIN_AGE_MS: u64 = 5 * 60 * 1000;
+/// A limit window just rolled over: fetch the new one right away.
+pub const RESET_MIN_AGE_MS: u64 = 0;
 /// No/expired token or other failure: wait before trying again.
 const FAILURE_BACKOFF_MS: u64 = 5 * 60 * 1000;
 /// Cap for a server-provided `Retry-After`.
@@ -59,8 +61,7 @@ pub fn request(ctx: &Ctx, min_age_ms: u64) {
         gate.in_flight = false;
         match result {
             Ok(limits) => {
-                statusline::save_limits(&limits);
-                ctx.store.lock().unwrap().limits = Some(limits);
+                ctx.store.lock().unwrap().set_limits(limits);
                 drop(gate);
                 ctx.publish();
             }

@@ -52,8 +52,7 @@ pub fn handle(ctx: &Ctx, v: &Value) {
             s.context_pct = context_pct;
         }
         if let Some(limits) = limits {
-            save_limits(&limits);
-            store.limits = Some(limits);
+            store.set_limits(limits);
         }
     }
     ctx.publish();

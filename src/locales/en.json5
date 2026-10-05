@@ -109,10 +109,15 @@
     peekOnDone: {
       label: "Expand when an agent finishes",
     },
+	peekOnLimitsReset: {
+      label: "Expand when the limit resets",
+      desc: "When the request limit of the plan resets and can be used again.",
+    },
     status: {
       working: "Working",
       waiting: "Waiting for you",
       done: "Done",
+	  limitsReset: "Limits reset, you can use it again!"
     },
     now: "Now",
     noSessions: "No recent sessions",
