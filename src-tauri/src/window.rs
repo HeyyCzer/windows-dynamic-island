@@ -281,7 +281,8 @@ fn ensure_topmost(_: &WebviewWindow, _: bool) {}
 /// "traffic lights") then put them on the island's full-width strip, right over
 /// the minimize/maximize/close buttons of maximized apps. A subclass filters
 /// every style change instead: no caption or system menu, and a tool window
-/// (also kept out of Alt+Tab). Must run on the window's thread.
+/// (also kept out of Alt+Tab). It also keeps Windows from painting a title bar
+/// over the strip. Must run on the window's thread.
 #[cfg(windows)]
 pub fn make_overlay(win: &WebviewWindow) {
     use windows::Win32::Foundation::HWND;
@@ -330,12 +331,24 @@ unsafe extern "system" fn overlay_proc(
     _id: usize,
     _data: usize,
 ) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::Foundation::{LPARAM, LRESULT};
     use windows::Win32::UI::Shell::DefSubclassProc;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, WM_STYLECHANGING, WS_CAPTION, WS_EX_APPWINDOW, WS_EX_TOOLWINDOW,
-        WS_SYSMENU,
+        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, WM_NCACTIVATE, WM_NCPAINT, WM_STYLECHANGING, WS_CAPTION,
+        WS_EX_APPWINDOW, WS_EX_TOOLWINDOW, WS_SYSMENU,
     };
 
+    // There is no frame, but `DefWindowProc` still paints a classic title bar
+    // ("Dynamic Island" on a dark band) across the whole strip when the window
+    // gets activated (dropping on the shelf, typing a question…).
+    if msg == WM_NCPAINT {
+        return LRESULT(0);
+    }
+    if msg == WM_NCACTIVATE {
+        // Still delivered (tao tracks focus with it); lParam -1 tells
+        // `DefWindowProc` not to repaint the non-client area.
+        return unsafe { DefSubclassProc(hwnd, msg, wparam, LPARAM(-1)) };
+    }
     if msg == WM_STYLECHANGING && lparam.0 != 0 {
         let change = unsafe { &mut *(lparam.0 as *mut STYLESTRUCT) };
         let which = wparam.0 as i32;
