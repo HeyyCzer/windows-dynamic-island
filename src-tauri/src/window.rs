@@ -124,6 +124,7 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut hovering = false;
         let mut fullscreen = false;
         let mut tick = 0u32;
+        let mut last_fg = 0isize;
         loop {
             std::thread::sleep(Duration::from_millis(25));
             let Some(win) = app.get_webview_window(ISLAND_LABEL) else {
@@ -131,16 +132,25 @@ pub fn spawn_hit_test(app: AppHandle) {
             };
 
             // Fullscreen check is cheaper to run a few times per second.
+            let mut fullscreen_left = false;
             if tick.is_multiple_of(12) {
                 let fs = fullscreen_app_active(&win);
                 if fs != fullscreen {
                     fullscreen = fs;
+                    fullscreen_left = !fs;
                     let _ = app.emit(FULLSCREEN_EVENT, fs);
                 }
             }
             tick = tick.wrapping_add(1);
             if tick.is_multiple_of(4) {
                 track_foreground(&app);
+            }
+
+            let fg = foreground_window();
+            let fg_changed = fg != last_fg;
+            last_fg = fg;
+            if !fullscreen {
+                ensure_topmost(&win, fg_changed || fullscreen_left);
             }
 
             let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
@@ -187,6 +197,55 @@ fn cursor_pos() -> Option<(f64, f64)> {
 fn cursor_pos() -> Option<(f64, f64)> {
     None
 }
+
+#[cfg(windows)]
+fn foreground_window() -> isize {
+    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+    unsafe { GetForegroundWindow().0 as isize }
+}
+
+#[cfg(not(windows))]
+fn foreground_window() -> isize {
+    0
+}
+
+/// `alwaysOnTop` is only applied once at creation, and Windows can drop the
+/// island out of the topmost band afterwards (typically right after boot, when
+/// autostart runs before the shell settles): it then sits under whatever app
+/// gets focus until the user clicks it. Re-assert it whenever the TOPMOST bit
+/// goes missing, and on `force` (foreground change) so another topmost window
+/// that just got activated doesn't stay above it.
+#[cfg(windows)]
+fn ensure_topmost(win: &WebviewWindow, force: bool) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongPtrW, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOOWNERZORDER, SWP_NOSIZE,
+        SetWindowPos, WS_EX_TOPMOST,
+    };
+
+    let Ok(hwnd) = win.hwnd() else {
+        return;
+    };
+    let hwnd = HWND(hwnd.0);
+    unsafe {
+        let topmost = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) & WS_EX_TOPMOST.0 as isize != 0;
+        if topmost && !force {
+            return;
+        }
+        let _ = SetWindowPos(
+            hwnd,
+            Some(HWND_TOPMOST),
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER,
+        );
+    }
+}
+
+#[cfg(not(windows))]
+fn ensure_topmost(_: &WebviewWindow, _: bool) {}
 
 /// True when a fullscreen app (game, video, F11 browser, presentation) is in
 /// front on the island's monitor.
