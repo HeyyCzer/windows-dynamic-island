@@ -1,6 +1,7 @@
 /**
  * Claude Code agent. Backend: `src-tauri/src/providers/claude/`.
  */
+import { providerAction } from "../../../core/bridge";
 import type { AgentDefinition } from "../common/types";
 import { ClaudeIcon } from "./ClaudeIcon";
 import { ClaudeSettings } from "./ClaudeSettings";
@@ -13,5 +14,8 @@ export const claudeAgent: AgentDefinition = {
   Icon: ClaudeIcon,
   useAgent: useClaude,
   usageUrl: "https://claude.ai/settings/usage",
+  openSession: (session) => {
+    if (session.cwd) providerAction("claude", "openProject", session.cwd);
+  },
   SettingsSection: ClaudeSettings,
 };

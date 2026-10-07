@@ -1,13 +1,14 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
-import { GearIcon, InfoIcon } from "../components/icons";
+import { GearIcon, InfoIcon, PaletteIcon } from "../components/icons";
 import { useSyncLocale, useT } from "../core/i18n";
 import { moduleEnabled, readSetting, useSettings } from "../core/settings";
 import { modules } from "../modules";
 import { NavItem } from "./components/NavItem";
 import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
+import { AppearancePage } from "./pages/AppearancePage";
 import { GeneralPage } from "./pages/GeneralPage";
 import { ModulePage } from "./pages/ModulePage";
 import "./settings.css";
@@ -28,6 +29,7 @@ export function SettingsApp() {
         <div className="settings-main">
           <nav className="settings-nav">
             <NavItem to="/" icon={<GearIcon size={15} />} label={t("settings.general")} />
+            <NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
             {modules.map((m) => (
               <NavItem
                 key={m.id}
@@ -44,6 +46,7 @@ export function SettingsApp() {
             <Page>
               <Routes>
                 <Route index element={<GeneralPage values={values} />} />
+                <Route path="appearance" element={<AppearancePage values={values} />} />
                 <Route path="modules/:id" element={<ModulePage values={values} />} />
                 <Route path="about" element={<AboutPage />} />
               </Routes>

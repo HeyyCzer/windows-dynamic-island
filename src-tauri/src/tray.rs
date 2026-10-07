@@ -1,18 +1,26 @@
 use std::sync::Mutex;
 
+use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
-use tauri::tray::TrayIconBuilder;
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
 
 use crate::i18n;
 use crate::window::{position_top_center, ISLAND_LABEL, RECENTER_EVENT};
 
+const TRAY_ID: &str = "main";
+/// Swallowed by the black hole (tray click): the island stays hidden, even across restarts.
+pub const HIDDEN_KEY: &str = "island.hidden";
+/// Shown in the tray while the island is hidden.
+const BLACK_HOLE: &[u8] = include_bytes!("../icons/blackhole.ico");
+
 /// Menu items kept around so their labels can follow the UI language.
 struct TrayItems {
     menu: Menu<Wry>,
     /// Added once an update is downloaded, with its version.
     update: Mutex<Option<(MenuItem<Wry>, String)>>,
+    toggle: MenuItem<Wry>,
     settings: MenuItem<Wry>,
     autostart: CheckMenuItem<Wry>,
     recenter: MenuItem<Wry>,
@@ -30,12 +38,14 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         autostart_on,
         None::<&str>,
     )?;
+    let toggle = MenuItem::with_id(app, "toggle", t(toggle_key(is_hidden(app))), true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", t("tray.settings"), true, None::<&str>)?;
     let recenter = MenuItem::with_id(app, "recenter", t("tray.recenter"), true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", t("tray.quit"), true, None::<&str>)?;
     let menu = Menu::with_items(
         app,
         &[
+            &toggle,
             &settings,
             &autostart,
             &recenter,
@@ -46,17 +56,25 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     app.manage(TrayItems {
         menu: menu.clone(),
         update: Mutex::default(),
+        toggle: toggle.clone(),
         settings: settings.clone(),
         autostart: autostart.clone(),
         recenter: recenter.clone(),
         quit: quit.clone(),
     });
 
-    let mut builder = TrayIconBuilder::with_id("main")
+    let mut builder = TrayIconBuilder::with_id(TRAY_ID)
         .tooltip("Dynamic Island")
         .menu(&menu)
-        .show_menu_on_left_click(true)
+        // Left click: the black hole swallows the island / gives it back. Right click: menu.
+        .show_menu_on_left_click(false)
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+                toggle_hidden(tray.app_handle());
+            }
+        })
         .on_menu_event(move |app, event| match event.id().as_ref() {
+            "toggle" => toggle_hidden(app),
             "autostart" => {
                 let launcher = app.autolaunch();
                 let enabled = launcher.is_enabled().unwrap_or(false);
@@ -84,7 +102,37 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         builder = builder.icon(icon.clone());
     }
     builder.build(app)?;
+    sync_hidden(app);
     Ok(())
+}
+
+pub fn is_hidden(app: &AppHandle) -> bool {
+    app.try_state::<crate::settings::Settings>()
+        .and_then(|s| s.get(HIDDEN_KEY))
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+}
+
+/// The frontend plays the black hole animation when the setting changes.
+pub fn toggle_hidden(app: &AppHandle) {
+    crate::settings::set(app, HIDDEN_KEY, serde_json::Value::Bool(!is_hidden(app)));
+}
+
+fn toggle_key(hidden: bool) -> &'static str {
+    if hidden { "tray.show" } else { "tray.hide" }
+}
+
+/// Menu label, icon and tooltip follow the hidden state.
+pub fn sync_hidden(app: &AppHandle) {
+    let hidden = is_hidden(app);
+    if let Some(items) = app.try_state::<TrayItems>() {
+        let _ = items.toggle.set_text(i18n::t(app, toggle_key(hidden)));
+    }
+    let Some(tray) = app.tray_by_id(TRAY_ID) else { return };
+    let icon = if hidden { Image::from_bytes(BLACK_HOLE).ok() } else { app.default_window_icon().cloned() };
+    let _ = tray.set_icon(icon);
+    let tooltip = if hidden { i18n::t(app, "tray.hiddenTooltip") } else { "Dynamic Island".to_string() };
+    let _ = tray.set_tooltip(Some(tooltip));
 }
 
 /// Re-apply labels after the UI language changed.
@@ -93,6 +141,7 @@ pub fn relabel(app: &AppHandle) {
         return;
     };
     let t = |key| i18n::t(app, key);
+    let _ = items.toggle.set_text(t(toggle_key(is_hidden(app))));
     let _ = items.settings.set_text(t("tray.settings"));
     let _ = items.autostart.set_text(t("tray.autostart"));
     let _ = items.recenter.set_text(t("tray.recenter"));

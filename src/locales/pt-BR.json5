@@ -66,6 +66,9 @@
     autostart: "Iniciar com o Windows",
     recenter: "Recentralizar",
     quit: "Sair",
+    hide: "Ocultar ilha",
+    show: "Mostrar ilha",
+    hiddenTooltip: "Dynamic Island (oculta): clique para mostrar",
   },
   window: {
     settings: "Dynamic Island — Configurações",
@@ -87,6 +90,10 @@
       label: "Visualizador de áudio",
       desc: "Barras animadas no ritmo da música.",
     },
+    pin: "Fixar",
+    pinned: "Vídeo fixado · trazer de volta",
+    unpin: "Trazer o vídeo de volta para a ilha",
+    backToIsland: "Voltar para a ilha",
   },
 
   // Módulo AI Agents
@@ -110,6 +117,15 @@
 	  limitsReset: "Limites resetados, você pode usar novamente!"
     },
     now: "Agora",
+    openProject: "Abrir no VS Code",
+    usage: {
+      today: "Hoje",
+      todayShort: "hoje",
+      week: "7 dias",
+      last5h: "Últimas 5h",
+      response: "{n} resposta",
+      responses: "{n} respostas",
+    },
     noSessions: "Nenhuma sessão recente",
     contextUsed: "Contexto usado",
     noLimits: "Sem dados de limite ainda",
@@ -232,5 +248,173 @@
     failed: "Falhou",
     interrupted: "Interrompido",
     permission: "Permissão: {what}",
+  },
+  appearance: {
+    title: "Aparência",
+    style: {
+      label: "Estilo",
+      desc: "Como a ilha aparece na sua tela.",
+      dynamic: "Dynamic Island",
+      dynamicDesc: "Pendurada na borda de cima, como um notch, com abas nomeadas.",
+      windows: "Windows Island",
+      windowsDesc: "Uma pílula flutuante com relógio em repouso, borda colorida e abas embaixo.",
+    },
+    windowsOnly: "Disponível no estilo Windows Island.",
+    border: {
+      label: "Borda",
+      desc: "A ilha continua preta; só a borda muda de cor.",
+    },
+    preset: {
+      none: "Clássica",
+      intelligence: "Apple Intelligence",
+      aurora: "Aurora",
+      sunset: "Pôr do sol",
+      ocean: "Oceano",
+      claude: "Claude",
+      neon: "Neon",
+      mono: "Prata",
+      custom: "Personalizada",
+    },
+    custom: {
+      label: "Cores personalizadas",
+      start: "Cor inicial",
+      end: "Cor final",
+    },
+    thickness: {
+      label: "Espessura",
+      "1": "Fina",
+      "2": "Média",
+      "3": "Grossa",
+    },
+    animate: {
+      label: "Degradê em movimento",
+      desc: "As cores giram devagar em volta da ilha. Usa um pouco mais de CPU.",
+    },
+    glow: {
+      label: "Brilho na borda",
+      desc: "Um halo suave na cor da borda.",
+    },
+    idleClock: {
+      label: "Relógio em repouso",
+      desc: "Mostra a hora na ilha quando não há mais nada acontecendo.",
+    },
+    hide: {
+      label: "Ocultar a ilha",
+      desc: "O buraco negro engole a ilha até você trazê-la de volta. Clicar no ícone da bandeja faz o mesmo.",
+    },
+  },
+
+  activities: {
+    title: "Atividades ao vivo",
+    volume: {
+      label: "Volume",
+      desc: "Uma barra de nível quando o volume muda.",
+    },
+    battery: {
+      label: "Bateria",
+      desc: "Carregador conectado ou desconectado e avisos de bateria fraca (20%, 10%, 5%).",
+    },
+    bluetooth: {
+      label: "Fones Bluetooth",
+      desc: "Nome e bateria ao conectar, e um aviso quando a bateria deles fica fraca.",
+    },
+    api: {
+      label: "Outros apps",
+      desc: "Notificações e atividades ao vivo enviadas por scripts e apps pela API local.",
+    },
+    server: {
+      title: "API local",
+      desc: "Qualquer app ou script deste computador pode mostrar notificações e atividades ao vivo (downloads, timers, builds…).",
+      down: "Desligada (porta em uso?)",
+      routes: "Rotas: POST /notify, POST /activity, DELETE /activity/{id}, GET /status. Defina DYNAMIC_ISLAND_PORT para trocar a porta.",
+    },
+  },
+
+  notifications: {
+    title: "Notificações",
+    clear: "Limpar",
+    empty: "Nenhuma notificação",
+    open: "Abrir {app}",
+    access: {
+      title: "Notificações do Windows",
+      noIdentity: "O Windows só deixa apps registrados lerem notificações. Ativar registra a ilha uma vez e a reinicia.",
+      denied: "O acesso está bloqueado em Configurações do Windows → Privacidade → Notificações.",
+      allowed: "Novas notificações do WhatsApp, Teams, Outlook… aparecem na ilha.",
+      unavailable: "O acesso às notificações não está disponível neste sistema.",
+      enable: "Ativar",
+      enabling: "Ativando…",
+      on: "Ativadas",
+      openPrivacy: "Abrir configurações",
+      how: "Requer o Modo de Desenvolvedor do Windows (Configurações → Sistema → Para desenvolvedores), já que o registro não é assinado.",
+      openDeveloper: "Abrir configurações de desenvolvedor",
+    },
+  },
+
+  ask: {
+    title: "Pergunte ao Claude",
+    hint: "Tire dúvidas ou peça uma ajuda rápida. O Claude responde aqui mesmo, com o seu login do Claude Code.",
+    hotkey: "{keys} abre esta caixa de qualquer lugar.",
+    placeholder: "Pergunte ao Claude…",
+    send: "Enviar (Enter)",
+    stop: "Parar a resposta",
+    new: "Nova conversa",
+    copy: "Copiar resposta",
+    copied: "Copiada ✓",
+    remove: "Remover",
+    screenshot: "Anexar um print da janela em que você estava",
+    notFound: "Não encontrei o Claude Code neste computador. Instale o CLI do Claude Code ou a extensão do VS Code e tente de novo.",
+    answered: "Claude respondeu",
+    screenOf: "Tela: {title}",
+    wholeScreen: "Tela inteira",
+    defaultImage: "O que você vê aqui?",
+    defaultFile: "Dê uma olhada nesse arquivo.",
+    attachmentFailed: "Não consegui ler o anexo: {error}",
+    startFailed: "Não consegui abrir o Claude Code: {error}",
+    noAnswer: "O Claude Code terminou sem responder.",
+    interrupted: "Resposta interrompida.",
+    denied: "(Precisaria de permissão para usar {tools}. Para isso, abra o Claude Code.)",
+    status: {
+      thinking: "Pensando…",
+      writing: "Escrevendo…",
+      webSearch: "Pesquisando na web…",
+      webFetch: "Lendo uma página…",
+      read: "Lendo um arquivo…",
+      search: "Procurando nos arquivos…",
+      tool: "Usando {tool}…",
+    },
+  },
+
+  shelf: {
+    title: "Prateleira",
+    empty: "Solte aqui os arquivos que você quer guardar por um momento. Depois é só arrastá-los para onde quiser.",
+    hint: "Arraste para usar · duplo clique abre",
+    drop: "Solte para guardar aqui",
+    clear: "Limpar",
+    ask: "Perguntar ao Claude sobre isto",
+    remove: "Tirar da prateleira",
+  },
+
+  clock: {
+    title: "Relógio",
+  },
+
+  system: {
+    volume: {
+      title: "Volume",
+      muted: "Mudo",
+    },
+    battery: {
+      charging: "Carregando",
+      onBattery: "Usando bateria",
+      low: "Bateria fraca",
+      lowDetail: "{n}% restante. Conecte o carregador.",
+      left: "{n}% restante.",
+    },
+    bluetooth: {
+      connected: "Conectado",
+      connectedBattery: "Conectado · bateria {n}%",
+      disconnected: "Desconectado",
+      low: "{name}: bateria fraca",
+    },
   },
 }

@@ -17,6 +17,7 @@ interface ClaudeState {
 		model: string | null;
 		contextPct: number | null;
 		source: "hooks" | "transcript";
+		summary: string | null;
 	}[];
 	limits: {
 		fiveHour: { usedPct: number; resetsAt: number | null } | null;
@@ -27,6 +28,7 @@ interface ClaudeState {
 	limitsResetAt: number | null;
 	model: string | null;
 	tokensToday: { input: number; output: number; cacheRead: number; cacheWrite: number; messages: number };
+	usage: { daily: { date: string; tokens: number; responses: number }[]; last5hTokens: number };
 	integration: { hooks: boolean; statusline: boolean; serverOk: boolean };
 }
 
@@ -59,6 +61,7 @@ export function useClaude(): AgentSnapshot {
 		available: true,
 		model: state.model,
 		tokensToday: state.tokensToday,
+		usage: state.usage,
 		limits,
 		limitsHint: t("claude.limitsHint.loading"),
 		refreshLimits,
@@ -74,6 +77,8 @@ export function useClaude(): AgentSnapshot {
 				lastEventAt: s.lastEventAt,
 				model: s.model,
 				contextPct: s.contextPct,
+				summary: s.summary,
+				cwd: s.cwd,
 			})),
 		],
 		setup: installed

@@ -25,6 +25,8 @@ const agents: AgentDefinition[] = [claudeAgent];
 /** How long a finished turn keeps the island's attention. */
 const DONE_VISIBLE_MS = 8_000;
 const RECENT_MS = 30 * 60_000;
+/** Height of the 7-day usage row. */
+const USAGE_CHART = 74;
 
 const RANK: Record<AgentStatus, number> = { waiting: 0, limitsReset: 1, working: 2, done: 3, idle: 4 };
 const PRIORITY: Record<AgentStatus, number> = { waiting: 90, limitsReset: 80, done: 70, working: 60, idle: 0 };
@@ -87,7 +89,10 @@ export const aiAgentsModule: IslandModule = {
 				width: 340,
 			},
 			expanded: <AgentsPanel agents={agents} snapshots={snapshots} sessions={recent} />,
-			expandedSize: { width: 620, height: 236 + Math.max(1, recent.length) * 30 },
+			expandedSize: {
+				width: 620,
+				height: 236 + Math.max(1, recent.length) * 30 + (snapshots.some((s) => s.usage?.daily.length) ? USAGE_CHART : 0),
+			},
 			// Peek when an agent needs you, just finished or its limits reset (each is a setting).
 			activityKey:
 				hot && peekOn[hot.session.status]

@@ -14,6 +14,8 @@ export interface AgentDefinition {
 	useAgent: () => AgentSnapshot;
 	/** Web page with the plan's usage; clicking the limits opens it. */
 	usageUrl?: string;
+	/** Opens a session (e.g. its project in the editor). */
+	openSession?: (session: AgentSession) => void;
 	/** Agent-specific block in the settings window (integration setup…). */
 	SettingsSection?: ComponentType;
 }
@@ -33,6 +35,10 @@ export interface AgentSession {
 	lastEventAt: number;
 	model?: string | null;
 	contextPct?: number | null;
+	/** Start of the last reply, once the turn ended. */
+	summary?: string | null;
+	/** Project folder (clicking the session opens it). */
+	cwd?: string | null;
 }
 
 export interface UsageLimit {
@@ -60,6 +66,8 @@ export interface AgentSnapshot {
 	/** Called (throttled by the backend) while the agent's card is on screen. Must be stable. */
 	refreshLimits?: () => void;
 	tokensToday?: TokenUsage;
+	/** Tokens and responses per day (last 7, today last) and in the last 5 hours. */
+	usage?: UsageHistory;
 	model?: string | null;
 	/** Call-to-action when the integration needs to be set up. */
 	setup?: {
@@ -67,6 +75,11 @@ export interface AgentSnapshot {
 		actionLabel: string;
 		action: () => Promise<unknown>;
 	};
+}
+
+export interface UsageHistory {
+	daily: { date: string; tokens: number; responses: number }[];
+	last5hTokens: number;
 }
 
 /** A session together with the agent it belongs to. */

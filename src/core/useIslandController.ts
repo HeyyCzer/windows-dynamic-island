@@ -1,11 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
-import { generalSettings, moduleEnabled, readSetting, useSettings } from "./settings";
+import { generalSettings, ISLAND_HIDDEN_KEY, moduleEnabled, readSetting, useSettings } from "./settings";
 import type { IslandMode, IslandModule, ModuleView } from "./types";
 
 const HOVER_IN_DELAY = 110;
 const HOVER_OUT_DELAY = 380;
 const PEEK_DURATION = 3800;
+/** Mouse wheel switches tabs at most this often. */
+const WHEEL_STEP_MS = 260;
 
 export interface ModuleEntry {
   module: IslandModule;
@@ -25,6 +27,7 @@ export function useIslandController(modules: IslandModule[]) {
     .filter(({ module }) => readSetting(settings, moduleEnabled(module.id, module.title)));
   const hideInFullscreen = readSetting(settings, generalSettings.hideInFullscreen);
   const expandOnHover = readSetting(settings, generalSettings.expandOnHover);
+  const swallowed = settings[ISLAND_HIDDEN_KEY] === true;
   const expandOnHoverRef = useRef(expandOnHover);
   expandOnHoverRef.current = expandOnHover;
 
@@ -51,15 +54,29 @@ export function useIslandController(modules: IslandModule[]) {
     hoverLocked.current = locked;
     if (locked) window.clearTimeout(hoverTimer.current);
   }, []);
+  // While typing a question the island stays open wherever the pointer goes;
+  // the pointer's last state applies once that ends.
+  const keptOpen = useRef(false);
+  const pointerInside = useRef(false);
   const onPointer = useCallback(
     (inside: boolean) => {
-      if (hoverLocked.current) return;
+      pointerInside.current = inside;
+      if (hoverLocked.current || keptOpen.current) return;
       if (!inside || expandOnHoverRef.current) setHover(inside);
       else window.clearTimeout(hoverTimer.current);
     },
     [setHover],
   );
   useTauriEvent<boolean>("island://hover", onPointer);
+
+  const keepOpen = useCallback(
+    (on: boolean) => {
+      keptOpen.current = on;
+      if (on) window.clearTimeout(hoverTimer.current);
+      else if (!pointerInside.current) setHover(false);
+    },
+    [setHover],
+  );
 
   // --- fullscreen apps hide the island --------------------------------------
   useTauriEvent<boolean>("island://fullscreen", setFullscreen);
@@ -93,19 +110,23 @@ export function useIslandController(modules: IslandModule[]) {
   const primary = active[0] ? entries.find((e) => e.module.id === active[0].module.id) : undefined;
   const secondary = active[1] ? entries.find((e) => e.module.id === active[1].module.id) : undefined;
 
-  const mode: IslandMode = fullscreen && hideInFullscreen
-    ? "hidden"
-    : hovered
-      ? "expanded"
-      : peekId
-        ? "peek"
-        : primary
-          ? "compact"
-          : "idle";
+  const mode: IslandMode = swallowed
+    ? "swallowed"
+    : fullscreen && hideInFullscreen
+      ? "hidden"
+      : hovered
+        ? "expanded"
+        : peekId
+          ? "peek"
+          : primary
+            ? "compact"
+            : "idle";
 
   const focusedId =
-    mode === "peek" ? peekId : (tab ?? primary?.module.id ?? entries[0]?.module.id ?? null);
+    mode === "peek" ? peekId : (tab ?? primary?.module.id ?? entries.find((e) => !e.view.hidden)?.module.id ?? null);
   const focused = entries.find((e) => e.module.id === focusedId);
+  /** Tab bar: every module that isn't hidden, plus the focused one. */
+  const tabs = entries.filter((e) => !e.view.hidden || e.module.id === focusedId);
 
   const expand = useCallback(
     (moduleId?: string) => {
@@ -115,9 +136,47 @@ export function useIslandController(modules: IslandModule[]) {
     },
     [setHover],
   );
+  /** Briefly show a module, as if it had new activity. */
+  const peek = useCallback((moduleId: string) => {
+    setPeekId(moduleId);
+    window.clearTimeout(peekTimer.current);
+    peekTimer.current = window.setTimeout(() => setPeekId(null), PEEK_DURATION);
+  }, []);
+  // The pinned video went back to the island: show the player for a moment.
+  useTauriEvent("pip://return", () => peek("music"));
+
+  const collapse = useCallback(() => {
+    keptOpen.current = false;
+    setPeekId(null);
+    setHover(false, true);
+  }, [setHover]);
+
+  // Global shortcut (Ctrl+Alt+Space): open "Ask Claude".
+  const askEnabled = entries.some((e) => e.module.id === "ask");
+  useTauriEvent("island://ask", () => askEnabled && expand("ask"));
+
+  // Mouse wheel over the open island flips through the tabs.
+  const lastWheel = useRef(0);
+  const tabIds = tabs.map((e) => e.module.id);
+  const onWheel = useCallback(
+    (e: WheelEvent) => {
+      if (mode !== "expanded" || Math.abs(e.deltaY) < 4) return;
+      // Scrollable content (chat, lists) keeps the wheel for itself.
+      if ((e.target as Element).closest("[data-scroll]")) return;
+      const now = performance.now();
+      if (now - lastWheel.current < WHEEL_STEP_MS) return;
+      lastWheel.current = now;
+      const i = tabIds.indexOf(focusedId ?? "");
+      const next = tabIds[Math.min(tabIds.length - 1, Math.max(0, i + Math.sign(e.deltaY)))];
+      if (next && next !== focusedId) setTab(next);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [mode, focusedId, tabIds.join()],
+  );
 
   return {
     entries,
+    tabs,
     mode,
     primary,
     secondary,
@@ -125,7 +184,11 @@ export function useIslandController(modules: IslandModule[]) {
     tab: focusedId,
     setTab,
     expand,
+    peek,
+    collapse,
+    keepOpen,
     lockHover,
+    onWheel,
     /** Browser-only hover handlers (Tauri uses the backend hit-test). */
     domHover: isTauri
       ? {}

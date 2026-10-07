@@ -20,7 +20,7 @@ mod transcripts;
 mod usage;
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -76,6 +76,8 @@ pub struct Session {
     pub model: Option<String>,
     pub context_pct: Option<f64>,
     pub source: Source,
+    /// Start of the last reply, once the turn ended (read from the transcript).
+    pub summary: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -117,6 +119,25 @@ pub struct TokenStats {
     pub messages: u64,
 }
 
+/// Tokens (input + output + cache) and responses of one local day.
+#[derive(Debug, Clone, PartialEq, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct DayUsage {
+    /// `YYYY-MM-DD`
+    pub date: String,
+    pub tokens: u64,
+    pub responses: u64,
+}
+
+/// Usage from the local transcripts: the last 7 days (oldest first, today
+/// last) and the last 5 hours.
+#[derive(Debug, Clone, PartialEq, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct Usage {
+    pub daily: Vec<DayUsage>,
+    pub last5h_tokens: u64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct Integration {
@@ -134,6 +155,7 @@ pub struct ClaudeState {
     pub limits_reset_at: Option<u64>,
     pub model: Option<String>,
     pub tokens_today: TokenStats,
+    pub usage: Usage,
     pub integration: Integration,
 }
 
@@ -146,6 +168,7 @@ pub struct Store {
     pub limits_reset_at: Option<u64>,
     pub model: Option<String>,
     pub tokens_today: TokenStats,
+    pub usage: Usage,
     pub integration: Integration,
 }
 
@@ -218,6 +241,7 @@ impl Store {
             limits_reset_at: self.limits_reset_at,
             model: self.model.clone(),
             tokens_today: self.tokens_today.clone(),
+            usage: self.usage.clone(),
             integration: self.integration.clone(),
         }
     }
@@ -245,6 +269,31 @@ impl Ctx {
     }
 }
 
+static CTX: OnceLock<Ctx> = OnceLock::new();
+
+/// A Claude Code hook payload that arrived through the activities API
+/// (`POST /claude/hook` on its port, as in Windows Island's setup).
+pub fn handle_hook(payload: &Value) {
+    if let Some(ctx) = CTX.get() {
+        hooks::handle_hook(ctx, payload);
+    }
+}
+
+/// `vscode://file/C:/path/to/project`
+fn vscode_url(cwd: &str) -> String {
+    let path = cwd.replace('\\', "/");
+    let encoded: String = path
+        .chars()
+        .map(|c| match c {
+            ' ' => "%20".to_string(),
+            '#' => "%23".to_string(),
+            '?' => "%3F".to_string(),
+            c => c.to_string(),
+        })
+        .collect();
+    format!("vscode://file/{}", encoded.trim_start_matches('/'))
+}
+
 #[derive(Default)]
 pub struct ClaudeProvider {
     ctx: Mutex<Option<Ctx>>,
@@ -266,6 +315,7 @@ impl Provider for ClaudeProvider {
             hub,
         };
         *self.ctx.lock().unwrap() = Some(ctx.clone());
+        let _ = CTX.set(ctx.clone());
 
         let server_ctx = ctx.clone();
         std::thread::spawn(move || hooks::serve(server_ctx));
@@ -276,9 +326,17 @@ impl Provider for ClaudeProvider {
         std::thread::spawn(move || tick_loop(ctx));
     }
 
-    fn action(&self, action: &str, _payload: Value) -> Result<Value, String> {
+    fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
         let ctx = self.ctx.lock().unwrap().clone().ok_or("claude provider not started")?;
         match action {
+            // Clicking a session opens its project in VS Code.
+            "openProject" => {
+                let cwd = payload.as_str().unwrap_or_default();
+                if !cwd.is_empty() {
+                    crate::settings::open_url(&vscode_url(cwd));
+                }
+                return Ok(Value::Null);
+            }
             "install" => integration::install()?,
             "uninstall" => integration::uninstall()?,
             "refresh" => {}

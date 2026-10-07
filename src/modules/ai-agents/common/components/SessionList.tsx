@@ -23,7 +23,13 @@ export function SessionList({ items, now }: { items: AgentSessionRef[]; now: num
             <motion.li
               key={`${agent.id}:${session.id}`}
               layout
-              className={`agents-session is-${session.status}`}
+              className={`agents-session is-${session.status} ${agent.openSession && session.cwd ? "is-clickable" : ""}`}
+              title={agent.openSession && session.cwd ? t("agents.openProject") : undefined}
+              onClick={(e) => {
+                if (!agent.openSession || !session.cwd) return;
+                e.stopPropagation();
+                agent.openSession(session);
+              }}
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0 }}
@@ -31,7 +37,9 @@ export function SessionList({ items, now }: { items: AgentSessionRef[]; now: num
             >
               <StatusGlyph agent={agent} status={session.status} size={14} />
               <span className="agents-session-title">{session.title || agent.name}</span>
-              <span className="agents-session-activity">{session.activity}</span>
+              <span className="agents-session-activity" title={session.summary ?? undefined}>
+                {session.status === "done" && session.summary ? session.summary : session.activity}
+              </span>
               {session.contextPct != null && (
                 <span className="agents-session-ctx" title={t("agents.contextUsed")}>
                   {Math.round(session.contextPct)}%

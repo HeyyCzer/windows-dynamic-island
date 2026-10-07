@@ -1,31 +1,35 @@
 //! Reads Claude Code's JSONL transcripts (`~/.claude/projects/**.jsonl`).
 //!
-//! - Sums today's token usage (assistant `message.usage`, deduplicated by
-//!   message id since one response is logged once per content block).
+//! - Sums token usage (assistant `message.usage`, deduplicated by message id
+//!   since one response is logged once per content block): today's totals by
+//!   kind, tokens and responses per day for the last 7 days, and the last 5h.
 //! - Derives a best-effort session status for sessions that aren't reported by
 //!   hooks (e.g. before the integration is installed).
 //!
 //! Files are read incrementally from the last offset, so each scan only parses
 //! newly appended lines.
 
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::fs::File;
 use std::io::{Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, UNIX_EPOCH};
 
-use chrono::{DateTime, Local, NaiveDate};
+use chrono::{DateTime, Days, Local, NaiveDate};
 use serde_json::Value;
 
 use super::activity::{self, Activity};
 use super::integration::claude_dir;
-use super::{now_ms, project_name, Ctx, Source, Status, TokenStats};
+use super::{now_ms, project_name, Ctx, DayUsage, Source, Status, TokenStats, Usage};
 
 const SCAN_EVERY: Duration = Duration::from_secs(3);
 /// A transcript with no new message for this long can't be "working" anymore.
 const WORKING_WINDOW_MS: u64 = 60_000;
 /// Only surface transcript-derived sessions active this recently.
 const RECENT_MS: u64 = 30 * 60_000;
+/// Days in the usage chart, today included.
+const DAYS: usize = 7;
+const FIVE_HOURS_MS: u64 = 5 * 3600 * 1000;
 
 /// How the last turn ended, as logged in the transcript.
 #[derive(Clone, Copy)]
@@ -48,21 +52,68 @@ struct FileState {
     activity: Option<Activity>,
 }
 
+/// Usage counters for the current 7-day window.
+struct Totals {
+    /// First day of the window (6 days before today).
+    first_day: NaiveDate,
+    today: NaiveDate,
+    seen: HashSet<String>,
+    today_tokens: TokenStats,
+    daily: [(u64, u64); DAYS],
+    /// `(timestamp, tokens)` of the last 5 hours.
+    recent: VecDeque<(u64, u64)>,
+}
+
+impl Totals {
+    fn new(today: NaiveDate) -> Self {
+        Self {
+            first_day: today.checked_sub_days(Days::new(DAYS as u64 - 1)).unwrap_or(today),
+            today,
+            seen: HashSet::new(),
+            today_tokens: TokenStats::default(),
+            daily: [(0, 0); DAYS],
+            recent: VecDeque::new(),
+        }
+    }
+
+    fn usage(&mut self, now: u64) -> Usage {
+        let horizon = now.saturating_sub(FIVE_HOURS_MS);
+        let mut entries: Vec<_> = self.recent.drain(..).filter(|(t, _)| *t >= horizon).collect();
+        entries.sort_by_key(|(t, _)| *t);
+        self.recent = entries.into();
+        Usage {
+            daily: self
+                .daily
+                .iter()
+                .enumerate()
+                .map(|(i, (tokens, responses))| DayUsage {
+                    date: self
+                        .first_day
+                        .checked_add_days(Days::new(i as u64))
+                        .unwrap_or(self.first_day)
+                        .format("%Y-%m-%d")
+                        .to_string(),
+                    tokens: *tokens,
+                    responses: *responses,
+                })
+                .collect(),
+            last5h_tokens: self.recent.iter().map(|(_, n)| n).sum(),
+        }
+    }
+}
+
 pub fn scan_loop(ctx: Ctx) {
     let mut files: HashMap<PathBuf, FileState> = HashMap::new();
-    let mut seen: HashSet<String> = HashSet::new();
-    let mut totals = TokenStats::default();
-    let mut day = Local::now().date_naive();
+    let mut totals = Totals::new(Local::now().date_naive());
 
     loop {
         let today = Local::now().date_naive();
-        if today != day {
-            day = today;
+        if today != totals.today {
+            // New day: the window moves, so recount it from scratch.
             files.clear();
-            seen.clear();
-            totals = TokenStats::default();
+            totals = Totals::new(today);
         }
-        let midnight = midnight_ms(today);
+        let horizon = midnight_ms(totals.first_day);
 
         let mut paths = Vec::new();
         collect_jsonl(&claude_dir().join("projects"), 0, &mut paths);
@@ -74,7 +125,7 @@ pub fn scan_loop(ctx: Ctx) {
                 .and_then(|t| t.duration_since(UNIX_EPOCH).ok())
                 .map(|d| d.as_millis() as u64)
                 .unwrap_or(0);
-            if mtime < midnight {
+            if mtime < horizon {
                 continue;
             }
             let st = files.entry(path.clone()).or_default();
@@ -82,18 +133,44 @@ pub fn scan_loop(ctx: Ctx) {
                 st.offset = 0; // rewritten
             }
             if meta.len() > st.offset {
-                read_new_lines(&path, st, today, &mut seen, &mut totals);
+                read_new_lines(&path, st, &mut totals);
             }
         }
 
         {
+            let usage = totals.usage(now_ms());
             let mut store = ctx.store.lock().unwrap();
-            store.tokens_today = totals.clone();
+            store.tokens_today = totals.today_tokens.clone();
+            store.usage = usage;
             apply_sessions(&mut store, &files);
         }
         ctx.publish();
         std::thread::sleep(SCAN_EVERY);
     }
+}
+
+/// The text of the last assistant reply in a transcript (its tail is enough).
+pub fn last_reply(path: &Path) -> Option<String> {
+    const TAIL: u64 = 512 * 1024;
+    let mut file = File::open(path).ok()?;
+    let len = file.metadata().ok()?.len();
+    file.seek(SeekFrom::Start(len.saturating_sub(TAIL))).ok()?;
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf).ok()?;
+    buf.split(|&b| b == b'\n').rev().find_map(|line| {
+        let v: Value = serde_json::from_slice(line).ok()?;
+        if v["type"] != "assistant" {
+            return None;
+        }
+        let text: Vec<&str> = v["message"]["content"]
+            .as_array()?
+            .iter()
+            .filter(|b| b["type"] == "text")
+            .filter_map(|b| b["text"].as_str())
+            .collect();
+        let text = text.join("\n");
+        (!text.trim().is_empty()).then_some(text)
+    })
 }
 
 fn collect_jsonl(dir: &Path, depth: u8, out: &mut Vec<PathBuf>) {
@@ -115,7 +192,7 @@ fn midnight_ms(day: NaiveDate) -> u64 {
         .unwrap_or(0)
 }
 
-fn read_new_lines(path: &Path, st: &mut FileState, today: NaiveDate, seen: &mut HashSet<String>, totals: &mut TokenStats) {
+fn read_new_lines(path: &Path, st: &mut FileState, totals: &mut Totals) {
     let Ok(mut file) = File::open(path) else { return };
     if file.seek(SeekFrom::Start(st.offset)).is_err() {
         return;
@@ -130,11 +207,11 @@ fn read_new_lines(path: &Path, st: &mut FileState, today: NaiveDate, seen: &mut 
 
     for line in buf[..last_nl].split(|&b| b == b'\n') {
         let Ok(v) = serde_json::from_slice::<Value>(line) else { continue };
-        process_line(&v, st, today, seen, totals);
+        process_line(&v, st, totals);
     }
 }
 
-fn process_line(v: &Value, st: &mut FileState, today: NaiveDate, seen: &mut HashSet<String>, totals: &mut TokenStats) {
+fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals) {
     if st.session_id.is_empty()
         && let Some(id) = v["sessionId"].as_str() {
             st.session_id = id.to_string();
@@ -155,28 +232,18 @@ fn process_line(v: &Value, st: &mut FileState, today: NaiveDate, seen: &mut Hash
         Some("assistant") => {
             let msg = &v["message"];
             let usage = &msg["usage"];
-            let is_today = ts.is_some_and(|d| d.date_naive() == today);
-            if usage.is_object() && is_today {
-                let key = format!(
-                    "{}:{}",
-                    msg["id"].as_str().unwrap_or(""),
-                    v["requestId"].as_str().unwrap_or("")
-                );
-                if seen.insert(key) {
-                    let n = |k: &str| usage[k].as_u64().unwrap_or(0);
-                    totals.input += n("input_tokens");
-                    totals.output += n("output_tokens");
-                    totals.cache_read += n("cache_read_input_tokens");
-                    totals.cache_write += n("cache_creation_input_tokens");
-                    totals.messages += 1;
-                }
+            let finished = matches!(msg["stop_reason"].as_str(), Some("end_turn" | "stop_sequence" | "refusal"));
+            if usage.is_object()
+                && let Some(ts) = ts
+            {
+                count_usage(totals, v, usage, ts.date_naive(), ts_ms.unwrap_or(0), finished);
             }
             // Errors (auth, network, overload…) are logged as a synthetic
             // assistant message, and no Stop hook fires for them.
             let kind = if v["isApiErrorMessage"].as_bool().unwrap_or(false) {
                 Some("failed")
             } else {
-                matches!(msg["stop_reason"].as_str(), Some("end_turn" | "stop_sequence" | "refusal")).then_some("done")
+                finished.then_some("done")
             };
             st.end = kind.map(|kind| TurnEnd { kind, at: ts_ms.unwrap_or(st.last_ts) });
             if let Some(tool) = msg["content"]
@@ -212,6 +279,50 @@ fn process_line(v: &Value, st: &mut FileState, today: NaiveDate, seen: &mut Hash
             }
         }
         _ => {}
+    }
+}
+
+fn count_usage(totals: &mut Totals, v: &Value, usage: &Value, day: NaiveDate, ts_ms: u64, finished: bool) {
+    let Some(index) = day
+        .signed_duration_since(totals.first_day)
+        .num_days()
+        .try_into()
+        .ok()
+        .filter(|&i: &usize| i < DAYS)
+    else {
+        return;
+    };
+    let key = format!(
+        "{}:{}",
+        v["message"]["id"].as_str().unwrap_or(""),
+        v["requestId"].as_str().unwrap_or("")
+    );
+    if !totals.seen.insert(key) {
+        return;
+    }
+    let n = |k: &str| usage[k].as_u64().unwrap_or(0);
+    let (input, output, cache_read, cache_write) = (
+        n("input_tokens"),
+        n("output_tokens"),
+        n("cache_read_input_tokens"),
+        n("cache_creation_input_tokens"),
+    );
+    let all = input + output + cache_read + cache_write;
+    totals.daily[index].0 += all;
+    // A response is a finished turn, not every tool-calling step.
+    if finished {
+        totals.daily[index].1 += 1;
+    }
+    if now_ms().saturating_sub(ts_ms) < FIVE_HOURS_MS {
+        totals.recent.push_back((ts_ms, all));
+    }
+    if day == totals.today {
+        let t = &mut totals.today_tokens;
+        t.input += input;
+        t.output += output;
+        t.cache_read += cache_read;
+        t.cache_write += cache_write;
+        t.messages += 1;
     }
 }
 

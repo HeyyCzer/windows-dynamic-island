@@ -26,12 +26,14 @@ export function startMock() {
 			thumbnail: art,
 			canNext: true,
 			canPrevious: true,
+			youtubeId: null,
 		});
 
 	publish();
 	setInterval(publish, 1000);
 	publishClaude(start);
 	publishGithub(start);
+	publishWindowsIsland(start);
 	setInterval(() => {
 		if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
 	}, 33);
@@ -101,6 +103,14 @@ function publishClaude(now: number) {
 		limitsResetAt: null,
 		model: "Opus",
 		tokensToday: { input: 184_000, output: 92_500, cacheRead: 4_200_000, cacheWrite: 310_000, messages: 146 },
+		usage: {
+			daily: [5.1, 8.4, 2.2, 0, 11.9, 6.3, 4.6].map((m, i) => ({
+				date: new Date(now - (6 - i) * 86_400_000).toISOString().slice(0, 10),
+				tokens: Math.round(m * 1_000_000),
+				responses: Math.round(m * 9),
+			})),
+			last5hTokens: 2_300_000,
+		},
 		integration: { hooks: true, statusline: true, serverOk: true },
 	};
 	publishLocal("claude", claudeBase);
@@ -137,4 +147,88 @@ function publishGithub(now: number) {
 		updatedAt: now - 90_000,
 		newIssue: { repo: "HeyyCzer/windows-dynamic-island", issue: newest, seenAt: now },
 	});
+}
+
+/** Activities, notifications, Ask Claude and the shelf (ported from Windows Island). */
+function publishWindowsIsland(now: number) {
+	publishLocal("activities", {
+		apiPort: 5199,
+		items: [
+			{
+				id: "render",
+				title: "Rendering video",
+				subtitle: "trailer-final.mp4",
+				caption: null,
+				icon: "sync",
+				image: null,
+				color: "#64D2FF",
+				progress: 0.62,
+				expiresAt: null,
+				priority: 40,
+				action: null,
+				style: "standard",
+				expand: false,
+				source: "api",
+				updatedAt: now,
+			},
+		],
+	});
+	publishLocal("notifications", {
+		access: "allowed",
+		error: null,
+		items: [
+			{ id: 1, app: "WhatsApp", aumid: "", logo: null, title: "Ana", body: "Are we still on for tonight?", receivedAt: now - 60_000, read: true },
+			{ id: 2, app: "Outlook", aumid: "", logo: null, title: "Weekly sync", body: "Moved to 3 PM", receivedAt: now - 1_800_000, read: true },
+		],
+	});
+	publishLocal("ask", {
+		available: true,
+		running: false,
+		status: null,
+		unread: false,
+		hotkey: "Ctrl+Alt+Space",
+		messages: [
+			{ fromUser: true, text: "What does EADDRINUSE mean?", error: false, attachments: [] },
+			{
+				fromUser: false,
+				text: "It means the **port is already in use** by another process.\n- Find it with `netstat -ano | findstr :3000`\n- Stop it, or pick another port.",
+				error: false,
+				attachments: [],
+			},
+		],
+	});
+	publishLocal("shelf", {
+		items: [
+			{ path: "C:\Users\me\Desktop\report.pdf", name: "report.pdf", isDir: false, ext: "pdf", thumb: null },
+			{ path: "C:\Users\me\Pictures", name: "Pictures", isDir: true, ext: "", thumb: null },
+			{ path: "C:\Users\me\Desktop\cover.png", name: "cover.png", isDir: false, ext: "png", thumb: art },
+		],
+	});
+	// The volume OSD every 20s, to preview alerts.
+	setInterval(() => {
+		const level = 0.3 + Math.random() * 0.6;
+		publishLocal("activities", {
+			apiPort: 5199,
+			items: [
+				{
+					id: "system.volume",
+					title: "Volume",
+					subtitle: null,
+					caption: null,
+					icon: "volume",
+					image: null,
+					color: null,
+					progress: level,
+					expiresAt: Date.now() + 1600,
+					priority: 100,
+					action: null,
+					style: "level",
+					expand: false,
+					source: "volume",
+					updatedAt: Date.now(),
+				},
+			],
+		});
+		setTimeout(() => publishLocal("activities", { apiPort: 5199, items: [] }), 1600);
+	}, 20_000);
 }

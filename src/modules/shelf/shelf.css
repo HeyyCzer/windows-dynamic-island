@@ -1,0 +1,140 @@
+.shelf-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100%;
+}
+.shelf-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.shelf-hint {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.shelf-clear {
+  flex: none;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.shelf-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.shelf-items {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
+  overflow-y: auto;
+  border-radius: 14px;
+  transition: background 0.2s, box-shadow 0.2s;
+  scrollbar-width: none;
+}
+.shelf-items.is-dropping {
+  background: rgba(100, 210, 255, 0.06);
+  box-shadow: inset 0 0 0 1.5px rgba(100, 210, 255, 0.45);
+}
+.shelf-drop {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.shelf-tile {
+  position: relative;
+  width: 96px;
+  height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 12px;
+  cursor: grab;
+}
+.shelf-tile:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.shelf-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+.shelf-icon.is-picture {
+  width: 60px;
+}
+.shelf-icon img {
+  width: 60px;
+  height: 44px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.shelf-doc {
+  position: relative;
+  width: 34px;
+  height: 42px;
+  border-radius: 4px 12px 4px 4px;
+  background: linear-gradient(160deg, #e9e9ee, #b9b9c2);
+}
+.shelf-ext {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 5px;
+  padding: 1px 0;
+  border-radius: 3px;
+  background: #0a84ff;
+  color: #fff;
+  font-size: 8.5px;
+  font-weight: 750;
+  text-align: center;
+  text-transform: uppercase;
+}
+.shelf-name {
+  max-width: 88px;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+.shelf-btn {
+  position: absolute;
+  top: 4px;
+  display: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #3a3a3c;
+  font-size: 13px;
+  line-height: 1;
+}
+.shelf-btn.ask {
+  left: 4px;
+}
+.shelf-btn.remove {
+  right: 4px;
+}
+.shelf-tile:hover .shelf-btn {
+  display: grid;
+}
+.shelf-btn:hover {
+  background: #4a4a4e;
+}

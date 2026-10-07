@@ -8,7 +8,7 @@
 //! is inside one of the rects reported by the frontend.
 
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::time::Duration;
 
 use serde::Deserialize;
@@ -22,6 +22,52 @@ pub const RECENTER_EVENT: &str = "island://recenter";
 
 /// Strip height in logical pixels (fits the tallest expanded panel + shadow).
 const STRIP_HEIGHT: f64 = 480.0;
+
+/// The last window in front that wasn't one of ours: what "ask about the
+/// screen" captures, and where focus goes back to after typing in the island.
+static LAST_FOREGROUND: AtomicIsize = AtomicIsize::new(0);
+
+#[cfg(windows)]
+pub fn last_foreground() -> Option<windows::Win32::Foundation::HWND> {
+    let raw = LAST_FOREGROUND.load(Ordering::Relaxed);
+    (raw != 0).then_some(windows::Win32::Foundation::HWND(raw as *mut _))
+}
+
+#[cfg(windows)]
+fn track_foreground(app: &AppHandle) {
+    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+    let fg = unsafe { GetForegroundWindow() };
+    if fg.is_invalid() {
+        return;
+    }
+    let ours = app
+        .webview_windows()
+        .values()
+        .any(|w| w.hwnd().is_ok_and(|h| h.0 == fg.0));
+    if !ours {
+        LAST_FOREGROUND.store(fg.0 as isize, Ordering::Relaxed);
+    }
+}
+
+#[cfg(not(windows))]
+fn track_foreground(_: &AppHandle) {}
+
+/// Lets the island take keyboard focus (typing a question).
+#[tauri::command]
+pub fn focus_island(app: AppHandle) -> Result<(), String> {
+    let win = app.get_webview_window(ISLAND_LABEL).ok_or("no island window")?;
+    win.set_focus().map_err(|e| e.to_string())
+}
+
+/// Gives the keyboard back to the app used before the island (Esc).
+#[tauri::command]
+pub fn restore_focus() {
+    #[cfg(windows)]
+    if let Some(hwnd) = last_foreground() {
+        use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
+        let _ = unsafe { SetForegroundWindow(hwnd) };
+    }
+}
 
 #[tauri::command]
 pub fn is_fullscreen_active(app: AppHandle) -> bool {
@@ -93,6 +139,9 @@ pub fn spawn_hit_test(app: AppHandle) {
                 }
             }
             tick = tick.wrapping_add(1);
+            if tick.is_multiple_of(4) {
+                track_foreground(&app);
+            }
 
             let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
             let inside = !fullscreen && (dragging || cursor_inside(&app, &win));

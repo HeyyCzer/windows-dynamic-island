@@ -1,0 +1,64 @@
+.clock-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  height: 100%;
+  padding: 0 6px;
+}
+.clock-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.clock-time {
+  font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  font-size: 40px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.clock-seconds {
+  margin-left: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.clock-date {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.clock-date::first-letter {
+  text-transform: uppercase;
+}
+.clock-week {
+  display: flex;
+  gap: 4px;
+}
+.clock-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 30px;
+  padding: 5px 0;
+  border-radius: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.clock-day-name {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  text-transform: uppercase;
+}
+.clock-day-num {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.clock-day.is-today {
+  background: rgba(255, 255, 255, 0.1);
+}
+.clock-day.is-today .clock-day-num {
+  color: var(--text);
+}

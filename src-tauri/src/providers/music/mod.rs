@@ -7,6 +7,7 @@
 mod focus;
 mod level;
 mod smtc;
+mod youtube;
 
 use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
@@ -37,6 +38,8 @@ pub struct MusicState {
     pub thumbnail: Option<String>,
     pub can_next: bool,
     pub can_previous: bool,
+    /// The YouTube video a browser is playing, once identified (`youtube.rs`).
+    pub youtube_id: Option<String>,
 }
 
 #[derive(Default)]

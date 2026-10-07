@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity version="1.0.0.0" name="DynamicIsland.app" />
+  <!--
+    Links the exe to the sparse package registered for Windows notifications
+    (src/providers/notifications/package.rs). Windows ignores it until that
+    package is registered. Must match its Name, Publisher and Application Id.
+  -->
+  <msix xmlns="urn:schemas-microsoft-com:msix.v1" publisher="CN=DynamicIsland" packageName="DynamicIsland" applicationId="DynamicIsland" />
+  <!-- Same as Tauri's default manifest: Common Controls v6. -->
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls" version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" />
+    </dependentAssembly>
+  </dependency>
+  <compatibility xmlns="urn:schemas-microsoft-com:compatibility.v1">
+    <application>
+      <!-- Windows 10 / 11 -->
+      <supportedOS Id="{8e0f7a12-bfb3-4fe8-b9a5-48fd50a15a9a}" />
+    </application>
+  </compatibility>
+</assembly>
