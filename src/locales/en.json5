@@ -428,7 +428,12 @@
 
   // Clock module
   clock: {
-    title: "Clock",
+    title: "Clock & calendar",
+    today: "Today",
+    prev: "Previous month",
+    next: "Next month",
+    // {n}: ISO week number
+    week: "Week {n}",
   },
 
   // Alerts raised by the backend (src-tauri/src/providers/activities)

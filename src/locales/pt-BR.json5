@@ -395,7 +395,11 @@
   },
 
   clock: {
-    title: "Relógio",
+    title: "Relógio e calendário",
+    today: "Hoje",
+    prev: "Mês anterior",
+    next: "Próximo mês",
+    week: "Semana {n}",
   },
 
   system: {
