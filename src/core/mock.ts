@@ -65,6 +65,8 @@ function publishClaude(now: number) {
 				model: "Opus",
 				contextPct: 42,
 				source: "hooks",
+				summary: null,
+				prompt: "Add a launcher grid with every module to the tab bar",
 			},
 			{
 				id: "b",
@@ -79,6 +81,8 @@ function publishClaude(now: number) {
 				model: "Sonnet",
 				contextPct: 18,
 				source: "hooks",
+				summary: null,
+				prompt: "Fix the flaky auth tests",
 			},
 			{
 				id: "c",
@@ -93,6 +97,8 @@ function publishClaude(now: number) {
 				model: "Opus",
 				contextPct: 67,
 				source: "transcript",
+				summary: "Done: the hero now stacks on small screens and the CTA stays visible.",
+				prompt: "Make the hero section responsive",
 			},
 		],
 		limits: {
