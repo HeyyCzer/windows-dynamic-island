@@ -99,6 +99,12 @@ Not into the colorful look? You don't have to use it. **Settings → Appearance*
   <img src="docs/screenshots/shelf.png" width="560" alt="Shelf holding a PDF, a folder and a picture" />
 </p>
 
+**Clipboard**: what you copy (text, pictures, files) shows up in the island for a moment, and the last 20 items stay in a list.
+
+- Screenshots (Win+Shift+S, Print Screen, ShareX, Greenshot…) open the island with the picture
+- Click an item to copy it again; drag pictures and files out to any app; 💬 asks Claude about it; 📁 keeps it on the shelf (pictures are saved to *Pictures\Screenshots*, reusing the file Snipping Tool saved if there is one)
+- Text is only kept in memory, and what password managers copy is never read
+
 **Notifications**: WhatsApp, Teams, Outlook, Discord and other apps' notifications, mirrored from Windows. Each new one pops open with the app's icon, and the tab keeps the recent ones (click one to open its app). Windows only lets registered apps read notifications, so **Settings → Modules → Notifications → Enable** registers the island once as a sparse package and restarts it. This needs Windows Developer Mode, since the registration isn't signed.
 
 **GitHub**: open issue counts for the repositories you follow.
@@ -106,6 +112,11 @@ Not into the colorful look? You don't have to use it. **Settings → Appearance*
 - A side bubble next to the island with the total, and a panel with each repo and its newest issue
 - Optionally pops open when someone opens a new issue
 - Works anonymously for public repos; uses your GitHub CLI login automatically, or a token kept in the Windows Credential Manager for private repos
+
+**System monitor**: CPU, memory, GPU and network with a chart of the last minute, measured like Task Manager does.
+
+- Optional side bubble with the CPU use and a memory dot
+- Warns when the CPU or the memory stays maxed out for 30 seconds, naming the app behind it
 
 **Live Activities**: short alerts and ongoing activities:
 
@@ -176,15 +187,16 @@ bun run app:build    # installers in src-tauri/target/release/bundle/
 ```
 src/
   core/        island state, provider bridge, settings, appearance, i18n
-  modules/     one folder per module (music, ai-agents, ask, notifications, activities, shelf, github, clock),
-               each with its own UI and settings
+  modules/     one folder per module (music, ai-agents, ask, notifications, activities, shelf, clipboard,
+               github, monitor, clock), each with its own UI and settings
   locales/     translations (*.json5)
   settings/    settings window
   pip/         pinned YouTube video window
 src-tauri/src/
   providers/   OS-side data sources, one per module (media controls, Claude Code, GitHub, local API + volume,
-               battery and Bluetooth, Windows notifications, `claude -p` chat, shelf)
-  window.rs    click-through window + hover hit-testing
+               battery and Bluetooth, Windows notifications, `claude -p` chat, shelf, clipboard history,
+               performance counters)
+  window.rs    click-through overlay window (no caption buttons) + hover hit-testing
   tray.rs      tray menu and black hole
   pip.rs       pinned video window
 ```

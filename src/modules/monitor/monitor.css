@@ -1,0 +1,95 @@
+.mon-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  height: 100%;
+}
+.mon-loading {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+.mon-tile {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px 6px;
+  border-radius: 14px;
+  background: var(--card);
+}
+.mon-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.mon-value {
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+.mon-value.is-small {
+  font-size: 15px;
+  line-height: 1.6;
+}
+.mon-detail {
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.mon-spark {
+  display: block;
+  width: 100%;
+  height: 30px;
+  margin-top: auto;
+  overflow: visible;
+}
+
+/* side bubble */
+.mon-bubble {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+}
+.mon-bubble svg {
+  position: absolute;
+  inset: 0;
+  transform: rotate(-90deg);
+}
+.mon-ring-track,
+.mon-ring {
+  fill: none;
+  stroke-width: 3;
+}
+.mon-ring-track {
+  stroke: rgba(255, 255, 255, 0.12);
+}
+.mon-ring {
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease;
+}
+.mon-bubble-value {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.mon-bubble-dot {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--island);
+}

@@ -426,6 +426,60 @@
     remove: "Tirar da prateleira",
   },
 
+  clipboard: {
+    title: "Área de transferência",
+    copied: "Copiado",
+    screenshot: "Captura de tela",
+    picture: "Imagem {w}×{h}",
+    files: "{n} arquivos",
+    chars: "{n} caracteres",
+    empty: "Copie alguma coisa e ela aparece aqui.",
+    hint: "Clique para copiar de novo · arraste imagens e arquivos para fora",
+    clear: "Limpar",
+    copy: "Copiar de novo",
+    copiedAgain: "Copiado!",
+    ask: "Perguntar ao Claude sobre isto",
+    keep: "Guardar na prateleira",
+    kept: "Na prateleira",
+    short: {
+      copy: "Copiar",
+      ask: "Perguntar ao Claude",
+      keep: "Guardar",
+    },
+    open: "Abrir",
+    remove: "Remover",
+    fileName: "Área de transferência",
+    privacy: "O texto fica só na memória e some quando a ilha fecha. O que os gerenciadores de senha copiam nunca é lido.",
+    showOnCopy: {
+      label: "Mostrar o que você copia",
+      desc: "A ilha mostra por um instante o que você acabou de copiar.",
+    },
+    peekOnScreenshot: {
+      label: "Abrir em capturas de tela",
+      desc: "Abre a ilha com a imagem quando você tira um print (Win+Shift+S, Print Screen…).",
+    },
+  },
+
+  monitor: {
+    title: "Monitor do sistema",
+    cpu: "CPU",
+    memory: "Memória",
+    gpu: "GPU",
+    network: "Rede",
+    memoryDetail: "{used} de {total}",
+    threads: "{n} threads",
+    unavailable: "Indisponível",
+    loading: "Medindo…",
+    showBubble: {
+      label: "Bolha lateral",
+      desc: "Mostra o uso de CPU e memória ao lado da ilha.",
+    },
+    alerts: {
+      label: "Alertas",
+      desc: "Avisa quando a CPU ou a memória ficam no limite por 30 segundos e diz qual app está por trás.",
+    },
+  },
+
   clock: {
     title: "Relógio e calendário",
     today: "Hoje",
@@ -452,5 +506,16 @@
       disconnected: "Desconectado",
       low: "{name}: bateria fraca",
     },
+    cpu: {
+      high: "CPU no limite",
+      top: "{app} está usando {n}%",
+      detail: "Em {n}% há 30 segundos",
+    },
+    memory: {
+      high: "Memória quase cheia",
+      top: "{app} está usando {size}",
+      detail: "{used} de {total} em uso",
+    },
+    decimal: ",",
   },
 }

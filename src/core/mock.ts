@@ -34,6 +34,8 @@ export function startMock() {
 	publishClaude(start);
 	publishGithub(start);
 	publishWindowsIsland(start);
+	publishClipboard(start);
+	publishMonitor();
 	setInterval(() => {
 		if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
 	}, 33);
@@ -237,4 +239,65 @@ function publishWindowsIsland(now: number) {
 		});
 		setTimeout(() => publishLocal("activities", { apiPort: 5199, hasBattery: true, items: [] }), 1600);
 	}, 20_000);
+}
+
+/** Clipboard history; a new screenshot arrives after 8 s to preview the pill and the big picture. */
+function publishClipboard(now: number) {
+	const item = (id: number, fields: Record<string, unknown>) => ({
+		id,
+		kind: "text",
+		preview: null,
+		chars: null,
+		thumb: null,
+		width: null,
+		height: null,
+		path: null,
+		names: [],
+		screenshot: false,
+		source: null,
+		copiedAt: now,
+		quiet: true,
+		...fields,
+	});
+	const history = [
+		item(3, { preview: "netstat -ano | findstr :5199", chars: 28, source: "Visual Studio Code", copiedAt: now - 40_000 }),
+		item(2, { kind: "files", names: ["report.pdf", "cover.png"], source: "Windows Explorer", copiedAt: now - 300_000 }),
+		item(1, { preview: "https://github.com/HeyyCzer/windows-dynamic-island/issues/128", chars: 61, source: "Google Chrome", copiedAt: now - 900_000 }),
+	];
+	publishLocal("clipboard", { items: history });
+	setTimeout(() => {
+		const shot = item(4, { kind: "image", thumb: art, width: 1920, height: 1080, path: "C:\shot.png", screenshot: true, source: "Snipping Tool", copiedAt: Date.now(), quiet: false });
+		publishLocal("clipboard", { items: [shot, ...history] });
+	}, 8_000);
+}
+
+/** System monitor: a minute of wobbling numbers. */
+function publishMonitor() {
+	const history = { cpu: [] as number[], memory: [] as number[], gpu: [] as number[], down: [] as number[], up: [] as number[] };
+	const push = (list: number[], v: number) => {
+		list.push(v);
+		if (list.length > 60) list.shift();
+	};
+	const tick = () => {
+		const t = Date.now() / 1000;
+		const cpu = 22 + 14 * Math.sin(t / 5) + Math.random() * 8;
+		const gpu = 35 + 30 * Math.sin(t / 9);
+		push(history.cpu, cpu);
+		push(history.memory, 61 + Math.sin(t / 20) * 2);
+		push(history.gpu, gpu);
+		push(history.down, 400_000 + Math.random() * 2_600_000);
+		push(history.up, 20_000 + Math.random() * 90_000);
+		publishLocal("monitor", {
+			cpu,
+			gpu,
+			memoryUsed: 10.4 * 1024 ** 3,
+			memoryTotal: 16 * 1024 ** 3,
+			down: history.down[history.down.length - 1],
+			up: history.up[history.up.length - 1],
+			history: { ...history },
+			cores: 16,
+		});
+	};
+	tick();
+	setInterval(tick, 1000);
 }

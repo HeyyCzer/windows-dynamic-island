@@ -25,6 +25,7 @@ const MAX_ROWS = 4;
 const MODULE_SOURCES: Record<string, string> = {
   notification: "notifications",
   ask: "ask",
+  monitor: "monitor",
 };
 
 export const activitiesModule: IslandModule = {

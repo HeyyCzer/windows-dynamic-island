@@ -12,9 +12,12 @@
 pub mod activities;
 pub mod ask;
 pub mod claude;
+pub mod clipboard;
 pub mod github;
+pub mod monitor;
 pub mod music;
 pub mod notifications;
+pub mod process;
 pub mod shelf;
 
 use std::sync::Arc;
@@ -46,8 +49,10 @@ pub fn registry() -> Vec<Arc<dyn Provider>> {
         Arc::new(notifications::NotificationsProvider::default()),
         Arc::new(ask::AskProvider::default()),
         Arc::new(shelf::ShelfProvider::default()),
+        Arc::new(clipboard::ClipboardProvider::default()),
         Arc::new(claude::ClaudeProvider::default()),
         Arc::new(github::GithubProvider::default()),
+        Arc::new(monitor::MonitorProvider::default()),
     ]
 }
 

@@ -463,6 +463,69 @@
     remove: "Remove from the shelf",
   },
 
+  // Clipboard module
+  clipboard: {
+    title: "Clipboard",
+    copied: "Copied",
+    screenshot: "Screenshot",
+    // {w}, {h}: size in pixels
+    picture: "Picture {w}×{h}",
+    // {n}: number of files
+    files: "{n} files",
+    // {n}: number of characters
+    chars: "{n} characters",
+    empty: "Copy something and it shows up here.",
+    hint: "Click to copy again · drag pictures and files out",
+    clear: "Clear",
+    copy: "Copy again",
+    copiedAgain: "Copied!",
+    ask: "Ask Claude about this",
+    keep: "Keep on the shelf",
+    kept: "On the shelf",
+    // Short button labels next to a fresh picture
+    short: {
+      copy: "Copy",
+      ask: "Ask Claude",
+      keep: "Keep",
+    },
+    open: "Open",
+    remove: "Remove",
+    // File name for a picture saved from the clipboard (a date follows)
+    fileName: "Clipboard",
+    privacy: "Text is only kept in memory and is gone when the island closes. What password managers copy is never read.",
+    showOnCopy: {
+      label: "Show what you copy",
+      desc: "The island shows what you just copied for a moment.",
+    },
+    peekOnScreenshot: {
+      label: "Open on screenshots",
+      desc: "Opens the island with the picture when you take a screenshot (Win+Shift+S, Print Screen…).",
+    },
+  },
+
+  // System monitor module
+  monitor: {
+    title: "System monitor",
+    cpu: "CPU",
+    memory: "Memory",
+    gpu: "GPU",
+    network: "Network",
+    // {used}, {total}: sizes like "9.8 GB"
+    memoryDetail: "{used} of {total}",
+    // {n}: logical processors
+    threads: "{n} threads",
+    unavailable: "Not available",
+    loading: "Measuring…",
+    showBubble: {
+      label: "Side bubble",
+      desc: "Shows CPU and memory use next to the island.",
+    },
+    alerts: {
+      label: "Alerts",
+      desc: "Warns when the CPU or the memory stays maxed out for 30 seconds, and says which app is behind it.",
+    },
+  },
+
   // Clock module
   clock: {
     title: "Clock & calendar",
@@ -495,5 +558,21 @@
       // {name}: device name
       low: "{name}: low battery",
     },
+    cpu: {
+      high: "CPU maxed out",
+      // {app}: app name, {n}: its share of the whole CPU in percent
+      top: "{app} is using {n}%",
+      // {n}: percent
+      detail: "At {n}% for 30 seconds",
+    },
+    memory: {
+      high: "Memory almost full",
+      // {app}: app name, {size}: e.g. "4.2 GB"
+      top: "{app} is using {size}",
+      // {used}, {total}: e.g. "15.1 GB"
+      detail: "{used} of {total} in use",
+    },
+    // Decimal separator in the sizes above
+    decimal: ".",
   },
 }
