@@ -147,6 +147,26 @@ export const positionSettings = {
   } satisfies SettingDef<number>,
 };
 
+/**
+ * Which monitor the island lives on (applied by the backend, `display.rs`).
+ * `monitor` is "primary" (follows Windows' primary monitor) or a monitor id
+ * from the `list_monitors` command.
+ */
+export const monitorSettings = {
+  monitor: {
+    key: "island.monitor",
+    label: "settings.monitor.label",
+    description: "settings.monitor.desc",
+    default: "primary",
+  } satisfies SettingDef<string>,
+  avoidMaximized: {
+    key: "island.avoidMaximized",
+    label: "settings.avoidMaximized.label",
+    description: "settings.avoidMaximized.desc",
+    default: false,
+  } satisfies SettingDef,
+};
+
 /** Last drag offset from the center in CSS px (kept only when not returning). */
 export const ISLAND_OFFSET_KEY = "island.offset";
 

@@ -1,7 +1,7 @@
 //! Island window placement and click-through handling.
 //!
-//! The window is a transparent overlay strip spanning the full width of the
-//! primary monitor's top edge, so the island can be dragged left/right inside
+//! The window is a transparent overlay strip spanning the full width of a
+//! monitor's top edge (which one: see `display.rs`), so the island can be dragged left/right inside
 //! it. Everything outside the island shape must let clicks
 //! pass through to the apps below, so the window ignores cursor events by
 //! default and a background thread turns them back on only while the cursor
@@ -12,7 +12,7 @@ use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::time::Duration;
 
 use serde::Deserialize;
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewWindow};
+use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 
 pub const ISLAND_LABEL: &str = "island";
 pub const HOVER_EVENT: &str = "island://hover";
@@ -21,7 +21,7 @@ pub const FULLSCREEN_EVENT: &str = "island://fullscreen";
 pub const RECENTER_EVENT: &str = "island://recenter";
 
 /// Strip height in logical pixels (fits the tallest expanded panel + shadow).
-const STRIP_HEIGHT: f64 = 480.0;
+pub const STRIP_HEIGHT: f64 = 480.0;
 
 /// The last window in front that wasn't one of ours: what "ask about the
 /// screen" captures, and where focus goes back to after typing in the island.
@@ -103,19 +103,12 @@ pub fn set_dragging(state: tauri::State<DragState>, dragging: bool) {
     state.0.store(dragging, Ordering::Relaxed);
 }
 
-/// Stretch the window across the top edge of the primary monitor.
-pub fn position_top_center(win: &WebviewWindow) -> tauri::Result<()> {
-    let monitor = match win.primary_monitor()? {
-        Some(m) => Some(m),
-        None => win.current_monitor()?,
-    };
-    if let Some(monitor) = monitor {
-        let origin = monitor.position();
-        let height = (STRIP_HEIGHT * monitor.scale_factor()).round() as u32;
-        win.set_size(PhysicalSize::new(monitor.size().width, height))?;
-        win.set_position(PhysicalPosition::new(origin.x, origin.y))?;
-    }
-    Ok(())
+/// Cursor over the island (as last reported by the hit-test thread).
+static HOVERING: AtomicBool = AtomicBool::new(false);
+
+/// The user is hovering or dragging the island: don't move it away.
+pub fn is_interacting(app: &AppHandle) -> bool {
+    HOVERING.load(Ordering::Relaxed) || app.state::<DragState>().0.load(Ordering::Relaxed)
 }
 
 pub fn spawn_hit_test(app: AppHandle) {
@@ -177,6 +170,7 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
             if inside != hovering {
                 hovering = inside;
+                HOVERING.store(inside, Ordering::Relaxed);
                 let _ = app.emit(HOVER_EVENT, inside);
             }
         }

@@ -40,6 +40,7 @@ windows-collections = "0.3"
 windows = { version = "0.62", features = [
   "ApplicationModel",
   "Devices_Enumeration",
+  "Win32_Devices_Display",
   "Foundation",
   "Foundation_Collections",
   "Management_Deployment",

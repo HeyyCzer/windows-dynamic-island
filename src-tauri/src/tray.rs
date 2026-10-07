@@ -7,7 +7,7 @@ use tauri::{AppHandle, Emitter, Manager, Wry};
 use tauri_plugin_autostart::ManagerExt;
 
 use crate::i18n;
-use crate::window::{position_top_center, ISLAND_LABEL, RECENTER_EVENT};
+use crate::window::{ISLAND_LABEL, RECENTER_EVENT};
 
 const TRAY_ID: &str = "main";
 /// Swallowed by the black hole (tray click): the island stays hidden, even across restarts.
@@ -90,7 +90,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
             }
             "recenter" => {
                 if let Some(win) = app.get_webview_window(ISLAND_LABEL) {
-                    let _ = position_top_center(&win);
+                    let _ = crate::display::place(&win);
                 }
                 let _ = app.emit(RECENTER_EVENT, ());
             }

@@ -43,6 +43,20 @@
       label: "Expand on hover",
       desc: "When off, the island only expands on click.",
     },
+    monitor: {
+      label: "Monitor",
+      desc: "Where the island lives. Automatic follows the primary monitor set in Windows.",
+      // {name}: the primary monitor's name
+      auto: "Automatic ({name})",
+      // {n}: the monitor's number, for monitors without a model name
+      generic: "Monitor {n}",
+      primary: "primary",
+      missing: "Disconnected monitor (using the primary)",
+    },
+    avoidMaximized: {
+      label: "Avoid fullscreen apps",
+      desc: "Moves the island to another monitor while a fullscreen app (game, video, presentation) would hide it.",
+    },
     returnToCenter: {
       label: "Return to center",
       desc: "Drag the island left or right along the top. When off, it stays where you drop it.",

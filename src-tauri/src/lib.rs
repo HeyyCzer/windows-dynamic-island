@@ -1,3 +1,4 @@
+mod display;
 mod hub;
 mod i18n;
 mod pip;
@@ -54,11 +55,12 @@ pub fn run() {
             app.manage(Providers(providers));
 
             if let Some(win) = app.get_webview_window(window::ISLAND_LABEL) {
-                window::position_top_center(&win)?;
+                display::place(&win)?;
                 win.set_ignore_cursor_events(true)?;
                 win.show()?;
             }
             window::spawn_hit_test(handle.clone());
+            display::spawn_placement(handle.clone());
 
             tray::setup(&handle)?;
             tray::enable_autostart_on_first_run(&handle);
@@ -74,6 +76,7 @@ pub fn run() {
             window::is_fullscreen_active,
             window::focus_island,
             window::restore_focus,
+            display::list_monitors,
             settings::get_settings,
             settings::set_setting,
             settings::open_settings,

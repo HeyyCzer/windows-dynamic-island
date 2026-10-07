@@ -36,6 +36,18 @@
       label: "Expandir ao passar o mouse",
       desc: "Desligado: expande só com clique.",
     },
+    monitor: {
+      label: "Monitor",
+      desc: "Onde a ilha fica. Automático segue o monitor principal definido no Windows.",
+      auto: "Automático ({name})",
+      generic: "Monitor {n}",
+      primary: "principal",
+      missing: "Monitor desconectado (usando o principal)",
+    },
+    avoidMaximized: {
+      label: "Evitar apps em tela cheia",
+      desc: "Leva a ilha para outro monitor enquanto um app em tela cheia (jogo, vídeo, apresentação) a esconderia.",
+    },
     returnToCenter: {
       label: "Voltar ao centro",
       desc: "Arraste a ilha para a esquerda ou direita no topo. Desligado: ela fica onde você soltar.",

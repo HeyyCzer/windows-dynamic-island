@@ -279,6 +279,8 @@ body:has(.settings) {
 
 .settings-select {
   flex: none;
+  max-width: 280px;
+  text-overflow: ellipsis;
   height: 32px;
   padding: 0 32px 0 12px;
   border: none;
