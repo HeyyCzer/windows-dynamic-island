@@ -118,7 +118,7 @@ export const layoutSettings = {
   pinned: {
     key: "island.pinned",
     label: "layout.pinned",
-    default: ["music", "ai-agents", "ask", "notifications", "clock"],
+    default: ["music", "ai-agents", "ask", "notifications", "clipboard", "monitor", "clock"],
   } satisfies SettingDef<string[]>,
 };
 

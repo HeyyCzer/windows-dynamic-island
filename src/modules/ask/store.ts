@@ -35,6 +35,9 @@ export const pendingAttachments = createStore<Attachment[]>([]);
 /** The input should take the keyboard (global shortcut, "ask about this file"); the panel consumes it. */
 export const focusRequest = createStore(false);
 
+/** Text to put in the question box (e.g. copied text); the panel consumes it. */
+export const draftRequest = createStore<string | null>(null);
+
 export function addAttachments(list: Attachment[]) {
   pendingAttachments.set((prev) => [
     ...prev,

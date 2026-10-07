@@ -39,6 +39,11 @@ const GLYPHS: Record<string, number> = {
   pause: 0xe769,
   next: 0xe893,
   previous: 0xe892,
+  clipboard: 0xe77f,
+  copy: 0xe8c8,
+  pulse: 0xe9d9,
+  text: 0xe8d2,
+  open: 0xe8a7,
   // Not in the icon font: falls back to Segoe UI Symbol.
   claude: 0x273b,
 };

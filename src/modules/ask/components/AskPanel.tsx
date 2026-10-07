@@ -9,6 +9,7 @@ import {
   addAttachments,
   ASK_PROVIDER,
   CLAUDE_ORANGE,
+  draftRequest,
   focusRequest,
   pendingAttachments,
   type AskState,
@@ -46,6 +47,18 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
     takeKeyboard();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusPending]);
+
+  // "Ask about this text" (clipboard): the text goes in, the question follows it.
+  const draftPending = draftRequest.use();
+  useEffect(() => {
+    // Read from the store, not the render: consumed once even if the effect runs twice.
+    const text = draftRequest.get();
+    if (text == null) return;
+    draftRequest.set(null);
+    setDraft((prev) => `${prev.trim() ? `${prev.trimEnd()}\n\n` : ""}${text}\n\n`);
+    takeKeyboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftPending]);
 
   // Follow the newest text.
   const last = messages[messages.length - 1];

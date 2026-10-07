@@ -140,7 +140,7 @@ impl Provider for ShelfProvider {
             // Drag an item out to any app (Explorer, WhatsApp, an e-mail…).
             "drag" => {
                 let path = known(&ctx, &payload).ok_or("not on the shelf")?;
-                start_drag(ctx.hub.app(), PathBuf::from(path));
+                start_drag(ctx.hub.app(), vec![PathBuf::from(path)]);
                 return Ok(Value::Null);
             }
             _ => return Err(format!("{ID}: unknown action '{action}'")),
@@ -157,13 +157,17 @@ fn known(ctx: &Ctx, payload: &Value) -> Option<String> {
 }
 
 /// OLE drag & drop has to run on the UI thread, while the mouse button is down.
-fn start_drag(app: &tauri::AppHandle, path: PathBuf) {
+/// Also used by the clipboard history.
+pub(crate) fn start_drag(app: &tauri::AppHandle, paths: Vec<PathBuf>) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
         let Some(win) = handle.get_webview_window(crate::window::ISLAND_LABEL) else { return };
-        let image = if image_media_type(&path).is_some() { drag::Image::File(path.clone()) } else { drag::Image::Raw(vec![]) };
-        if let Err(e) = drag::start_drag(&win, drag::DragItem::Files(vec![path]), image, |_, _| {}, drag::Options::default()) {
-            log::warn!("shelf: drag failed: {e}");
+        let image = match paths.as_slice() {
+            [one] if image_media_type(one).is_some() => drag::Image::File(one.clone()),
+            _ => drag::Image::Raw(vec![]),
+        };
+        if let Err(e) = drag::start_drag(&win, drag::DragItem::Files(paths), image, |_, _| {}, drag::Options::default()) {
+            log::warn!("drag failed: {e}");
         }
     });
 }
