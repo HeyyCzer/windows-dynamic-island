@@ -4,7 +4,12 @@ use serde_json::{Map, Value};
 
 fn main() {
     embed_locales();
-    tauri_build::build()
+    println!("cargo:rerun-if-changed=app.manifest");
+    // Tauri's default manifest plus the `<msix>` link to the sparse package
+    // that lets the island read Windows notifications.
+    let windows = tauri_build::WindowsAttributes::new().app_manifest(include_str!("app.manifest"));
+    tauri_build::try_build(tauri_build::Attributes::new().windows_attributes(windows))
+        .expect("failed to run tauri-build");
 }
 
 /// Generates `$OUT_DIR/locales.rs`: every `src/locales/*.json5` as

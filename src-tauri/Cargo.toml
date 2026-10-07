@@ -18,7 +18,7 @@ json5 = "1"
 serde_json = "1"
 
 [dependencies]
-tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri = { version = "2", features = ["tray-icon", "image-png", "image-ico"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
@@ -29,13 +29,24 @@ chrono = { version = "0.4", default-features = false, features = ["clock", "std"
 base64 = "0.23"
 log = "0.4"
 tauri-plugin-updater = "2"
+tauri-plugin-global-shortcut = "2"
+png = "0.17"
 
 [target.'cfg(windows)'.dependencies]
+# Drags shelf items out of the island into other apps (OLE drag & drop).
+drag = "2"
+# `IIterable` / `IMapView` for WinRT calls (`windows` doesn't re-export them).
+windows-collections = "0.3"
 windows = { version = "0.62", features = [
+  "ApplicationModel",
+  "Devices_Enumeration",
   "Foundation",
+  "Foundation_Collections",
+  "Management_Deployment",
   "Media_Control",
   "Storage_Streams",
   "Win32_Foundation",
+  "Win32_Graphics_Dwm",
   "Win32_Graphics_Gdi",
   "Win32_System_Com",
   "Win32_System_Com_StructuredStorage",
@@ -43,16 +54,20 @@ windows = { version = "0.62", features = [
   "Win32_Media_Audio",
   "Win32_Media_Audio_Endpoints",
   "Win32_Security_Credentials",
+  "Win32_Storage_Xps",
+  "Win32_System_Power",
   "Win32_System_Threading",
   "Win32_UI_Shell",
+  "Win32_UI_Input_KeyboardAndMouse",
   "Win32_UI_WindowsAndMessaging",
+  "UI_Notifications",
+  "UI_Notifications_Management",
 ] }
 
 # Faster dev rebuilds: line tables are enough for backtraces, and nobody
 # steps through dependencies in a debugger.
 [profile.dev]
 debug = "line-tables-only"
-incremental = true # Compile your binary in smaller steps.
 
 [profile.dev.package."*"]
 debug = false

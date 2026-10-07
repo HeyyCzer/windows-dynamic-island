@@ -6,6 +6,8 @@ import { Artwork } from "./Artwork";
 import { Controls } from "./Controls";
 import { Visualizer } from "./Visualizer";
 import { useT } from "../../../core/i18n";
+import { closePip, openPip, usePipOpen } from "../hooks/usePip";
+import { useMirrorVideo, YouTubeMirror } from "./YouTubeMirror";
 
 /** Expanded now-playing panel. */
 export function MusicPanel({
@@ -19,6 +21,10 @@ export function MusicPanel({
 }) {
   const position = useLivePosition(music);
   const t = useT();
+  const pinned = usePipOpen();
+  const mirror = useMirrorVideo(music?.youtubeId);
+  // While pinned, only the pinned window plays the video.
+  const video = pinned ? null : mirror;
 
   if (!music?.available) {
     return (
@@ -38,9 +44,37 @@ export function MusicPanel({
 
   return (
     <div className="music-panel" style={{ "--accent": accent } as React.CSSProperties}>
-      <button className="music-open" title={music.appName} onClick={openPlayer}>
-        <Artwork src={music.thumbnail} size={112} radius={20} trackKey={music.title} glow={accent} />
-      </button>
+      {video ? (
+        // YouTube in a browser: the video itself plays here (muted, in sync with the tab).
+        <div className="music-video">
+          <YouTubeMirror videoId={video} positionMs={position} playing={music.playing} />
+          <button
+            className="music-glass"
+            onClick={(e) => {
+              e.stopPropagation();
+              openPip();
+            }}
+          >
+            {t("music.pin")}
+          </button>
+        </div>
+      ) : (
+        <button className="music-open" title={music.appName} onClick={openPlayer}>
+          <Artwork src={music.thumbnail} size={112} radius={20} trackKey={music.title} glow={accent} />
+          {pinned && (
+            <span
+              className="music-glass music-unpin"
+              title={t("music.unpin")}
+              onClick={(e) => {
+                e.stopPropagation();
+                closePip();
+              }}
+            >
+              {t("music.pinned")}
+            </span>
+          )}
+        </button>
+      )}
 
       <div className="music-info">
         <div className="music-head">

@@ -57,14 +57,23 @@ pub fn get_settings(settings: State<Settings>) -> Map<String, Value> {
 }
 
 #[tauri::command]
-pub fn set_setting(app: AppHandle, settings: State<Settings>, key: String, value: Value) {
+pub fn set_setting(app: AppHandle, key: String, value: Value) {
+    set(&app, &key, value);
+}
+
+/// Store and broadcast a setting (backend side of `setSetting`).
+pub fn set(app: &AppHandle, key: &str, value: Value) {
+    let settings = app.state::<Settings>();
     let snapshot = {
         let mut data = settings.data.lock().unwrap();
-        data.insert(key, value);
+        data.insert(key.to_string(), value);
         settings.save(&data);
         data.clone()
     };
     let _ = app.emit(CHANGED_EVENT, snapshot);
+    if key == crate::tray::HIDDEN_KEY {
+        crate::tray::sync_hidden(app);
+    }
 }
 
 #[tauri::command]

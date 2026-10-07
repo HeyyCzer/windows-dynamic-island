@@ -13,7 +13,10 @@ export function AgentCompactLeft({ hot, busyCount }: { hot: AgentSessionRef; bus
       ? (session.activity ?? t("agents.status.working"))
       : session.status === "idle"
         ? ""
-        : t(`agents.status.${session.status}`);
+        : session.status === "done" && session.summary
+          ? // How the reply starts, like Windows Island's "Claude finished" alert.
+            session.summary
+          : t(`agents.status.${session.status}`);
 
   return (
     <>

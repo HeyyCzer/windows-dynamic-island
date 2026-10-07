@@ -1,5 +1,6 @@
 mod hub;
 mod i18n;
+mod pip;
 mod providers;
 mod settings;
 mod tray;
@@ -8,13 +9,17 @@ mod window;
 
 use std::sync::Arc;
 
-use tauri::Manager;
+use tauri::{AppHandle, Emitter, Manager};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 use hub::Hub;
 use providers::Providers;
 
 pub use providers::claude::statusline::BRIDGE_FLAG as STATUSLINE_BRIDGE_FLAG;
 pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
+
+/// The global shortcut fired: the frontend opens the "Ask Claude" page.
+const ASK_EVENT: &str = "island://ask";
 
 pub fn run() {
     tauri::Builder::default()
@@ -24,6 +29,15 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_autostart::Builder::new().build())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(
+            tauri_plugin_global_shortcut::Builder::new()
+                .with_handler(|app, _shortcut, event| {
+                    if event.state() == ShortcutState::Pressed {
+                        open_ask(app);
+                    }
+                })
+                .build(),
+        )
         .manage(window::HitState::default())
         .manage(window::DragState::default())
         .manage(i18n::Locale::default())
@@ -49,6 +63,7 @@ pub fn run() {
             tray::setup(&handle)?;
             tray::enable_autostart_on_first_run(&handle);
             updater::spawn(handle.clone());
+            register_ask_shortcut(&handle);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -57,6 +72,8 @@ pub fn run() {
             window::set_hit_rects,
             window::set_dragging,
             window::is_fullscreen_active,
+            window::focus_island,
+            window::restore_focus,
             settings::get_settings,
             settings::set_setting,
             settings::open_settings,
@@ -67,7 +84,38 @@ pub fn run() {
             updater::check_update,
             updater::install_update,
             i18n::set_locale,
+            pip::open_pip,
+            pip::close_pip,
+            pip::is_pip_open,
+            pip::pip_snap,
+            pip::pip_resize,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+/// Ctrl+Alt+Space opens "Ask Claude" from anywhere; Ctrl+Shift+Space when
+/// another app already took it.
+fn register_ask_shortcut(app: &AppHandle) {
+    let options = [
+        (Modifiers::CONTROL | Modifiers::ALT, "Ctrl+Alt+Space"),
+        (Modifiers::CONTROL | Modifiers::SHIFT, "Ctrl+Shift+Space"),
+    ];
+    for (modifiers, label) in options {
+        if app.global_shortcut().register(Shortcut::new(Some(modifiers), Code::Space)).is_ok() {
+            providers::ask::set_hotkey(Some(label.to_string()));
+            return;
+        }
+    }
+    log::warn!("ask shortcut unavailable: both combinations are taken by other apps");
+}
+
+fn open_ask(app: &AppHandle) {
+    if tray::is_hidden(app) {
+        return;
+    }
+    if let Some(win) = app.get_webview_window(window::ISLAND_LABEL) {
+        let _ = win.set_focus();
+    }
+    let _ = app.emit(ASK_EVENT, ());
 }

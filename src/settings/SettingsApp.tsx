@@ -1,14 +1,16 @@
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
-import { GearIcon, InfoIcon } from "../components/icons";
+import { GearIcon, GridIcon, InfoIcon, PaletteIcon } from "../components/icons";
 import { useSyncLocale, useT } from "../core/i18n";
-import { moduleEnabled, readSetting, useSettings } from "../core/settings";
+import { inOrder, layoutSettings, moduleEnabled, readSetting, useSettings } from "../core/settings";
 import { modules } from "../modules";
 import { NavItem } from "./components/NavItem";
 import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
+import { AppearancePage } from "./pages/AppearancePage";
 import { GeneralPage } from "./pages/GeneralPage";
+import { LayoutPage } from "./pages/LayoutPage";
 import { ModulePage } from "./pages/ModulePage";
 import "./settings.css";
 
@@ -28,7 +30,9 @@ export function SettingsApp() {
         <div className="settings-main">
           <nav className="settings-nav">
             <NavItem to="/" icon={<GearIcon size={15} />} label={t("settings.general")} />
-            {modules.map((m) => (
+            <NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
+            <NavItem to="/layout" icon={<GridIcon size={14} />} label={t("layout.title")} />
+            {inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order)).map((m) => (
               <NavItem
                 key={m.id}
                 to={`/modules/${m.id}`}
@@ -44,6 +48,8 @@ export function SettingsApp() {
             <Page>
               <Routes>
                 <Route index element={<GeneralPage values={values} />} />
+                <Route path="appearance" element={<AppearancePage values={values} />} />
+                <Route path="layout" element={<LayoutPage values={values} />} />
                 <Route path="modules/:id" element={<ModulePage values={values} />} />
                 <Route path="about" element={<AboutPage />} />
               </Routes>

@@ -9,7 +9,7 @@ use serde_json::Value;
 use tiny_http::{Header, Method, Response, Server};
 
 use super::activity::{self, Activity};
-use super::{now_ms, statusline, usage, Ctx, Source, Status, HOOK_PORT};
+use super::{now_ms, statusline, transcripts, usage, Ctx, Source, Status, HOOK_PORT};
 
 pub const HOOK_PATH: &str = "/claude/hook";
 pub const STATUSLINE_PATH: &str = "/claude/statusline";
@@ -46,7 +46,7 @@ pub fn serve(ctx: Ctx) {
     }
 }
 
-fn handle_hook(ctx: &Ctx, v: &Value) {
+pub fn handle_hook(ctx: &Ctx, v: &Value) {
     let str_of = |k: &str| v.get(k).and_then(Value::as_str).unwrap_or("");
     let session_id = str_of("session_id");
     if session_id.is_empty() {
@@ -55,6 +55,18 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
     let event = str_of("hook_event_name");
     let tool = str_of("tool_name");
     let now = now_ms();
+    let transcript = std::path::Path::new(str_of("transcript_path"));
+    // How the reply starts, for the "done" alert. Newer Claude Code versions
+    // send it with the hook; otherwise it's the last text in the transcript.
+    let mut summary = (event == "Stop")
+        .then(|| {
+            v["last_assistant_message"]
+                .as_str()
+                .map(str::to_string)
+                .or_else(|| transcripts::last_reply(transcript))
+        })
+        .flatten()
+        .map(|text| preview(&text));
 
     {
         let mut store = ctx.store.lock().unwrap();
@@ -74,6 +86,8 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
                     s.turn_started_at = Some(now);
                     s.finished_at = None;
                     s.tool = None;
+                    s.summary = None;
+                    s.prompt = Some(preview(str_of("prompt"))).filter(|p| !p.is_empty());
                     s.activity = Some(Activity::thinking());
                 }
                 "PreToolUse" => {
@@ -106,6 +120,11 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
                     s.status = Status::Done;
                     s.finished_at = Some(now);
                     s.tool = None;
+                    s.summary = summary.take();
+                    // Started before the island did: the transcript knows.
+                    if s.prompt.is_none() {
+                        s.prompt = transcripts::last_prompt(transcript).map(|p| preview(&p));
+                    }
                     s.activity = Some(Activity::new(if event == "Stop" { "done" } else { "failed" }));
                 }
                 _ => {}
@@ -118,6 +137,21 @@ fn handle_hook(ctx: &Ctx, v: &Value) {
     if matches!(event, "SessionStart" | "Stop") {
         usage::request(ctx, usage::HOOK_MIN_AGE_MS);
     }
+}
+
+/// One line, no Markdown markers, at most ~160 characters.
+pub(super) fn preview(text: &str) -> String {
+    let flat = text
+        .replace("**", "")
+        .replace('`', "")
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+    let mut out: String = flat.chars().take(160).collect();
+    if flat.chars().count() > 160 {
+        out.push('…');
+    }
+    out
 }
 
 fn start_turn_if_needed(s: &mut super::Session, now: u64) {

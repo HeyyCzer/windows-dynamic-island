@@ -26,6 +26,30 @@
   box-shadow: 0 0 0 2px #000;
 }
 
+/* state-only indicator for session rows */
+.agents-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.agents-dot.is-done {
+  border-radius: 50%;
+  background: #34c759;
+}
+.agents-dot-core {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+}
+.agents-dot-core.is-waiting {
+  background: #ffbd2e;
+}
+.agents-dot-core.is-limitsReset {
+  background: #34c759;
+}
+
 /* --- compact -------------------------------------------------------------- */
 .agents-compact-label {
   max-width: 200px;
@@ -260,4 +284,75 @@
   font-size: 12.5px;
   color: var(--text-faint);
   padding: 6px 0;
+}
+
+/* 7-day usage from the local transcripts */
+.agents-usage {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  padding: 2px 2px 0;
+}
+.agents-usage-stats {
+  display: flex;
+  gap: 18px;
+}
+.agents-usage-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 64px;
+}
+.agents-usage-value {
+  font-size: 17px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.agents-usage-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.agents-usage-chart {
+  flex: 1;
+  display: flex;
+  gap: 6px;
+}
+.agents-usage-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.agents-usage-bar-area {
+  display: flex;
+  align-items: flex-end;
+  height: 34px;
+}
+.agents-usage-bar {
+  width: 18px;
+  border-radius: 4px 4px 1px 1px;
+  background: color-mix(in srgb, var(--agent) 62%, transparent);
+}
+.agents-usage-col.is-today .agents-usage-bar {
+  background: var(--agent);
+}
+.agents-usage-bar.is-empty {
+  background: rgba(255, 255, 255, 0.18);
+}
+.agents-usage-day {
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.agents-usage-col.is-today .agents-usage-day {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.agents-session.is-clickable {
+  cursor: pointer;
+  border-radius: 8px;
+}
+.agents-session.is-clickable:hover {
+  background: rgba(255, 255, 255, 0.05);
 }

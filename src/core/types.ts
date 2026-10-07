@@ -32,6 +32,13 @@ export interface ModuleView {
    * this module, e.g. a new track started. `undefined` never peeks.
    */
   activityKey?: string;
+  /**
+   * Left out of the tab bar (e.g. an empty shelf). It can still own the
+   * compact island, peek, or be opened by `expand(id)`.
+   */
+  hidden?: boolean;
+  /** Color of the module's tab ring in the Windows Island style. */
+  accent?: string;
 }
 
 export interface IslandModule {
@@ -47,8 +54,14 @@ export interface IslandModule {
   useView: () => ModuleView;
   /** Toggles shown under this module in the settings window. */
   settings?: SettingDef[];
+  /**
+   * Hook returning the keys of `settings` that don't apply to this machine
+   * (e.g. battery alerts on a desktop); the settings window leaves them out.
+   */
+  useHiddenSettings?: () => string[];
   /** Extra custom UI for the settings window (e.g. integration status). */
   SettingsSection?: ComponentType;
 }
 
-export type IslandMode = "hidden" | "idle" | "compact" | "peek" | "expanded";
+/** `hidden`: a fullscreen app is in front. `swallowed`: hidden in the tray's black hole. */
+export type IslandMode = "hidden" | "swallowed" | "idle" | "compact" | "peek" | "expanded";

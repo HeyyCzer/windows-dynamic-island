@@ -9,9 +9,13 @@
 //!   2. add it to [`registry`];
 //!   3. add a matching frontend module in `src/modules/<name>/`.
 
+pub mod activities;
+pub mod ask;
 pub mod claude;
 pub mod github;
 pub mod music;
+pub mod notifications;
+pub mod shelf;
 
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -36,7 +40,12 @@ pub trait Provider: Send + Sync + 'static {
 
 pub fn registry() -> Vec<Arc<dyn Provider>> {
     vec![
+        // First: the others push alerts into it.
+        Arc::new(activities::ActivitiesProvider),
         Arc::new(music::MusicProvider::default()),
+        Arc::new(notifications::NotificationsProvider::default()),
+        Arc::new(ask::AskProvider::default()),
+        Arc::new(shelf::ShelfProvider::default()),
         Arc::new(claude::ClaudeProvider::default()),
         Arc::new(github::GithubProvider::default()),
     ]

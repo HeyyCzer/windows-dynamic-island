@@ -1,0 +1,120 @@
+.clock-panel {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+  height: 100%;
+  padding: 0 4px;
+}
+.clock-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+.clock-time {
+  font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
+  font-size: 44px;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.clock-seconds {
+  margin-left: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-faint);
+}
+.clock-date {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.clock-date::first-letter,
+.clock-meta::first-letter,
+.clock-cal-month::first-letter {
+  text-transform: uppercase;
+}
+.clock-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+/* --- month calendar -------------------------------------------------------- */
+.clock-cal {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 252px;
+  flex: none;
+}
+.clock-cal-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+}
+.clock-cal-month {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 650;
+}
+.clock-cal-today {
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 650;
+  color: #ff453a;
+  background: rgba(255, 69, 58, 0.14);
+}
+.clock-cal-nav {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 17px;
+  line-height: 1;
+  color: var(--text-dim);
+}
+.clock-cal-nav:hover,
+.clock-cal-day:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.clock-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px 2px;
+}
+.clock-cal-weekday {
+  height: 14px;
+  font-size: 10px;
+  font-weight: 650;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.clock-cal-day {
+  height: 21px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 550;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+.clock-cal-day.is-weekend {
+  color: var(--text-faint);
+}
+.clock-cal-day.is-other {
+  opacity: 0.35;
+}
+.clock-cal-day.is-selected {
+  color: var(--text);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.5);
+}
+.clock-cal-day.is-today {
+  color: #fff;
+  font-weight: 750;
+  background: #ff453a;
+}

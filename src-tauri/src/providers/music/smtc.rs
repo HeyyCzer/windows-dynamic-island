@@ -26,6 +26,7 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>) {
     let mut track_key = String::new();
     let mut thumbnail: Option<String> = None;
     let mut thumb_attempts = 0u8;
+    let youtube = super::youtube::Resolver::default();
 
     loop {
         if manager.is_none() {
@@ -45,6 +46,7 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>) {
                     thumbnail = read_thumbnail(&session).ok().flatten();
                 }
                 state.thumbnail = thumbnail.clone();
+                state.youtube_id = youtube.video_id(&state);
                 state
             }
             Some(Ok(None)) => MusicState::default(),
@@ -139,6 +141,7 @@ fn read_state(manager: &SessionManager) -> Result<Option<(MusicState, Session)>>
         thumbnail: None,
         can_next: controls.IsNextEnabled()?,
         can_previous: controls.IsPreviousEnabled()?,
+        youtube_id: None,
     };
     Ok(Some((state, session)))
 }

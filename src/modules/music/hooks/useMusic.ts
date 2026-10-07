@@ -16,6 +16,8 @@ export interface MusicState {
   thumbnail: string | null;
   canNext: boolean;
   canPrevious: boolean;
+  /** The YouTube video a browser is playing, once identified. */
+  youtubeId: string | null;
 }
 
 export const MUSIC_PROVIDER = "music";

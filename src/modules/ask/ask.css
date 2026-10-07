@@ -1,0 +1,216 @@
+.ask-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+}
+.ask-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ask-logo {
+  display: grid;
+  color: #d97757;
+}
+.ask-title {
+  font-size: 14px;
+  font-weight: 650;
+}
+.ask-status {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.ask-spacer {
+  flex: 1;
+}
+.ask-text-btn {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.ask-text-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+.ask-hint,
+.ask-empty {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+.ask-empty {
+  margin: auto;
+  text-align: center;
+  max-width: 420px;
+}
+
+.ask-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  user-select: text;
+}
+.ask-messages::-webkit-scrollbar {
+  width: 6px;
+}
+.ask-messages::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.ask-user {
+  align-self: flex-end;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 15px;
+  background: #2c2c2e;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+.ask-user-image {
+  max-height: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+.ask-user-file {
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.ask-answer {
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+}
+.ask-answer.is-error {
+  color: #ff8a80;
+}
+.ask-answer strong {
+  font-weight: 650;
+  color: #fff;
+}
+.ask-answer code {
+  font-family: "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  color: #f2b880;
+}
+.ask-dots {
+  color: var(--text-dim);
+}
+.ask-copy {
+  align-self: flex-start;
+  margin-left: -8px;
+}
+
+.ask-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.ask-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 240px;
+  padding: 3px 4px 3px 4px;
+  border-radius: 10px;
+  background: #2c2c2e;
+  font-size: 12px;
+}
+.ask-chip img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.ask-chip-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.ask-chip button {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  color: var(--text-faint);
+}
+.ask-chip button:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.ask-field {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.ask-field textarea {
+  flex: 1;
+  min-height: 26px;
+  padding: 4px 4px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  resize: none;
+  outline: none;
+  user-select: text;
+}
+.ask-field textarea::placeholder {
+  color: var(--text-faint);
+}
+.ask-icon-btn,
+.ask-send {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+}
+.ask-icon-btn {
+  color: var(--text-dim);
+}
+.ask-icon-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+.ask-send {
+  color: #fff;
+}
+.ask-send:disabled {
+  opacity: 0.35;
+}
+.ask-stop-square {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  background: #fff;
+}
+
+.ask-compact-title {
+  font-size: 13px;
+  font-weight: 650;
+}
+.ask-compact-status {
+  max-width: 150px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  color: var(--text-dim);
+}

@@ -13,6 +13,7 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
   const tr = useT();
   const t = snapshot.tokensToday;
   const total = t ? t.input + t.output + t.cacheRead + t.cacheWrite : 0;
+  const responses = snapshot.usage?.daily.at(-1)?.responses ?? t?.messages;
 
   // The card is only mounted while the panel is visible.
   const { refreshLimits } = snapshot;
@@ -55,6 +56,11 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
         <motion.span key={formatTokens(total)} className="agents-tokens-total" initial={{ opacity: 0.4 }} animate={{ opacity: 1 }}>
           {formatTokens(total)}
         </motion.span>
+        {responses != null && (
+          <span className="agents-usage-sub">
+            {tr(responses === 1 ? "agents.usage.response" : "agents.usage.responses", { n: responses })}
+          </span>
+        )}
         {t && (
           <dl className="agents-tokens-grid">
             <dt>{tr("agents.tokens.input")}</dt>

@@ -8,7 +8,7 @@
 //! is inside one of the rects reported by the frontend.
 
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
 use std::time::Duration;
 
 use serde::Deserialize;
@@ -22,6 +22,52 @@ pub const RECENTER_EVENT: &str = "island://recenter";
 
 /// Strip height in logical pixels (fits the tallest expanded panel + shadow).
 const STRIP_HEIGHT: f64 = 480.0;
+
+/// The last window in front that wasn't one of ours: what "ask about the
+/// screen" captures, and where focus goes back to after typing in the island.
+static LAST_FOREGROUND: AtomicIsize = AtomicIsize::new(0);
+
+#[cfg(windows)]
+pub fn last_foreground() -> Option<windows::Win32::Foundation::HWND> {
+    let raw = LAST_FOREGROUND.load(Ordering::Relaxed);
+    (raw != 0).then_some(windows::Win32::Foundation::HWND(raw as *mut _))
+}
+
+#[cfg(windows)]
+fn track_foreground(app: &AppHandle) {
+    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
+    let fg = unsafe { GetForegroundWindow() };
+    if fg.is_invalid() {
+        return;
+    }
+    let ours = app
+        .webview_windows()
+        .values()
+        .any(|w| w.hwnd().is_ok_and(|h| h.0 == fg.0));
+    if !ours {
+        LAST_FOREGROUND.store(fg.0 as isize, Ordering::Relaxed);
+    }
+}
+
+#[cfg(not(windows))]
+fn track_foreground(_: &AppHandle) {}
+
+/// Lets the island take keyboard focus (typing a question).
+#[tauri::command]
+pub fn focus_island(app: AppHandle) -> Result<(), String> {
+    let win = app.get_webview_window(ISLAND_LABEL).ok_or("no island window")?;
+    win.set_focus().map_err(|e| e.to_string())
+}
+
+/// Gives the keyboard back to the app used before the island (Esc).
+#[tauri::command]
+pub fn restore_focus() {
+    #[cfg(windows)]
+    if let Some(hwnd) = last_foreground() {
+        use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
+        let _ = unsafe { SetForegroundWindow(hwnd) };
+    }
+}
 
 #[tauri::command]
 pub fn is_fullscreen_active(app: AppHandle) -> bool {
@@ -79,6 +125,8 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut fullscreen = false;
         let mut tick = 0u32;
         let mut last_fg = 0isize;
+        let mut button_down = false;
+        let mut pressed_inside = false;
         loop {
             std::thread::sleep(Duration::from_millis(25));
             let Some(win) = app.get_webview_window(ISLAND_LABEL) else {
@@ -96,6 +144,9 @@ pub fn spawn_hit_test(app: AppHandle) {
                 }
             }
             tick = tick.wrapping_add(1);
+            if tick.is_multiple_of(4) {
+                track_foreground(&app);
+            }
 
             let fg = foreground_window();
             let fg_changed = fg != last_fg;
@@ -105,9 +156,22 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
 
             let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
-            let inside = !fullscreen && (dragging || cursor_inside(&app, &win));
+            let over_island = cursor_inside(&app, &win, 0.0);
+            let inside = !fullscreen && (dragging || over_island);
 
-            let ignore = !inside;
+            // A drag that started in another app (files from Explorer…). The
+            // island is a thin target and the drop target must be under the
+            // cursor the moment OLE looks for it, so a wider zone around the
+            // island takes the cursor while the button is held. The other app
+            // keeps the mouse capture, so nothing is stolen if it isn't a file.
+            let down = left_button_down();
+            if down && !button_down {
+                pressed_inside = over_island;
+            }
+            button_down = down;
+            let drop_zone = !fullscreen && down && !pressed_inside && cursor_inside(&app, &win, DROP_MARGIN);
+
+            let ignore = !inside && !drop_zone;
             if ignoring != Some(ignore) && win.set_ignore_cursor_events(ignore).is_ok() {
                 ignoring = Some(ignore);
             }
@@ -119,7 +183,22 @@ pub fn spawn_hit_test(app: AppHandle) {
     });
 }
 
-fn cursor_inside(app: &AppHandle, win: &WebviewWindow) -> bool {
+/// Extra room (CSS px) around the island that accepts files dragged in.
+const DROP_MARGIN: f64 = 48.0;
+
+#[cfg(windows)]
+fn left_button_down() -> bool {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+    unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000 != 0 }
+}
+
+#[cfg(not(windows))]
+fn left_button_down() -> bool {
+    false
+}
+
+/// Cursor over one of the frontend's rects, grown by `margin` CSS px.
+fn cursor_inside(app: &AppHandle, win: &WebviewWindow, margin: f64) -> bool {
     let Some((cx, cy)) = cursor_pos() else {
         return false;
     };
@@ -129,9 +208,11 @@ fn cursor_inside(app: &AppHandle, win: &WebviewWindow) -> bool {
     let rects = app.state::<HitState>();
     let rects = rects.0.lock().unwrap();
     rects.iter().any(|r| {
-        let left = origin.x as f64 + r.x * scale;
-        let top = origin.y as f64 + r.y * scale;
-        cx >= left && cx <= left + r.width * scale && cy >= top && cy <= top + r.height * scale
+        let left = origin.x as f64 + (r.x - margin) * scale;
+        let top = origin.y as f64 + (r.y - margin).max(0.0) * scale;
+        let right = origin.x as f64 + (r.x + r.width + margin) * scale;
+        let bottom = origin.y as f64 + (r.y + r.height + margin) * scale;
+        cx >= left && cx <= right && cy >= top && cy <= bottom
     })
 }
 

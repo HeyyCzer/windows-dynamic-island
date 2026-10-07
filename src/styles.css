@@ -200,6 +200,62 @@ button {
   background: #34c759;
 }
 
+/* launcher: every module as a tile (the grid button in the tab bar) */
+.launcher {
+  display: grid;
+  grid-template-columns: repeat(var(--launcher-cols), 1fr);
+  grid-auto-rows: var(--tile-h);
+  gap: var(--tile-gap);
+  height: 100%;
+}
+.launcher-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 0 8px;
+  border-radius: 16px;
+  color: var(--text-dim);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.launcher-tile:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tab-accent) 55%, transparent);
+}
+.launcher-icon {
+  display: grid;
+  place-items: center;
+  height: 20px;
+}
+.launcher-name {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.launcher-dot {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+}
+.tab.tab-launcher {
+  padding: 0;
+  width: 30px;
+  justify-content: center;
+  margin-left: auto;
+}
+.tab.tab-launcher + .tab-gear {
+  margin-left: 0;
+}
+
 /* ----------------------------------------------------------- primitives -- */
 
 .marquee {
@@ -246,4 +302,115 @@ body.preview {
 .tab-gear:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.08);
+}
+
+/* ------------------------------------------------- Windows Island style -- */
+
+/* Wraps the island for the tray's black hole spin. */
+.blackhole {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+}
+
+.shell.is-windows .ear {
+  display: none;
+}
+
+/* Colored rim: a gradient ring masked to the border, inside the rounded shape. */
+@property --rim-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.rim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: var(--rim-w, 2px);
+  background: var(--rim-bg);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.rim.is-classic {
+  background: rgba(255, 255, 255, 0.09);
+}
+.rim.is-animated {
+  animation: rim-spin 7s linear infinite;
+}
+@keyframes rim-spin {
+  to {
+    --rim-angle: 360deg;
+  }
+}
+
+.idle-clock {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabs at the bottom, icons only, with a ring in the module's color. */
+.expanded.tabs-bottom {
+  padding-bottom: 8px;
+}
+.expanded.tabs-bottom .tabs {
+  justify-content: center;
+  margin: 8px 0 0;
+}
+.tabs.icons-only .tab {
+  width: 32px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 50%;
+  opacity: 0.55;
+  transition: opacity 0.2s;
+}
+.tabs.icons-only .tab:hover,
+.tabs.icons-only .tab.is-active {
+  opacity: 1;
+}
+.tabs.icons-only .tab-pill {
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tab-accent) 70%, transparent);
+}
+.tabs.icons-only .tab-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  box-shadow: 0 0 0 1.5px #000;
+}
+.expanded.tabs-bottom .tab-gear {
+  margin-left: 6px;
+}
+
+/* Shared by the new modules: Fluent icon glyphs. */
+.glyph {
+  font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+  font-style: normal;
+  line-height: 1;
+}
+.badge {
+  flex: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Windows Island: launcher sits with the centered icon tabs. */
+.tabs.icons-only .tab.tab-launcher {
+  margin-left: 6px;
+  --tab-accent: #fff;
 }

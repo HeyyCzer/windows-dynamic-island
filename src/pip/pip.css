@@ -1,0 +1,100 @@
+html:has(.pip),
+body:has(.pip) {
+  background: #000;
+}
+
+.pip {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+  cursor: grab;
+}
+.pip-video {
+  position: absolute;
+  inset: 0;
+}
+.pip-art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+/* Controls fade in on hover. */
+.pip-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 38%, transparent 55%, rgba(0, 0, 0, 0.8));
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.pip:hover .pip-overlay {
+  opacity: 1;
+}
+.pip-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pip-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.pip-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+.pip-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.pip-play {
+  width: 36px;
+  height: 36px;
+}
+.pip-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pip-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.pip-timeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.75);
+}
+.pip-progress {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 99px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+}
+.pip-fill {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  transform-origin: 0 50%;
+}

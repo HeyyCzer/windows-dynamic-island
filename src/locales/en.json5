@@ -75,6 +75,9 @@
     autostart: "Start with Windows",
     recenter: "Recenter",
     quit: "Quit",
+    hide: "Hide island",
+    show: "Show island",
+    hiddenTooltip: "Dynamic Island (hidden): click to show",
   },
   window: {
     settings: "Dynamic Island — Settings",
@@ -83,6 +86,19 @@
   // Island chrome
   island: {
     settings: "Settings",
+  },
+
+  // Tabs of the open island: order, tab bar and launcher (settings page + island)
+  layout: {
+    title: "Tabs",
+    desc: "Drag to reorder. Modules in the bar are always one click away; the others are in the launcher (the grid button). A busy module shows up in the bar anyway.",
+    launcher: "All modules",
+    pinned: "In the tab bar",
+    drag: "Drag to reorder",
+    inBar: "Tab bar",
+    inLauncher: "Launcher",
+    pin: "Show in the tab bar",
+    unpin: "Move to the launcher",
   },
 
   // Music module
@@ -97,6 +113,11 @@
       label: "Audio visualizer",
       desc: "Animated bars that follow the music.",
     },
+    // YouTube video mirrored in the island / pinned to its own window
+    pin: "Pin",
+    pinned: "Video pinned · bring back",
+    unpin: "Bring the video back to the island",
+    backToIsland: "Back to the island",
   },
 
   // AI Agents module (agent-agnostic UI)
@@ -120,6 +141,17 @@
 	  limitsReset: "Limits reset, you can use it again!"
     },
     now: "Now",
+    openProject: "Open in VS Code",
+    // 7-day usage from the local transcripts
+    usage: {
+      today: "Today",
+      todayShort: "today",
+      week: "7 days",
+      last5h: "Last 5h",
+      // {n}: count
+      response: "{n} response",
+      responses: "{n} responses",
+    },
     noSessions: "No recent sessions",
     contextUsed: "Context used",
     noLimits: "No limit data yet",
@@ -250,5 +282,194 @@
     interrupted: "Interrupted",
     // {what}: one of the activities above
     permission: "Permission: {what}",
+  },
+  // Appearance page (settings): island style and rim
+  appearance: {
+    title: "Appearance",
+    style: {
+      label: "Style",
+      desc: "How the island looks on your screen.",
+      dynamic: "Dynamic Island",
+      dynamicDesc: "Hangs from the top edge like a notch, tabs with names.",
+      windows: "Windows Island",
+      windowsDesc: "A floating pill with a clock at rest, a colored rim and tabs at the bottom.",
+    },
+    windowsOnly: "Available in the Windows Island style.",
+    border: {
+      label: "Border",
+      desc: "The island stays black; only its rim changes color.",
+    },
+    preset: {
+      none: "Classic",
+      intelligence: "Apple Intelligence",
+      aurora: "Aurora",
+      sunset: "Sunset",
+      ocean: "Ocean",
+      claude: "Claude",
+      neon: "Neon",
+      mono: "Silver",
+      custom: "Custom",
+    },
+    custom: {
+      label: "Custom colors",
+      start: "Start color",
+      end: "End color",
+    },
+    thickness: {
+      label: "Thickness",
+      "1": "Thin",
+      "2": "Medium",
+      "3": "Thick",
+    },
+    animate: {
+      label: "Moving gradient",
+      desc: "The colors slowly turn around the island. Uses a little more CPU.",
+    },
+    glow: {
+      label: "Glow",
+      desc: "A soft halo in the rim's color.",
+    },
+    idleClock: {
+      label: "Clock at rest",
+      desc: "Shows the time in the island when nothing else is going on.",
+    },
+    hide: {
+      label: "Hide the island",
+      desc: "The black hole swallows it until you bring it back. Clicking the tray icon does the same.",
+    },
+  },
+
+  // Live activities module (local API + system alerts)
+  activities: {
+    title: "Live Activities",
+    volume: {
+      label: "Volume",
+      desc: "A level bar when the volume changes.",
+    },
+    battery: {
+      label: "Battery",
+      desc: "Charger plugged in or out, and low battery warnings (20%, 10%, 5%).",
+    },
+    bluetooth: {
+      label: "Bluetooth headphones",
+      desc: "Name and battery when they connect, and a warning when their battery runs low.",
+    },
+    api: {
+      label: "Other apps",
+      desc: "Notifications and live activities sent by scripts and apps through the local API.",
+    },
+    server: {
+      title: "Local API",
+      desc: "Any app or script on this computer can show notifications and live activities (downloads, timers, builds…).",
+      down: "Not listening (port in use?)",
+      routes: "Routes: POST /notify, POST /activity, DELETE /activity/{id}, GET /status. Set DYNAMIC_ISLAND_PORT to change the port.",
+    },
+  },
+
+  // Windows notifications module
+  notifications: {
+    title: "Notifications",
+    clear: "Clear",
+    empty: "No notifications",
+    // {app}: the app that sent it
+    open: "Open {app}",
+    access: {
+      title: "Windows notifications",
+      noIdentity: "Windows only lets registered apps read notifications. Enabling registers the island once and restarts it.",
+      denied: "Access is blocked in Windows Settings → Privacy → Notifications.",
+      allowed: "New notifications from WhatsApp, Teams, Outlook… show up in the island.",
+      unavailable: "Notification access isn't available on this system.",
+      enable: "Enable",
+      enabling: "Enabling…",
+      on: "On",
+      openPrivacy: "Open settings",
+      how: "Needs Windows Developer Mode (Settings → System → For developers), since the registration isn't signed.",
+      openDeveloper: "Open developer settings",
+    },
+  },
+
+  // Ask Claude module
+  ask: {
+    title: "Ask Claude",
+    hint: "Questions and quick help. Claude answers right here, with your Claude Code login.",
+    // {keys}: e.g. Ctrl+Alt+Space
+    hotkey: "{keys} opens it from anywhere.",
+    placeholder: "Ask Claude…",
+    send: "Send (Enter)",
+    stop: "Stop the answer",
+    new: "New conversation",
+    copy: "Copy answer",
+    copied: "Copied ✓",
+    remove: "Remove",
+    screenshot: "Attach a screenshot of the window you were using",
+    notFound: "Claude Code wasn't found on this computer. Install the Claude Code CLI or its VS Code extension and try again.",
+    answered: "Claude answered",
+    // {title}: window title
+    screenOf: "Screen: {title}",
+    wholeScreen: "Whole screen",
+    defaultImage: "What do you see here?",
+    defaultFile: "Take a look at this file.",
+    // {error}: what went wrong
+    attachmentFailed: "Couldn't read the attachment: {error}",
+    startFailed: "Couldn't start Claude Code: {error}",
+    noAnswer: "Claude Code finished without answering.",
+    interrupted: "Answer interrupted.",
+    // {tools}: tool names
+    denied: "(It would need permission to use {tools}. Open Claude Code for that.)",
+    status: {
+      thinking: "Thinking…",
+      writing: "Writing…",
+      webSearch: "Searching the web…",
+      webFetch: "Reading a page…",
+      read: "Reading a file…",
+      search: "Searching files…",
+      // {tool}: tool name
+      tool: "Using {tool}…",
+    },
+  },
+
+  // Shelf module
+  shelf: {
+    title: "Shelf",
+    empty: "Drop files here to keep them for a moment, then drag them wherever you want.",
+    hint: "Drag out to use · double-click opens",
+    drop: "Drop to keep it here",
+    clear: "Clear",
+    ask: "Ask Claude about this",
+    remove: "Remove from the shelf",
+  },
+
+  // Clock module
+  clock: {
+    title: "Clock & calendar",
+    today: "Today",
+    prev: "Previous month",
+    next: "Next month",
+    // {n}: ISO week number
+    week: "Week {n}",
+  },
+
+  // Alerts raised by the backend (src-tauri/src/providers/activities)
+  system: {
+    volume: {
+      title: "Volume",
+      muted: "Muted",
+    },
+    battery: {
+      charging: "Charging",
+      onBattery: "On battery",
+      low: "Low battery",
+      // {n}: percent
+      lowDetail: "{n}% left. Plug in the charger.",
+      left: "{n}% left.",
+    },
+    bluetooth: {
+      connected: "Connected",
+      // {n}: percent
+      connectedBattery: "Connected · battery {n}%",
+      disconnected: "Disconnected",
+      // {name}: device name
+      low: "{name}: low battery",
+    },
   },
 }

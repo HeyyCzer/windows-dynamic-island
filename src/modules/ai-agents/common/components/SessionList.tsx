@@ -2,10 +2,14 @@ import { AnimatePresence, motion } from "motion/react";
 import { useT } from "../../../../core/i18n";
 import { formatAgo, formatElapsed } from "../format";
 import type { AgentSessionRef } from "../types";
-import { StatusGlyph } from "./StatusGlyph";
+import { StatusDot, StatusGlyph } from "./StatusGlyph";
 
-/** "Now" list: every recent session across agents, busiest first. */
-export function SessionList({ items, now }: { items: AgentSessionRef[]; now: number }) {
+/**
+ * "Now" list: every recent session across agents, busiest first. With a
+ * single agent the rows show only their state (the card above already says
+ * which agent it is); the agent icon comes back when several are listed.
+ */
+export function SessionList({ items, now, showAgent }: { items: AgentSessionRef[]; now: number; showAgent: boolean }) {
   const t = useT();
   if (!items.length) {
     return <div className="agents-empty">{t("agents.noSessions")}</div>;
@@ -23,15 +27,28 @@ export function SessionList({ items, now }: { items: AgentSessionRef[]; now: num
             <motion.li
               key={`${agent.id}:${session.id}`}
               layout
-              className={`agents-session is-${session.status}`}
+              className={`agents-session is-${session.status} ${agent.openSession && session.cwd ? "is-clickable" : ""}`}
+              title={agent.openSession && session.cwd ? t("agents.openProject") : undefined}
+              onClick={(e) => {
+                if (!agent.openSession || !session.cwd) return;
+                e.stopPropagation();
+                agent.openSession(session);
+              }}
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 32 }}
             >
-              <StatusGlyph agent={agent} status={session.status} size={14} />
+              {showAgent ? (
+                <StatusGlyph agent={agent} status={session.status} size={14} />
+              ) : (
+                <StatusDot status={session.status} color={agent.color} />
+              )}
               <span className="agents-session-title">{session.title || agent.name}</span>
-              <span className="agents-session-activity">{session.activity}</span>
+              <span className="agents-session-activity" title={detail(session) ?? undefined}>
+                {/* Busy: what it's doing. Otherwise what it was asked, which tells apart sessions of one project. */}
+                {running ? session.activity : (session.prompt ?? session.summary ?? session.activity)}
+              </span>
               {session.contextPct != null && (
                 <span className="agents-session-ctx" title={t("agents.contextUsed")}>
                   {Math.round(session.contextPct)}%
@@ -46,4 +63,10 @@ export function SessionList({ items, now }: { items: AgentSessionRef[]; now: num
       </AnimatePresence>
     </ul>
   );
+}
+
+/** Tooltip: the prompt and how the reply started. */
+function detail(session: AgentSessionRef["session"]) {
+  const parts = [session.prompt && `> ${session.prompt}`, session.summary ?? session.activity].filter(Boolean);
+  return parts.length ? parts.join("\n\n") : null;
 }
