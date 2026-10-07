@@ -89,6 +89,8 @@ struct ActivitiesState {
     items: Vec<Activity>,
     /// Port of the local API, when it is listening.
     api_port: Option<u16>,
+    /// False on desktops: the battery alerts setting is hidden.
+    has_battery: bool,
 }
 
 struct Inner {
@@ -153,6 +155,7 @@ impl Activities {
         let state = ActivitiesState {
             items: sorted(&self.0.items.lock().unwrap()),
             api_port: *self.0.api_port.lock().unwrap(),
+            has_battery: battery::present(),
         };
         self.0.hub.publish(ID, &state);
     }

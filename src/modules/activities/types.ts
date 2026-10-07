@@ -22,6 +22,8 @@ export interface ActivitiesState {
   /** Highest priority first. */
   items: Activity[];
   apiPort: number | null;
+  /** False on desktops without a battery. */
+  hasBattery: boolean;
 }
 
 export const ACTIVITIES_PROVIDER = "activities";

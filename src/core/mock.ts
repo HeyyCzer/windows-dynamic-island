@@ -152,7 +152,7 @@ function publishGithub(now: number) {
 /** Activities, notifications, Ask Claude and the shelf (ported from Windows Island). */
 function publishWindowsIsland(now: number) {
 	publishLocal("activities", {
-		apiPort: 5199,
+		apiPort: 5199, hasBattery: true,
 		items: [
 			{
 				id: "render",
@@ -208,7 +208,7 @@ function publishWindowsIsland(now: number) {
 	setInterval(() => {
 		const level = 0.3 + Math.random() * 0.6;
 		publishLocal("activities", {
-			apiPort: 5199,
+			apiPort: 5199, hasBattery: true,
 			items: [
 				{
 					id: "system.volume",
@@ -229,6 +229,6 @@ function publishWindowsIsland(now: number) {
 				},
 			],
 		});
-		setTimeout(() => publishLocal("activities", { apiPort: 5199, items: [] }), 1600);
+		setTimeout(() => publishLocal("activities", { apiPort: 5199, hasBattery: true, items: [] }), 1600);
 	}, 20_000);
 }

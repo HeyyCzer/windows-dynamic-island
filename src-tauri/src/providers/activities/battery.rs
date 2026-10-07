@@ -32,6 +32,13 @@ pub fn watch(activities: Activities) {
     }
 }
 
+/// The machine has a system battery (laptops, tablets).
+pub fn present() -> bool {
+    let mut status = SYSTEM_POWER_STATUS::default();
+    // 128 = no system battery; if the call fails, assume there is one.
+    unsafe { GetSystemPowerStatus(&mut status).is_err() || status.BatteryFlag & 128 == 0 }
+}
+
 /// `(on AC power, battery %)`, or `None` on a desktop without a battery.
 fn read() -> Option<(bool, u8)> {
     let mut status = SYSTEM_POWER_STATUS::default();

@@ -33,6 +33,10 @@ export const activitiesModule: IslandModule = {
   settingsIcon: <Glyph name="sync" size={14} />,
   settings: Object.values(activitySettings),
   SettingsSection: ApiSettings,
+  useHiddenSettings() {
+    const state = useProvider<ActivitiesState>(ACTIVITIES_PROVIDER);
+    return state?.hasBattery === false ? [activitySettings.battery.key] : [];
+  },
   useView(): ModuleView {
     const state = useProvider<ActivitiesState>(ACTIVITIES_PROVIDER);
     const settings = useSettings();
