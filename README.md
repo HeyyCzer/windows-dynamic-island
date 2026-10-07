@@ -4,17 +4,54 @@
 
 # Dynamic Island for Windows
 
-An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows desktop — showing what's playing and what your AI coding agents are up to.
+An iPhone/macOS-style Dynamic Island for the top of your Windows desktop. It shows what's playing, what your AI coding agents are doing, your notifications and more, and stays out of the way the rest of the time.
 
 [**Download the latest release**](https://github.com/HeyyCzer/windows-dynamic-island/releases/latest)
 
-<img src="docs/screenshots/compact.png" width="576" alt="Compact island showing a Claude Code session waiting for permission" />
+<img src="docs/screenshots/compact.png" width="576" alt="Compact island: a Claude Code session waiting for permission, with music and GitHub bubbles" />
 
 </div>
 
+## Highlights
+
+- 🤖 **Your Claude Code sessions, live.** Which session is working, which one is waiting for your permission, and how much of your plan you've used, without switching windows.
+- 🎵 **Music from any player.** Spotify, browsers, Apple Music: track, artwork, controls and a visualizer. A YouTube video plays muted right in the island, and **Pin** pops it out into a small floating window.
+- 💬 **Ask Claude from anywhere.** Press **Ctrl+Alt+Space** and type. It uses your Claude Code login, so no API key is needed, and it can attach a screenshot of the window you were in.
+- 🧩 **As many modules as you want, without clutter.** The modules you pin sit in the tab bar and the rest are one click away in the launcher. Drag to reorder them or turn them off.
+- 🎨 **Two looks with lots of options.** It can be a plain black notch or a floating pill with a gradient rim. See [Make it yours](#make-it-yours).
+- 🪶 **Stays out of the way.** It hides during fullscreen games and videos, expands on hover, and the mouse wheel flips through the tabs. Click the tray icon and it falls into a black hole until you call it back.
+
+<p align="center">
+  <img src="docs/screenshots/agents.png" width="620" alt="AI Agents panel: plan limits, tokens today, 7-day chart and live sessions" />
+</p>
+
+## Make it yours
+
+Not into the colorful look? You don't have to use it. **Settings → Appearance** has two styles:
+
+- **Dynamic Island** (default): a black notch hanging from the top edge, with named tabs. No color unless you want it.
+- **Windows Island**: a floating pill that shows the time at rest and has icon tabs at the bottom. Its rim can be a subtle hairline, a single gray, a preset gradient (Apple Intelligence, Aurora, Sunset, Ocean, Claude, Neon, Mono) or two colors of your own. You can pick a thin, medium or thick rim, and turn the moving gradient and the glow on or off.
+
+<table align="center">
+  <tr>
+    <td align="center"><img src="docs/screenshots/look-dynamic.png" width="380" alt="Dynamic Island style" /><br /><sub>Dynamic Island</sub></td>
+    <td align="center"><img src="docs/screenshots/look-windows-classic.png" width="380" alt="Windows Island with the classic hairline" /><br /><sub>Windows Island · classic</sub></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/screenshots/look-windows-mono.png" width="380" alt="Windows Island with a thin mono rim" /><br /><sub>Windows Island · thin mono</sub></td>
+    <td align="center"><img src="docs/screenshots/look-windows-aurora.png" width="380" alt="Windows Island with the Aurora gradient and glow" /><br /><sub>Windows Island · Aurora + glow</sub></td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="docs/screenshots/windows.png" width="560" alt="Windows Island style, expanded on the music player with the Apple Intelligence rim" />
+  <br />
+  <img src="docs/screenshots/settings-appearance.png" width="560" alt="Appearance settings: style, border presets, thickness" />
+</p>
+
 ## Features
 
-**Music** — works with Spotify and anything that shows up in Windows' media controls (browsers, Apple Music, VLC…).
+**Music**: works with Spotify and anything that shows up in Windows' media controls (browsers, Apple Music, VLC…).
 
 - Current track and artist right in the compact island
 - Album art, title, artist and a live progress bar you can click to seek
@@ -25,59 +62,63 @@ An iPhone/MacOS-style Dynamic Island that lives at the top of your Windows deskt
 <p align="center">
   <img src="docs/screenshots/compact-music.png" width="480" alt="Compact island showing the current track and artist" />
   <br />
-  <img src="docs/screenshots/music.png" width="700" alt="Expanded music panel" />
+  <img src="docs/screenshots/music.png" width="620" alt="Expanded music panel" />
 </p>
 
-**AI Agents** — live status of your [Claude Code](https://claude.com/claude-code) sessions.
+**AI Agents**: live status of your [Claude Code](https://claude.com/claude-code) sessions.
 
-- What each session is doing right now (editing a file, running a command, waiting for permission…) with a turn timer
+- What each session is doing right now (editing a file, running a command, waiting for permission…), with a turn timer
+- Each session shows its last prompt, so two sessions in the same project are easy to tell apart
 - Plan usage limits (5-hour session and weekly) with reset countdowns
-- Tokens used today, plus a 7-day chart and the last 5 hours from the local transcripts
-- Optionally pops open when an agent needs your attention or finishes, with how its reply starts
+- Tokens and responses today, plus a 7-day chart and the last 5 hours from the local transcripts
+- Optionally pops open when an agent needs you, finishes (showing how its reply starts) or your limits reset
 - Click a session to open its project in VS Code
 
-<p align="center">
-  <img src="docs/screenshots/agents.png" width="700" alt="Expanded AI Agents panel with Claude Code sessions" />
-</p>
-
-**GitHub** — open issue counts for the repositories you follow.
-
-- A side bubble next to the island with the total, and a panel with each repo and its newest issue
-- Optionally pops open when someone opens a new issue
-- Works anonymously for public repos; uses your GitHub CLI login automatically, or a token kept in the Windows Credential Manager for private repos
-
-**Ask Claude** — a conversation with Claude right in the island, using your Claude Code login (no API key).
+**Ask Claude**: a conversation with Claude right in the island, using your Claude Code login (no API key).
 
 - **Ctrl+Alt+Space** opens it from anywhere (Ctrl+Shift+Space if another app took it); **Esc** gives the keyboard back
 - The answer streams in; if you leave, the island tells you when Claude answered
 - 📷 attaches a screenshot of the window you were using; files dropped on it (or sent from the shelf) become attachments
 - Runs `claude -p` headless with hooks off, so these chats don't show up as sessions. Read-only tools and web search work; for edits it suggests opening Claude Code
 
-**Notifications** — WhatsApp, Teams, Outlook, Discord… mirrored from Windows: each new one pops open with the app's icon, and the tab keeps the recent ones (click to open the app). Windows only lets registered apps read notifications, so **Settings → Notifications → Enable** registers the island once as a sparse package and restarts it; this needs Windows Developer Mode, since the registration isn't signed.
+**Launcher and tabs**: the grid button in the tab bar opens every module as a tile. In **Settings → Modules** you can drag modules to reorder the tabs, choose which ones sit in the tab bar and which stay in the launcher, and turn them on or off. A busy module shows up in the bar even when it isn't pinned, and the island reopens on the last tab you used if you come back within a few minutes.
 
-**Live Activities** — short alerts and ongoing activities:
+<p align="center">
+  <img src="docs/screenshots/launcher.png" width="560" alt="Launcher with every module as a tile" />
+</p>
 
-- Volume level bar, charger plugged in/out and low battery, Bluetooth headphones connecting (with their battery) and running low
+**Clock & calendar**: the time, a month calendar (scroll or use the arrows to change months), the week number, and how far away a day is when you click it.
+
+<p align="center">
+  <img src="docs/screenshots/calendar.png" width="560" alt="Clock and month calendar" />
+</p>
+
+**Shelf**: drag files or folders onto the island and it keeps them (by reference) until you drag them out to another app. Double-click opens a file, and 💬 asks Claude about it.
+
+<p align="center">
+  <img src="docs/screenshots/shelf.png" width="560" alt="Shelf holding a PDF, a folder and a picture" />
+</p>
+
+**Notifications**: WhatsApp, Teams, Outlook, Discord and other apps' notifications, mirrored from Windows. Each new one pops open with the app's icon, and the tab keeps the recent ones (click one to open its app). Windows only lets registered apps read notifications, so **Settings → Modules → Notifications → Enable** registers the island once as a sparse package and restarts it. This needs Windows Developer Mode, since the registration isn't signed.
+
+**GitHub**: open issue counts for the repositories you follow.
+
+- A side bubble next to the island with the total, and a panel with each repo and its newest issue
+- Optionally pops open when someone opens a new issue
+- Works anonymously for public repos; uses your GitHub CLI login automatically, or a token kept in the Windows Credential Manager for private repos
+
+**Live Activities**: short alerts and ongoing activities:
+
+- Volume level bar, charger plugged in/out and low battery (laptops only), Bluetooth headphones connecting (with their battery) and running low
 - Anything a script or app sends through the [local API](#local-api) (downloads, timers, builds…)
-
-**Shelf** — drag files or folders onto the island and it keeps them (by reference) until you drag them out to another app; double-click opens, 💬 asks Claude about one.
-
-**Two looks** — **Settings → Appearance** switches between:
-
-- **Dynamic Island** (default): hangs from the top edge like a notch, tabs with names
-- **Windows Island**: a floating pill with a clock at rest, tabs at the bottom and an optional gradient rim (presets like Apple Intelligence, Aurora, Sunset, or two colors of your own; thickness, moving gradient, glow)
 
 **And also**
 
-- Expands on hover (or click), collapses when you leave; the mouse wheel flips through the tabs
-- Click the tray icon and the island falls into a black hole (click again to bring it back); right-click for the menu
-- A clock tab with the date and the week
-- Hides itself while a game, video or app is fullscreen
 - Starts with Windows, lives in the tray, checks for updates
 - English and Portuguese (Brazil), following your system language by default
 
 <p align="center">
-  <img src="docs/screenshots/settings.png" width="640" alt="Settings window, general page" />
+  <img src="docs/screenshots/settings.png" width="620" alt="Settings window, Modules page: reorder, tab bar or launcher, on/off" />
 </p>
 
 ## Install
@@ -89,7 +130,7 @@ Requires Windows 10 or 11 (WebView2 is installed automatically if missing).
 
 ### Claude Code integration
 
-Open **Settings → AI Agents → Claude Code integration → Enable**. This adds HTTP hooks (live status) and a statusline bridge to `~/.claude/settings.json`; a backup is written before every change, and your existing statusline keeps working. Restart Claude Code sessions that were already open. Without it, the island still picks up sessions from Claude Code's transcripts, just with less detail.
+Open **Settings → Modules → AI Agents → Claude Code integration → Enable**. This adds HTTP hooks (live status) and a statusline bridge to `~/.claude/settings.json`; a backup is written before every change, and your existing statusline keeps working. Restart Claude Code sessions that were already open. Without it, the island still picks up sessions from Claude Code's transcripts, just with less detail.
 
 <p align="center">
   <img src="docs/screenshots/settings-agents.png" width="640" alt="AI Agents settings with the Claude Code integration enabled" />
