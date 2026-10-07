@@ -85,6 +85,8 @@ export const aiAgentsModule: IslandModule = {
 		return {
 			active: !!hot,
 			priority: hot ? PRIORITY[hot.session.status] : 0,
+			// A permission to answer: opening the island goes straight to it.
+			attention: asking,
 			icon: <StatusGlyph agent={hot?.agent ?? primary} status={hot?.session.status ?? "idle"} size={18} />,
 			compact: hot && {
 				left: <AgentCompactLeft hot={hot} busyCount={busyCount} />,
