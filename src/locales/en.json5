@@ -13,6 +13,11 @@
   // Settings window
   settings: {
     subtitle: "Settings",
+    // Sidebar groups
+    section: {
+      app: "App",
+      island: "Island",
+    },
     general: "General",
     minimize: "Minimize",
     close: "Close",
@@ -88,10 +93,15 @@
     settings: "Settings",
   },
 
-  // Tabs of the open island: order, tab bar and launcher (settings page + island)
+  // Modules page of the settings: every module, its tab order and on/off
+  modules: {
+    title: "Modules",
+    desc: "Drag to reorder the tabs. Modules in the tab bar are always one click away; the others are in the launcher (the grid button), and a busy one shows up in the bar anyway. Click a module for its settings.",
+    open: "Open settings",
+  },
+
+  // Tabs of the open island: tab bar and launcher
   layout: {
-    title: "Tabs",
-    desc: "Drag to reorder. Modules in the bar are always one click away; the others are in the launcher (the grid button). A busy module shows up in the bar anyway.",
     launcher: "All modules",
     pinned: "In the tab bar",
     drag: "Drag to reorder",

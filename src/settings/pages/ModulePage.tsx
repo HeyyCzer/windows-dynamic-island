@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { Navigate, useParams } from "react-router";
+import { Link, Navigate, useParams } from "react-router";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
@@ -9,7 +9,7 @@ import { Toggle, ToggleRow } from "../components/Toggle";
 export function ModulePage({ values }: { values: Record<string, unknown> }) {
   const { id } = useParams();
   const module = modules.find((m) => m.id === id);
-  if (!module) return <Navigate to="/" replace />;
+  if (!module) return <Navigate to="/modules" replace />;
   // Keyed so each module's `useHiddenSettings` hook gets its own component.
   return <ModuleSettings key={module.id} module={module} values={values} />;
 }
@@ -27,7 +27,13 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
 
   return (
     <>
-      <h1 className="settings-title">{t(module.title)}</h1>
+      <Link to="/modules" className="settings-back">
+        ‹ {t("modules.title")}
+      </Link>
+      <h1 className="settings-title settings-title-icon">
+        <span className="settings-title-glyph">{module.settingsIcon}</span>
+        {t(module.title)}
+      </h1>
       <section className="settings-card">
         <label className="settings-row">
           <div className="settings-text">

@@ -111,7 +111,7 @@ export const layoutSettings = {
   /** Module ids in tab order; modules missing from it follow in registry order. */
   order: {
     key: "island.order",
-    label: "layout.title",
+    label: "modules.title",
     default: [],
   } satisfies SettingDef<string[]>,
   /** Module ids shown in the tab bar (a busy module shows up there anyway). */

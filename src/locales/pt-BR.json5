@@ -8,6 +8,10 @@
   // Janela de configurações
   settings: {
     subtitle: "Configurações",
+    section: {
+      app: "App",
+      island: "Ilha",
+    },
     general: "Geral",
     minimize: "Minimizar",
     close: "Fechar",
@@ -78,9 +82,13 @@
     settings: "Configurações",
   },
 
+  modules: {
+    title: "Módulos",
+    desc: "Arraste para reordenar as abas. Os módulos na barra ficam a um clique; os outros ficam no menu de módulos (o botão de grade), e um módulo em atividade aparece na barra de qualquer jeito. Clique num módulo para ver as configurações dele.",
+    open: "Abrir configurações",
+  },
+
   layout: {
-    title: "Abas",
-    desc: "Arraste para reordenar. Os módulos na barra ficam a um clique; os outros ficam no menu de módulos (o botão de grade). Um módulo em atividade aparece na barra de qualquer jeito.",
     launcher: "Todos os módulos",
     pinned: "Na barra de abas",
     drag: "Arraste para reordenar",
