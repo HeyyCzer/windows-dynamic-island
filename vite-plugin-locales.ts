@@ -29,7 +29,8 @@ function writeKeys() {
 	} catch {
 		/* first run */
 	}
-	if (current !== text) writeFileSync(KEYS_FILE, text);
+	// A Windows checkout (core.autocrlf) has CRLF: same keys, nothing to rewrite.
+	if (current.replace(/\r\n/g, "\n") !== text) writeFileSync(KEYS_FILE, text);
 }
 
 /**
