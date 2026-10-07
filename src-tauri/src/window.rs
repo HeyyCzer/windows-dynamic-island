@@ -273,6 +273,81 @@ fn ensure_topmost(win: &WebviewWindow, force: bool) {
 #[cfg(not(windows))]
 fn ensure_topmost(_: &WebviewWindow, _: bool) {}
 
+/// The island is an overlay, not an app window: it must never look like one.
+///
+/// tao keeps `WS_CAPTION | WS_SYSMENU` on undecorated windows and rewrites
+/// the styles on every flag change (each click-through toggle). Tools that
+/// draw their own caption buttons on every captioned window (e.g. macOS-style
+/// "traffic lights") then put them on the island's full-width strip, right over
+/// the minimize/maximize/close buttons of maximized apps. A subclass filters
+/// every style change instead: no caption or system menu, and a tool window
+/// (also kept out of Alt+Tab). Must run on the window's thread.
+#[cfg(windows)]
+pub fn make_overlay(win: &WebviewWindow) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::Shell::SetWindowSubclass;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GWL_STYLE, GetWindowLongW, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER,
+        SetWindowLongW, SetWindowPos,
+    };
+
+    let Ok(hwnd) = win.hwnd() else {
+        return;
+    };
+    let hwnd = HWND(hwnd.0);
+    unsafe {
+        if !SetWindowSubclass(hwnd, Some(overlay_proc), OVERLAY_SUBCLASS, 0).as_bool() {
+            log::warn!("island: could not subclass the window");
+            return;
+        }
+        // Rewrite the current styles through the filter.
+        SetWindowLongW(hwnd, GWL_STYLE, GetWindowLongW(hwnd, GWL_STYLE));
+        SetWindowLongW(hwnd, GWL_EXSTYLE, GetWindowLongW(hwnd, GWL_EXSTYLE));
+        let _ = SetWindowPos(
+            hwnd,
+            None,
+            0,
+            0,
+            0,
+            0,
+            SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED,
+        );
+    }
+}
+
+#[cfg(not(windows))]
+pub fn make_overlay(_: &WebviewWindow) {}
+
+#[cfg(windows)]
+const OVERLAY_SUBCLASS: usize = 0x15_1A_4D;
+
+#[cfg(windows)]
+unsafe extern "system" fn overlay_proc(
+    hwnd: windows::Win32::Foundation::HWND,
+    msg: u32,
+    wparam: windows::Win32::Foundation::WPARAM,
+    lparam: windows::Win32::Foundation::LPARAM,
+    _id: usize,
+    _data: usize,
+) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::UI::Shell::DefSubclassProc;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, WM_STYLECHANGING, WS_CAPTION, WS_EX_APPWINDOW, WS_EX_TOOLWINDOW,
+        WS_SYSMENU,
+    };
+
+    if msg == WM_STYLECHANGING && lparam.0 != 0 {
+        let change = unsafe { &mut *(lparam.0 as *mut STYLESTRUCT) };
+        let which = wparam.0 as i32;
+        if which == GWL_STYLE.0 {
+            change.styleNew &= !(WS_CAPTION.0 | WS_SYSMENU.0);
+        } else if which == GWL_EXSTYLE.0 {
+            change.styleNew = (change.styleNew | WS_EX_TOOLWINDOW.0) & !WS_EX_APPWINDOW.0;
+        }
+    }
+    unsafe { DefSubclassProc(hwnd, msg, wparam, lparam) }
+}
+
 /// True when a fullscreen app (game, video, F11 browser, presentation) is in
 /// front on the island's monitor.
 ///

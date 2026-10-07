@@ -55,6 +55,7 @@ pub fn run() {
             app.manage(Providers(providers));
 
             if let Some(win) = app.get_webview_window(window::ISLAND_LABEL) {
+                window::make_overlay(&win);
                 display::place(&win)?;
                 win.set_ignore_cursor_events(true)?;
                 win.show()?;
