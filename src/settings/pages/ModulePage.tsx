@@ -2,14 +2,24 @@ import { motion } from "motion/react";
 import { Navigate, useParams } from "react-router";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
+import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
 export function ModulePage({ values }: { values: Record<string, unknown> }) {
   const { id } = useParams();
-  const t = useT();
   const module = modules.find((m) => m.id === id);
   if (!module) return <Navigate to="/" replace />;
+  // Keyed so each module's `useHiddenSettings` hook gets its own component.
+  return <ModuleSettings key={module.id} module={module} values={values} />;
+}
+
+const noHidden = () => [] as string[];
+
+function ModuleSettings({ module, values }: { module: IslandModule; values: Record<string, unknown> }) {
+  const t = useT();
+  const hidden = (module.useHiddenSettings ?? noHidden)();
+  const settings = module.settings?.filter((def) => !hidden.includes(def.key)) ?? [];
 
   const enabledDef = moduleEnabled(module.id, module.title);
   const enabled = readSetting(values, enabledDef);
@@ -33,9 +43,9 @@ export function ModulePage({ values }: { values: Record<string, unknown> }) {
         animate={{ opacity: enabled ? 1 : 0.4 }}
         style={{ pointerEvents: enabled ? "auto" : "none" }}
       >
-        {!!module.settings?.length && (
+        {!!settings.length && (
           <section className="settings-card">
-            {module.settings.map((def) => (
+            {settings.map((def) => (
               <ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
             ))}
           </section>

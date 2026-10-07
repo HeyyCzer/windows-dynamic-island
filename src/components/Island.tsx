@@ -2,14 +2,14 @@ import { AnimatePresence, motion, type Transition } from "motion/react";
 import { useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import { modules } from "../modules";
 import { useHitRects } from "../core/useHitRects";
-import { useIslandController, type ModuleEntry } from "../core/useIslandController";
+import { LAUNCHER, useIslandController, type ModuleEntry } from "../core/useIslandController";
 import { useIslandDrag } from "../core/useIslandDrag";
 import { useFileDrop } from "../core/useFileDrop";
 import { draggingFiles, IslandContext, type IslandApi } from "../core/island";
 import { rimBackground, useAppearance, type Appearance } from "../core/appearance";
 import type { IslandMode } from "../core/types";
 import { command, useTauriEvent } from "../core/bridge";
-import { GearIcon } from "./icons";
+import { GearIcon, GridIcon } from "./icons";
 import { useSyncLocale, useT } from "../core/i18n";
 import { IdleClock } from "./IdleClock";
 import { attachFiles, requestAskFocus } from "../modules/ask/store";
@@ -64,7 +64,23 @@ const WINDOWS_BARE_IDLE: Geo = { width: 110, height: 30, radius: 15, ear: 0 };
 const BUBBLE = 38;
 const BUBBLE_GAP = 10;
 
-function geometry(v: Variant, look: Appearance, mode: IslandMode, focused: ModuleEntry | undefined, primary: ModuleEntry | undefined) {
+/** Launcher grid: tiles per row, tile height and gap (px). */
+const LAUNCHER_COLS = 4;
+const TILE_H = 62;
+const TILE_GAP = 8;
+
+function launcherSize(count: number) {
+	const rows = Math.max(1, Math.ceil(count / LAUNCHER_COLS));
+	return { width: 560, height: 32 + rows * TILE_H + (rows - 1) * TILE_GAP };
+}
+
+function geometry(
+	v: Variant,
+	look: Appearance,
+	mode: IslandMode,
+	bigSize: { width: number; height: number } | undefined,
+	primary: ModuleEntry | undefined,
+) {
 	switch (mode) {
 		case "hidden":
 		case "swallowed":
@@ -74,7 +90,7 @@ function geometry(v: Variant, look: Appearance, mode: IslandMode, focused: Modul
 			return { ...v.compact, width: primary?.view.compact?.width ?? v.compact.width };
 		case "peek":
 		case "expanded": {
-			const size = focused?.view.expandedSize ?? v.expanded;
+			const size = bigSize ?? v.expanded;
 			const extra = mode === "expanded" ? v.tabBar : 0;
 			return { ...v.expanded, width: size.width, height: size.height + extra };
 		}
@@ -90,7 +106,8 @@ export function Island() {
 	useHitRects();
 	useSyncLocale();
 
-	const g = geometry(v, look, mode, focused, primary);
+	const bigSize = ctl.launcher ? launcherSize(ctl.entries.length) : focused?.view.expandedSize;
+	const g = geometry(v, look, mode, bigSize, primary);
 	const big = mode === "expanded" || mode === "peek";
 	const hidden = mode === "hidden";
 	const swallowed = mode === "swallowed";
@@ -106,23 +123,32 @@ export function Island() {
 	});
 
 	// Files dragged over the island: the shelf opens to take them, unless
-	// "Ask Claude" is open (then they become attachments).
+	// "Ask Claude" is open (then they become attachments). The backend lets
+	// files in a little around the island too, so it stays open meanwhile.
 	const live = useRef({ mode, tab: ctl.tab });
 	live.current = { mode, tab: ctl.tab };
 	const asking = () => live.current.mode === "expanded" && live.current.tab === "ask";
 	useFileDrop({
 		onEnter: () => {
 			draggingFiles.set(true);
-			if (!asking()) ctl.expand("shelf");
+			ctl.keepOpen(true, "files");
+			if (asking()) ctl.expand();
+			else ctl.expand("shelf");
 		},
-		onLeave: () => draggingFiles.set(false),
+		onLeave: () => {
+			draggingFiles.set(false);
+			ctl.keepOpen(false, "files");
+		},
 		onDrop: (paths) => {
 			draggingFiles.set(false);
-			if (asking()) {
+			const toAsk = asking();
+			ctl.keepOpen(false, "files");
+			if (toAsk) {
 				attachFiles(paths);
 			} else {
 				addToShelf(paths);
-				ctl.expand("shelf");
+				// Pointer still over the island: it stays open; otherwise a peek.
+				ctl.peek("shelf");
 			}
 		},
 	});
@@ -145,15 +171,17 @@ export function Island() {
 				<div className="compact-slot right">{primary.view.compact.right}</div>
 			</div>
 		);
-	} else if (big && focused) {
-		contentKey = `big:${focused.module.id}`;
+	} else if (big && (focused || ctl.launcher)) {
+		contentKey = ctl.launcher ? `big:${LAUNCHER}` : `big:${focused?.module.id}`;
 		const tabs = mode === "expanded" && (
 			<Tabs entries={ctl.tabs} current={ctl.tab} onSelect={ctl.setTab} iconsOnly={windows} transition={v.shellSpring} />
 		);
 		content = (
 			<div className={`expanded ${v.tabsAtBottom ? "tabs-bottom" : ""}`}>
 				{!v.tabsAtBottom && tabs}
-				<div className="expanded-body">{focused.view.expanded}</div>
+				<div className="expanded-body">
+					{ctl.launcher ? <Launcher entries={ctl.entries} onSelect={ctl.setTab} /> : focused?.view.expanded}
+				</div>
 				{v.tabsAtBottom && tabs}
 			</div>
 		);
@@ -343,6 +371,19 @@ function Tabs({
 					</button>
 				);
 			})}
+			<button
+				className={`tab tab-launcher ${current === LAUNCHER ? "is-active" : ""}`}
+				title={t("layout.launcher")}
+				onClick={(e) => {
+					e.stopPropagation();
+					onSelect(LAUNCHER);
+				}}
+			>
+				{current === LAUNCHER && <motion.span layoutId="tab-pill" className="tab-pill" transition={transition} />}
+				<span className="tab-icon">
+					<GridIcon size={14} />
+				</span>
+			</button>
 			<motion.button
 				className="tab-gear"
 				title={t("island.settings")}
@@ -356,6 +397,33 @@ function Tabs({
 			>
 				<GearIcon size={16} />
 			</motion.button>
+		</div>
+	);
+}
+
+/** Every enabled module as a grid of tiles, in the chosen order. */
+function Launcher({ entries, onSelect }: { entries: ModuleEntry[]; onSelect: (id: string) => void }) {
+	const t = useT();
+	return (
+		<div className="launcher" style={{ "--launcher-cols": LAUNCHER_COLS, "--tile-h": `${TILE_H}px`, "--tile-gap": `${TILE_GAP}px` } as CSSProperties}>
+			{entries.map(({ module, view }, i) => (
+				<motion.button
+					key={module.id}
+					className="launcher-tile"
+					style={{ "--tab-accent": view.accent ?? "#fff" } as CSSProperties}
+					initial={{ opacity: 0, scale: 0.92 }}
+					animate={{ opacity: 1, scale: 1 }}
+					transition={{ delay: 0.03 * i, type: "spring", stiffness: 420, damping: 28 }}
+					onClick={(e) => {
+						e.stopPropagation();
+						onSelect(module.id);
+					}}
+				>
+					<span className="launcher-icon">{view.icon}</span>
+					<span className="launcher-name">{t(module.title)}</span>
+					{view.active && <span className="tab-dot launcher-dot" />}
+				</motion.button>
+			))}
 		</div>
 	);
 }

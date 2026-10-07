@@ -7,7 +7,8 @@ const MAX_BAR = 34;
 /**
  * Tokens per day for the last 7 days: one hue (the agent's), today at full
  * strength, earlier days softer; the exact numbers in each column's tooltip.
- * Beside it, the totals for today, the week and the last 5 hours.
+ * Beside it, the totals for the week and the last 5 hours (today's are in
+ * the agent card above).
  */
 export function UsageChart({ usage, color }: { usage: UsageHistory; color: string }) {
   const t = useT();
@@ -15,7 +16,6 @@ export function UsageChart({ usage, color }: { usage: UsageHistory; color: strin
   const days = usage.daily;
   if (!days.length) return null;
   const peak = Math.max(1, ...days.map((d) => d.tokens));
-  const today = days[days.length - 1];
   const week = days.reduce((n, d) => n + d.tokens, 0);
   const weekResponses = days.reduce((n, d) => n + d.responses, 0);
   const dayName = new Intl.DateTimeFormat(locale, { weekday: "short" });
@@ -25,7 +25,6 @@ export function UsageChart({ usage, color }: { usage: UsageHistory; color: strin
   return (
     <div className="agents-usage" style={{ "--agent": color } as React.CSSProperties}>
       <div className="agents-usage-stats">
-        <Stat label={t("agents.usage.today")} value={formatTokens(today.tokens)} sub={responses(today.responses)} />
         <Stat label={t("agents.usage.week")} value={formatTokens(week)} sub={responses(weekResponses)} />
         <Stat label={t("agents.usage.last5h")} value={formatTokens(usage.last5hTokens)} />
       </div>

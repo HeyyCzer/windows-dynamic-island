@@ -26,6 +26,30 @@
   box-shadow: 0 0 0 2px #000;
 }
 
+/* state-only indicator for session rows */
+.agents-dot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.agents-dot.is-done {
+  border-radius: 50%;
+  background: #34c759;
+}
+.agents-dot-core {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+}
+.agents-dot-core.is-waiting {
+  background: #ffbd2e;
+}
+.agents-dot-core.is-limitsReset {
+  background: #34c759;
+}
+
 /* --- compact -------------------------------------------------------------- */
 .agents-compact-label {
   max-width: 200px;

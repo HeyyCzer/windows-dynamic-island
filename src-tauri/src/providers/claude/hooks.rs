@@ -55,6 +55,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
     let event = str_of("hook_event_name");
     let tool = str_of("tool_name");
     let now = now_ms();
+    let transcript = std::path::Path::new(str_of("transcript_path"));
     // How the reply starts, for the "done" alert. Newer Claude Code versions
     // send it with the hook; otherwise it's the last text in the transcript.
     let mut summary = (event == "Stop")
@@ -62,7 +63,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
             v["last_assistant_message"]
                 .as_str()
                 .map(str::to_string)
-                .or_else(|| transcripts::last_reply(std::path::Path::new(str_of("transcript_path"))))
+                .or_else(|| transcripts::last_reply(transcript))
         })
         .flatten()
         .map(|text| preview(&text));
@@ -86,6 +87,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
                     s.finished_at = None;
                     s.tool = None;
                     s.summary = None;
+                    s.prompt = Some(preview(str_of("prompt"))).filter(|p| !p.is_empty());
                     s.activity = Some(Activity::thinking());
                 }
                 "PreToolUse" => {
@@ -119,6 +121,10 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
                     s.finished_at = Some(now);
                     s.tool = None;
                     s.summary = summary.take();
+                    // Started before the island did: the transcript knows.
+                    if s.prompt.is_none() {
+                        s.prompt = transcripts::last_prompt(transcript).map(|p| preview(&p));
+                    }
                     s.activity = Some(Activity::new(if event == "Stop" { "done" } else { "failed" }));
                 }
                 _ => {}
@@ -134,7 +140,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
 }
 
 /// One line, no Markdown markers, at most ~160 characters.
-fn preview(text: &str) -> String {
+pub(super) fn preview(text: &str) -> String {
     let flat = text
         .replace("**", "")
         .replace('`', "")

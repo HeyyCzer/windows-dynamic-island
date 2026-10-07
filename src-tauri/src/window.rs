@@ -125,6 +125,8 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut fullscreen = false;
         let mut tick = 0u32;
         let mut last_fg = 0isize;
+        let mut button_down = false;
+        let mut pressed_inside = false;
         loop {
             std::thread::sleep(Duration::from_millis(25));
             let Some(win) = app.get_webview_window(ISLAND_LABEL) else {
@@ -154,9 +156,22 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
 
             let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
-            let inside = !fullscreen && (dragging || cursor_inside(&app, &win));
+            let over_island = cursor_inside(&app, &win, 0.0);
+            let inside = !fullscreen && (dragging || over_island);
 
-            let ignore = !inside;
+            // A drag that started in another app (files from Explorer…). The
+            // island is a thin target and the drop target must be under the
+            // cursor the moment OLE looks for it, so a wider zone around the
+            // island takes the cursor while the button is held. The other app
+            // keeps the mouse capture, so nothing is stolen if it isn't a file.
+            let down = left_button_down();
+            if down && !button_down {
+                pressed_inside = over_island;
+            }
+            button_down = down;
+            let drop_zone = !fullscreen && down && !pressed_inside && cursor_inside(&app, &win, DROP_MARGIN);
+
+            let ignore = !inside && !drop_zone;
             if ignoring != Some(ignore) && win.set_ignore_cursor_events(ignore).is_ok() {
                 ignoring = Some(ignore);
             }
@@ -168,7 +183,22 @@ pub fn spawn_hit_test(app: AppHandle) {
     });
 }
 
-fn cursor_inside(app: &AppHandle, win: &WebviewWindow) -> bool {
+/// Extra room (CSS px) around the island that accepts files dragged in.
+const DROP_MARGIN: f64 = 48.0;
+
+#[cfg(windows)]
+fn left_button_down() -> bool {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+    unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000 != 0 }
+}
+
+#[cfg(not(windows))]
+fn left_button_down() -> bool {
+    false
+}
+
+/// Cursor over one of the frontend's rects, grown by `margin` CSS px.
+fn cursor_inside(app: &AppHandle, win: &WebviewWindow, margin: f64) -> bool {
     let Some((cx, cy)) = cursor_pos() else {
         return false;
     };
@@ -178,9 +208,11 @@ fn cursor_inside(app: &AppHandle, win: &WebviewWindow) -> bool {
     let rects = app.state::<HitState>();
     let rects = rects.0.lock().unwrap();
     rects.iter().any(|r| {
-        let left = origin.x as f64 + r.x * scale;
-        let top = origin.y as f64 + r.y * scale;
-        cx >= left && cx <= left + r.width * scale && cy >= top && cy <= top + r.height * scale
+        let left = origin.x as f64 + (r.x - margin) * scale;
+        let top = origin.y as f64 + (r.y - margin).max(0.0) * scale;
+        let right = origin.x as f64 + (r.x + r.width + margin) * scale;
+        let bottom = origin.y as f64 + (r.y + r.height + margin) * scale;
+        cx >= left && cx <= right && cy >= top && cy <= bottom
     })
 }
 

@@ -78,6 +78,18 @@
     settings: "Configurações",
   },
 
+  layout: {
+    title: "Abas",
+    desc: "Arraste para reordenar. Os módulos na barra ficam a um clique; os outros ficam no menu de módulos (o botão de grade). Um módulo em atividade aparece na barra de qualquer jeito.",
+    launcher: "Todos os módulos",
+    pinned: "Na barra de abas",
+    drag: "Arraste para reordenar",
+    inBar: "Barra",
+    inLauncher: "Menu",
+    pin: "Mostrar na barra de abas",
+    unpin: "Mover para o menu de módulos",
+  },
+
   // Módulo de música
   music: {
     title: "Música",

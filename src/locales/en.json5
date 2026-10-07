@@ -88,6 +88,19 @@
     settings: "Settings",
   },
 
+  // Tabs of the open island: order, tab bar and launcher (settings page + island)
+  layout: {
+    title: "Tabs",
+    desc: "Drag to reorder. Modules in the bar are always one click away; the others are in the launcher (the grid button). A busy module shows up in the bar anyway.",
+    launcher: "All modules",
+    pinned: "In the tab bar",
+    drag: "Drag to reorder",
+    inBar: "Tab bar",
+    inLauncher: "Launcher",
+    pin: "Show in the tab bar",
+    unpin: "Move to the launcher",
+  },
+
   // Music module
   music: {
     title: "Music",

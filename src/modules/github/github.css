@@ -4,6 +4,8 @@
 /* Bottom corner: the bubble touches the top edge of the screen. */
 .gh-badge {
   position: absolute;
+  /* Above the bubble's colored rim (Windows Island style). */
+  z-index: 3;
   bottom: -4px;
   right: -6px;
   display: grid;

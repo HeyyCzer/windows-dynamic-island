@@ -79,6 +79,23 @@ export const GearIcon = (p: P) => (
   </svg>
 );
 
+/** Launcher: every module in a grid. */
+export const GridIcon = (p: P) => (
+  <svg {...base(p)}>
+    <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+    <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+    <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+    <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
+  </svg>
+);
+
+/** Drag handle for reorderable rows. */
+export const GripIcon = (p: P) => (
+  <svg {...base(p)}>
+    {[6, 12, 18].flatMap((y) => [9, 15].map((x) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.6" />))}
+  </svg>
+);
+
 export const SparkleIcon = (p: P) => (
   <svg {...base(p)}>
     <path d="M12 2.5c.4 0 .75.27.86.66l1.1 3.9a4.5 4.5 0 0 0 3.08 3.08l3.9 1.1a.9.9 0 0 1 0 1.72l-3.9 1.1a4.5 4.5 0 0 0-3.08 3.08l-1.1 3.9a.9.9 0 0 1-1.72 0l-1.1-3.9a4.5 4.5 0 0 0-3.08-3.08l-3.9-1.1a.9.9 0 0 1 0-1.72l3.9-1.1a4.5 4.5 0 0 0 3.08-3.08l1.1-3.9A.9.9 0 0 1 12 2.5Z" />

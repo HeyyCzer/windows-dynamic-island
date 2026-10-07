@@ -102,6 +102,35 @@ export const generalSettings = {
   },
 } satisfies Record<string, SettingDef>;
 
+/**
+ * Tabs of the open island: their order, and which ones sit in the tab bar.
+ * Every enabled module is also in the launcher (the grid button), so the bar
+ * can stay short however many modules there are.
+ */
+export const layoutSettings = {
+  /** Module ids in tab order; modules missing from it follow in registry order. */
+  order: {
+    key: "island.order",
+    label: "layout.title",
+    default: [],
+  } satisfies SettingDef<string[]>,
+  /** Module ids shown in the tab bar (a busy module shows up there anyway). */
+  pinned: {
+    key: "island.pinned",
+    label: "layout.pinned",
+    default: ["music", "ai-agents", "ask", "notifications", "clock"],
+  } satisfies SettingDef<string[]>,
+};
+
+/** `items` sorted by the saved order; unknown ones keep their place at the end. */
+export function inOrder<T>(items: T[], idOf: (item: T) => string, order: string[]): T[] {
+  const rank = (item: T) => {
+    const i = order.indexOf(idOf(item));
+    return i === -1 ? order.length + items.indexOf(item) : i;
+  };
+  return [...items].sort((a, b) => rank(a) - rank(b));
+}
+
 /** Where the island goes after being dragged along the top edge. */
 export const positionSettings = {
   returnToCenter: {

@@ -13,8 +13,11 @@ export interface IslandApi {
   expand: (moduleId?: string) => void;
   /** Collapse now, even with the pointer inside. */
   collapse: () => void;
-  /** Stay open wherever the pointer goes (e.g. while typing a question). */
-  keepOpen: (on: boolean) => void;
+  /**
+   * Stay open wherever the pointer goes (e.g. while typing a question). Each
+   * `reason` is held separately; the island may close once all are released.
+   */
+  keepOpen: (on: boolean, reason?: string) => void;
 }
 
 export const IslandContext = createContext<IslandApi>({

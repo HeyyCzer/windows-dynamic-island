@@ -54,6 +54,11 @@ export interface IslandModule {
   useView: () => ModuleView;
   /** Toggles shown under this module in the settings window. */
   settings?: SettingDef[];
+  /**
+   * Hook returning the keys of `settings` that don't apply to this machine
+   * (e.g. battery alerts on a desktop); the settings window leaves them out.
+   */
+  useHiddenSettings?: () => string[];
   /** Extra custom UI for the settings window (e.g. integration status). */
   SettingsSection?: ComponentType;
 }

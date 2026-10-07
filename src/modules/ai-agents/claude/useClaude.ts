@@ -18,6 +18,7 @@ interface ClaudeState {
 		contextPct: number | null;
 		source: "hooks" | "transcript";
 		summary: string | null;
+		prompt: string | null;
 	}[];
 	limits: {
 		fiveHour: { usedPct: number; resetsAt: number | null } | null;
@@ -78,6 +79,7 @@ export function useClaude(): AgentSnapshot {
 				model: s.model,
 				contextPct: s.contextPct,
 				summary: s.summary,
+				prompt: s.prompt,
 				cwd: s.cwd,
 			})),
 		],

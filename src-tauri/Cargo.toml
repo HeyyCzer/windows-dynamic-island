@@ -68,7 +68,6 @@ windows = { version = "0.62", features = [
 # steps through dependencies in a debugger.
 [profile.dev]
 debug = "line-tables-only"
-incremental = true # Compile your binary in smaller steps.
 
 [profile.dev.package."*"]
 debug = false

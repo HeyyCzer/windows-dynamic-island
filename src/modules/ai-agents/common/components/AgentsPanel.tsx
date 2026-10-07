@@ -30,7 +30,7 @@ export function AgentsPanel({
       })}
       <div className="agents-now">
         <span className="agents-section-label">{t("agents.now")}</span>
-        <SessionList items={sessions} now={now} />
+        <SessionList items={sessions} now={now} showAgent={agents.length > 1} />
       </div>
     </div>
   );

@@ -151,6 +151,15 @@ pub fn scan_loop(ctx: Ctx) {
 
 /// The text of the last assistant reply in a transcript (its tail is enough).
 pub fn last_reply(path: &Path) -> Option<String> {
+    last_text(path, "assistant")
+}
+
+/// The last thing the user typed (not tool results, commands or reminders).
+pub fn last_prompt(path: &Path) -> Option<String> {
+    last_text(path, "user").filter(|t| !t.trim_start().starts_with('<'))
+}
+
+fn last_text(path: &Path, role: &str) -> Option<String> {
     const TAIL: u64 = 512 * 1024;
     let mut file = File::open(path).ok()?;
     let len = file.metadata().ok()?.len();
@@ -159,16 +168,20 @@ pub fn last_reply(path: &Path) -> Option<String> {
     file.read_to_end(&mut buf).ok()?;
     buf.split(|&b| b == b'\n').rev().find_map(|line| {
         let v: Value = serde_json::from_slice(line).ok()?;
-        if v["type"] != "assistant" {
+        if v["type"] != role || v["isMeta"] == true {
             return None;
         }
-        let text: Vec<&str> = v["message"]["content"]
-            .as_array()?
-            .iter()
-            .filter(|b| b["type"] == "text")
-            .filter_map(|b| b["text"].as_str())
-            .collect();
-        let text = text.join("\n");
+        let content = &v["message"]["content"];
+        let text = match content.as_str() {
+            Some(s) => s.to_string(),
+            None => content
+                .as_array()?
+                .iter()
+                .filter(|b| b["type"] == "text")
+                .filter_map(|b| b["text"].as_str())
+                .collect::<Vec<_>>()
+                .join("\n"),
+        };
         (!text.trim().is_empty()).then_some(text)
     })
 }
@@ -334,6 +347,11 @@ fn apply_sessions(store: &mut super::Store, files: &HashMap<PathBuf, FileState>)
             continue;
         }
         if let Some(s) = store.sessions.get_mut(&st.session_id)
+            && s.prompt.is_none()
+        {
+            s.prompt = last_prompt(path).map(|p| super::hooks::preview(&p));
+        }
+        if let Some(s) = store.sessions.get_mut(&st.session_id)
             && s.source == Source::Hooks
         {
             // Hooks are authoritative, except for turns that end without a
@@ -361,6 +379,9 @@ fn apply_sessions(store: &mut super::Store, files: &HashMap<PathBuf, FileState>)
         let s = store.session(&st.session_id, &st.cwd);
         if s.project.is_empty() {
             s.project = project_name(&st.cwd);
+        }
+        if s.prompt.is_none() {
+            s.prompt = last_prompt(path).map(|p| super::hooks::preview(&p));
         }
         s.source = Source::Transcript;
         s.status = status;

@@ -78,6 +78,8 @@ pub struct Session {
     pub source: Source,
     /// Start of the last reply, once the turn ended (read from the transcript).
     pub summary: Option<String>,
+    /// The last prompt typed in it: tells apart sessions of the same project.
+    pub prompt: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]

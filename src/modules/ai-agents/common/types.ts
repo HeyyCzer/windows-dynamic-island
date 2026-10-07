@@ -37,6 +37,8 @@ export interface AgentSession {
 	contextPct?: number | null;
 	/** Start of the last reply, once the turn ended. */
 	summary?: string | null;
+	/** The last prompt typed in it (tells apart sessions of one project). */
+	prompt?: string | null;
 	/** Project folder (clicking the session opens it). */
 	cwd?: string | null;
 }
