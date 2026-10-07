@@ -8,7 +8,7 @@
 //! is inside one of the rects reported by the frontend.
 
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, AtomicIsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicIsize, AtomicU64, Ordering};
 use std::time::Duration;
 
 use serde::Deserialize;
@@ -56,7 +56,34 @@ fn track_foreground(_: &AppHandle) {}
 #[tauri::command]
 pub fn focus_island(app: AppHandle) -> Result<(), String> {
     let win = app.get_webview_window(ISLAND_LABEL).ok_or("no island window")?;
+    allow_activation();
     win.set_focus().map_err(|e| e.to_string())
+}
+
+/// Until when (`GetTickCount64`, ms) the island may become the active window.
+static ACTIVATE_UNTIL: AtomicU64 = AtomicU64::new(0);
+/// Long enough for the queued `set_focus` to run.
+const ACTIVATE_GRACE_MS: u64 = 1000;
+
+/// The island normally never takes the focus (see `make_overlay`); call this
+/// right before activating it on purpose, to type in it.
+pub fn allow_activation() {
+    ACTIVATE_UNTIL.store(tick_ms() + ACTIVATE_GRACE_MS, Ordering::Relaxed);
+}
+
+#[cfg(windows)]
+fn activation_allowed() -> bool {
+    tick_ms() < ACTIVATE_UNTIL.load(Ordering::Relaxed)
+}
+
+#[cfg(windows)]
+fn tick_ms() -> u64 {
+    unsafe { windows::Win32::System::SystemInformation::GetTickCount64() }
+}
+
+#[cfg(not(windows))]
+fn tick_ms() -> u64 {
+    0
 }
 
 /// Gives the keyboard back to the app used before the island (Esc).
@@ -273,7 +300,8 @@ fn ensure_topmost(win: &WebviewWindow, force: bool) {
 #[cfg(not(windows))]
 fn ensure_topmost(_: &WebviewWindow, _: bool) {}
 
-/// The island is an overlay, not an app window: it must never look like one.
+/// The island is an overlay, not an app window: it must never look or act
+/// like one.
 ///
 /// tao keeps `WS_CAPTION | WS_SYSMENU` on undecorated windows and rewrites
 /// the styles on every flag change (each click-through toggle). Tools that
@@ -281,7 +309,15 @@ fn ensure_topmost(_: &WebviewWindow, _: bool) {}
 /// "traffic lights") then put them on the island's full-width strip, right over
 /// the minimize/maximize/close buttons of maximized apps. A subclass filters
 /// every style change instead: no caption or system menu, and a tool window
-/// (also kept out of Alt+Tab). Must run on the window's thread.
+/// (also kept out of Alt+Tab).
+///
+/// It also never becomes the active window by itself: each of those flag
+/// changes ends in `ShowWindow(SW_SHOW)`, which activated the island whenever
+/// the pointer crossed it, and so did clicking it. That took the keyboard
+/// from the app in use (and made such tools treat the strip as the active
+/// window). `WS_EX_NOACTIVATE` keeps clicks from activating it, and position
+/// changes lose their activation; only `allow_activation` (typing a question)
+/// lets it through. Must run on the window's thread.
 #[cfg(windows)]
 pub fn make_overlay(win: &WebviewWindow) {
     use windows::Win32::Foundation::HWND;
@@ -332,18 +368,26 @@ unsafe extern "system" fn overlay_proc(
 ) -> windows::Win32::Foundation::LRESULT {
     use windows::Win32::UI::Shell::DefSubclassProc;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, WM_STYLECHANGING, WS_CAPTION, WS_EX_APPWINDOW, WS_EX_TOOLWINDOW,
-        WS_SYSMENU,
+        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, SWP_NOACTIVATE, WINDOWPOS, WM_STYLECHANGING, WM_WINDOWPOSCHANGING,
+        WS_CAPTION, WS_EX_APPWINDOW, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_SYSMENU,
     };
 
-    if msg == WM_STYLECHANGING && lparam.0 != 0 {
-        let change = unsafe { &mut *(lparam.0 as *mut STYLESTRUCT) };
-        let which = wparam.0 as i32;
-        if which == GWL_STYLE.0 {
-            change.styleNew &= !(WS_CAPTION.0 | WS_SYSMENU.0);
-        } else if which == GWL_EXSTYLE.0 {
-            change.styleNew = (change.styleNew | WS_EX_TOOLWINDOW.0) & !WS_EX_APPWINDOW.0;
+    match msg {
+        WM_STYLECHANGING if lparam.0 != 0 => {
+            let change = unsafe { &mut *(lparam.0 as *mut STYLESTRUCT) };
+            let which = wparam.0 as i32;
+            if which == GWL_STYLE.0 {
+                change.styleNew &= !(WS_CAPTION.0 | WS_SYSMENU.0);
+            } else if which == GWL_EXSTYLE.0 {
+                change.styleNew =
+                    (change.styleNew | WS_EX_TOOLWINDOW.0 | WS_EX_NOACTIVATE.0) & !WS_EX_APPWINDOW.0;
+            }
         }
+        WM_WINDOWPOSCHANGING if lparam.0 != 0 && !activation_allowed() => {
+            let pos = unsafe { &mut *(lparam.0 as *mut WINDOWPOS) };
+            pos.flags |= SWP_NOACTIVATE;
+        }
+        _ => {}
     }
     unsafe { DefSubclassProc(hwnd, msg, wparam, lparam) }
 }
