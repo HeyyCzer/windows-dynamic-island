@@ -46,6 +46,7 @@
 .clock-cal {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 4px;
   width: 252px;
   flex: none;
