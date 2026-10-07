@@ -131,6 +131,20 @@
   // Módulo AI Agents
   agents: {
     title: "AI Agents",
+    approveInIsland: {
+      label: "Responder pedidos de permissão na ilha",
+      desc: "Permita ou negue o que o Claude Code pede direto na ilha. Responder no terminal ou no VS Code continua funcionando.",
+    },
+    permission: {
+      title: "{project} quer usar {tool}",
+      compact: "Permitir {tool}?",
+      allow: "Permitir",
+      always: "Sempre permitir",
+      alwaysTitle: "Não perguntar de novo para: {rule}",
+      deny: "Negar",
+      more: "+{n} aguardando",
+      hint: "ou responda no Claude Code",
+    },
     peekOnWaiting: {
       label: "Expandir quando um agente pedir sua atenção",
       desc: "Pedido de permissão ou pergunta aguardando resposta.",
@@ -247,6 +261,8 @@
       message: "Status em tempo real e limites do plano via hooks do Claude Code (backup do settings.json é criado).",
       serverDown: "Servidor local indisponível (porta 47823 ocupada?).",
       action: "Ativar integração",
+      outdated: "Atualize a integração para responder pedidos de permissão pela ilha.",
+      update: "Atualizar integração",
     },
     integration: {
       title: "Integração com Claude Code",
@@ -254,6 +270,7 @@
       enable: "Ativar",
       remove: "Remover",
       server: "Servidor local :47823",
+      permissions: "Permissões",
       restart: "Sessões do Claude Code já abertas precisam ser reiniciadas para carregar os hooks.",
     },
   },

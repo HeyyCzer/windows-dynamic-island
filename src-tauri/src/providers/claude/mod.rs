@@ -15,6 +15,7 @@
 mod activity;
 mod hooks;
 pub mod integration;
+mod permissions;
 pub mod statusline;
 mod transcripts;
 mod usage;
@@ -80,6 +81,8 @@ pub struct Session {
     pub summary: Option<String>,
     /// The last prompt typed in it: tells apart sessions of the same project.
     pub prompt: Option<String>,
+    /// A permission request the island can answer (see `permissions.rs`).
+    pub permission: Option<permissions::PermissionView>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -146,6 +149,8 @@ pub struct Integration {
     pub hooks: bool,
     pub statusline: bool,
     pub server_ok: bool,
+    /// The permission hook waits long enough for an answer from the island.
+    pub permissions: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
@@ -262,6 +267,8 @@ pub fn project_name(cwd: &str) -> String {
 pub struct Ctx {
     pub store: Arc<Mutex<Store>>,
     hub: Arc<Hub>,
+    /// Permission requests held open for the island to answer.
+    pending: Arc<Mutex<Vec<permissions::Pending>>>,
 }
 
 impl Ctx {
@@ -315,6 +322,7 @@ impl Provider for ClaudeProvider {
         let ctx = Ctx {
             store: Arc::new(Mutex::new(store)),
             hub,
+            pending: Arc::default(),
         };
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         let _ = CTX.set(ctx.clone());
@@ -324,6 +332,9 @@ impl Provider for ClaudeProvider {
 
         let scan_ctx = ctx.clone();
         std::thread::spawn(move || transcripts::scan_loop(scan_ctx));
+
+        let permissions_ctx = ctx.clone();
+        std::thread::spawn(move || permissions::watch(permissions_ctx));
 
         std::thread::spawn(move || tick_loop(ctx));
     }
@@ -337,6 +348,13 @@ impl Provider for ClaudeProvider {
                 if !cwd.is_empty() {
                     crate::settings::open_url(&vscode_url(cwd));
                 }
+                return Ok(Value::Null);
+            }
+            // Allow / Always / Deny clicked in the island.
+            "permission" => {
+                let id = payload["id"].as_str().ok_or("missing request id")?;
+                let decision = payload["decision"].as_str().and_then(permissions::Decision::parse).ok_or("bad decision")?;
+                permissions::decide(&ctx, id, decision)?;
                 return Ok(Value::Null);
             }
             "install" => integration::install()?,

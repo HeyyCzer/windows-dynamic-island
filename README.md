@@ -72,6 +72,7 @@ Not into the colorful look? You don't have to use it. **Settings → Appearance*
 - Plan usage limits (5-hour session and weekly) with reset countdowns
 - Tokens and responses today, plus a 7-day chart and the last 5 hours from the local transcripts
 - Optionally pops open when an agent needs you, finishes (showing how its reply starts) or your limits reset
+- **Answer permission requests right in the island**: see the command, file or URL, then Allow, Always allow (the rule Claude Code suggests) or Deny. Answering in the terminal or VS Code keeps working, and the island's request goes away
 - Click a session to open its project in VS Code
 
 **Ask Claude**: a conversation with Claude right in the island, using your Claude Code login (no API key).
@@ -142,6 +143,8 @@ Requires Windows 10 or 11 (WebView2 is installed automatically if missing).
 ### Claude Code integration
 
 Open **Settings → Modules → AI Agents → Claude Code integration → Enable**. This adds HTTP hooks (live status) and a statusline bridge to `~/.claude/settings.json`; a backup is written before every change, and your existing statusline keeps working. Restart Claude Code sessions that were already open. Without it, the island still picks up sessions from Claude Code's transcripts, just with less detail.
+
+The permission hook waits up to 10 minutes for your answer in the island (the other hooks give up after 3 seconds). If the integration was enabled by an older version, the AI Agents panel offers **Update integration**. Answering permission requests in the island can be turned off in the module's settings.
 
 <p align="center">
   <img src="docs/screenshots/settings-agents.png" width="640" alt="AI Agents settings with the Claude Code integration enabled" />

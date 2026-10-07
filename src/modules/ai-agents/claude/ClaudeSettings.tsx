@@ -3,7 +3,7 @@ import { providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 
 interface IntegrationState {
-  integration: { hooks: boolean; statusline: boolean; serverOk: boolean };
+  integration: { hooks: boolean; statusline: boolean; serverOk: boolean; permissions: boolean };
 }
 
 /** Claude Code integration status + install/remove, for the settings window. */
@@ -14,6 +14,8 @@ export function ClaudeSettings() {
   const [error, setError] = useState<string | null>(null);
   const i = state?.integration;
   const installed = !!i?.hooks && !!i?.statusline;
+  // Installed by an older version: the permission hook needs a longer timeout.
+  const outdated = installed && !i?.permissions;
 
   const run = async (action: "install" | "uninstall") => {
     setBusy(true);
@@ -34,6 +36,11 @@ export function ClaudeSettings() {
           <span className="settings-label">{t("claude.integration.title")}</span>
           <span className="settings-desc">{t("claude.integration.desc", { file: "~/.claude/settings.json" })}</span>
         </div>
+        {outdated && (
+          <button className="settings-btn primary" disabled={busy} onClick={() => run("install")}>
+            {busy ? "…" : t("claude.setup.update")}
+          </button>
+        )}
         <button
           className={`settings-btn ${installed ? "danger" : "primary"}`}
           disabled={busy || !state}
@@ -45,6 +52,7 @@ export function ClaudeSettings() {
       <div className="settings-chips">
         <Chip ok={!!i?.hooks} label="Hooks" />
         <Chip ok={!!i?.statusline} label="Statusline" />
+        <Chip ok={!!i?.permissions} label={t("claude.integration.permissions")} />
         <Chip ok={!!i?.serverOk} label={t("claude.integration.server")} />
       </div>
       {installed && (

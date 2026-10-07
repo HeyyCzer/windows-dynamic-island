@@ -11,6 +11,9 @@ export function AgentCompactLeft({ hot, busyCount }: { hot: AgentSessionRef; bus
   const label =
     session.status === "working"
       ? (session.activity ?? t("agents.status.working"))
+      : session.status === "waiting" && session.permission
+        ? // What it asks for ("Allow Bash?").
+          t("agents.permission.compact", { tool: session.permission.tool })
       : session.status === "idle"
         ? ""
         : session.status === "done" && session.summary

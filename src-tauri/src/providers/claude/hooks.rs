@@ -1,7 +1,9 @@
 //! Local HTTP endpoint for Claude Code hooks and the statusline bridge.
 //!
 //! Claude Code's `type: "http"` hooks POST the same JSON a command hook gets on
-//! stdin. We answer `{}` (no decision) so the normal permission flow applies.
+//! stdin. We answer `{}` (no decision) so the normal permission flow applies,
+//! except permission requests, which `permissions.rs` may hold for the island
+//! to answer.
 
 use std::io::Read;
 
@@ -9,7 +11,7 @@ use serde_json::Value;
 use tiny_http::{Header, Method, Response, Server};
 
 use super::activity::{self, Activity};
-use super::{now_ms, statusline, transcripts, usage, Ctx, Source, Status, HOOK_PORT};
+use super::{now_ms, permissions, statusline, transcripts, usage, Ctx, Source, Status, HOOK_PORT};
 
 pub const HOOK_PATH: &str = "/claude/hook";
 pub const STATUSLINE_PATH: &str = "/claude/statusline";
@@ -37,7 +39,18 @@ pub fn serve(ctx: Ctx) {
 
         if *req.method() == Method::Post {
             match req.url() {
-                HOOK_PATH => handle_hook(&ctx, &payload),
+                HOOK_PATH => {
+                    handle_hook(&ctx, &payload);
+                    if payload["hook_event_name"] == "PermissionRequest" {
+                        // Held: answered later, from the island or on release.
+                        match permissions::hold(&ctx, &payload, req) {
+                            None => continue,
+                            Some(back) => req = back,
+                        }
+                    } else {
+                        permissions::on_event(&ctx, &payload);
+                    }
+                }
                 STATUSLINE_PATH => statusline::handle(&ctx, &payload),
                 _ => {}
             }

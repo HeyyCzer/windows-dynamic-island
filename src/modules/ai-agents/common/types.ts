@@ -16,6 +16,8 @@ export interface AgentDefinition {
 	usageUrl?: string;
 	/** Opens a session (e.g. its project in the editor). */
 	openSession?: (session: AgentSession) => void;
+	/** Answers a session's pending permission request from the island. */
+	decide?: (session: AgentSession, decision: PermissionDecision) => Promise<unknown>;
 	/** Agent-specific block in the settings window (integration setup…). */
 	SettingsSection?: ComponentType;
 }
@@ -41,7 +43,23 @@ export interface AgentSession {
 	prompt?: string | null;
 	/** Project folder (clicking the session opens it). */
 	cwd?: string | null;
+	/** A permission request the island can answer. */
+	permission?: PendingPermission | null;
 }
+
+export interface PendingPermission {
+	id: string;
+	/** Tool name (`Bash`, `Edit`, `mcp__…`). */
+	tool: string;
+	/** The command, file, URL… it's about. */
+	detail: string | null;
+	/** The rules "Always allow" saves (as Claude Code suggests them). */
+	always: string | null;
+	/** Unix ms. */
+	since: number;
+}
+
+export type PermissionDecision = "allow" | "always" | "deny";
 
 export interface UsageLimit {
 	id: string;

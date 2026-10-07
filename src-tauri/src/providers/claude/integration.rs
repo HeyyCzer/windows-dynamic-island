@@ -25,6 +25,16 @@ const EVENTS: &[&str] = &[
     "SessionEnd",
 ];
 
+/// Most hooks only report, so they shouldn't hold Claude Code up.
+const HOOK_TIMEOUT_S: u64 = 3;
+/// The permission hook waits while the user decides in the island
+/// (`permissions.rs` answers before this runs out).
+pub const PERMISSION_TIMEOUT_S: u64 = 600;
+
+fn timeout_for(event: &str) -> u64 {
+    if event == "PermissionRequest" { PERMISSION_TIMEOUT_S } else { HOOK_TIMEOUT_S }
+}
+
 pub fn claude_dir() -> PathBuf {
     if let Some(dir) = std::env::var_os("CLAUDE_CONFIG_DIR") {
         return PathBuf::from(dir);
@@ -83,10 +93,16 @@ pub fn status() -> Integration {
             .as_array()
             .is_some_and(|groups| groups.iter().any(|g| g["hooks"].as_array().is_some_and(|h| h.iter().any(is_our_hook))))
     });
+    let permissions = settings["hooks"]["PermissionRequest"].as_array().is_some_and(|groups| {
+        groups.iter().filter_map(|g| g["hooks"].as_array()).flatten().any(|h| {
+            is_our_hook(h) && h["timeout"].as_u64().is_none_or(|t| t >= PERMISSION_TIMEOUT_S)
+        })
+    });
     Integration {
         hooks,
         statusline: is_our_statusline(&settings["statusLine"]),
         server_ok: false,
+        permissions,
     }
 }
 
@@ -100,12 +116,15 @@ pub fn install() -> Result<(), String> {
     for event in EVENTS {
         let groups = hooks.entry(*event).or_insert_with(|| json!([]));
         let groups = groups.as_array_mut().ok_or("invalid hooks group")?;
-        let present = groups
-            .iter()
-            .any(|g| g["hooks"].as_array().is_some_and(|h| h.iter().any(is_our_hook)));
+        let mut present = false;
+        // Already there (an older version): bring its timeout up to date.
+        for hook in groups.iter_mut().filter_map(|g| g["hooks"].as_array_mut()).flatten().filter(|h| is_our_hook(h)) {
+            hook["timeout"] = json!(timeout_for(event));
+            present = true;
+        }
         if !present {
             groups.push(json!({
-                "hooks": [{ "type": "http", "url": hook_url(), "timeout": 3 }]
+                "hooks": [{ "type": "http", "url": hook_url(), "timeout": timeout_for(event) }]
             }));
         }
     }
