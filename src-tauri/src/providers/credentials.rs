@@ -1,33 +1,38 @@
-//! GitHub token storage in the Windows Credential Manager, so it never lands in
-//! `settings.json` (which is plain text and readable by the frontend).
+//! Secrets (tokens, private links) kept in the Windows Credential Manager, so
+//! they never land in `settings.json` (which is plain text and readable by the
+//! frontend). Each secret lives under its own `target` name.
 
-const TARGET: &str = "dynamic-island:github";
+/// Largest secret the Credential Manager stores (`CRED_MAX_CREDENTIAL_BLOB_SIZE`).
+pub const MAX_LEN: usize = 5 * 512;
 
 #[cfg(windows)]
-pub fn read() -> Option<String> {
+pub fn read(target: &str) -> Option<String> {
     use windows::Win32::Security::Credentials::{CRED_TYPE_GENERIC, CREDENTIALW, CredFree, CredReadW};
     use windows::core::HSTRING;
 
     unsafe {
         let mut cred: *mut CREDENTIALW = std::ptr::null_mut();
-        CredReadW(&HSTRING::from(TARGET), CRED_TYPE_GENERIC, None, &mut cred).ok()?;
+        CredReadW(&HSTRING::from(target), CRED_TYPE_GENERIC, None, &mut cred).ok()?;
         let c = &*cred;
         let blob = std::slice::from_raw_parts(c.CredentialBlob, c.CredentialBlobSize as usize);
-        let token = String::from_utf8(blob.to_vec()).ok();
+        let secret = String::from_utf8(blob.to_vec()).ok();
         CredFree(cred as *const _);
-        token.filter(|t| !t.is_empty())
+        secret.filter(|t| !t.is_empty())
     }
 }
 
 #[cfg(windows)]
-pub fn write(token: &str) -> Result<(), String> {
+pub fn write(target: &str, secret: &str) -> Result<(), String> {
     use windows::Win32::Security::Credentials::{
         CRED_FLAGS, CRED_PERSIST_LOCAL_MACHINE, CRED_TYPE_GENERIC, CREDENTIALW, CredWriteW,
     };
     use windows::core::{HSTRING, PWSTR};
 
-    let target = HSTRING::from(TARGET);
-    let mut blob = token.as_bytes().to_vec();
+    if secret.len() > MAX_LEN {
+        return Err("too large for the Credential Manager".into());
+    }
+    let target = HSTRING::from(target);
+    let mut blob = secret.as_bytes().to_vec();
     let cred = CREDENTIALW {
         Flags: CRED_FLAGS(0),
         Type: CRED_TYPE_GENERIC,
@@ -41,11 +46,11 @@ pub fn write(token: &str) -> Result<(), String> {
 }
 
 #[cfg(windows)]
-pub fn delete() -> Result<(), String> {
+pub fn delete(target: &str) -> Result<(), String> {
     use windows::Win32::Security::Credentials::{CRED_TYPE_GENERIC, CredDeleteW};
     use windows::core::HSTRING;
 
-    match unsafe { CredDeleteW(&HSTRING::from(TARGET), CRED_TYPE_GENERIC, None) } {
+    match unsafe { CredDeleteW(&HSTRING::from(target), CRED_TYPE_GENERIC, None) } {
         Ok(()) => Ok(()),
         // Nothing stored is fine.
         Err(e) if e.code() == windows::Win32::Foundation::ERROR_NOT_FOUND.to_hresult() => Ok(()),
@@ -54,16 +59,16 @@ pub fn delete() -> Result<(), String> {
 }
 
 #[cfg(not(windows))]
-pub fn read() -> Option<String> {
+pub fn read(_target: &str) -> Option<String> {
     None
 }
 
 #[cfg(not(windows))]
-pub fn write(_token: &str) -> Result<(), String> {
+pub fn write(_target: &str, _secret: &str) -> Result<(), String> {
     Err("credential storage is only available on Windows".into())
 }
 
 #[cfg(not(windows))]
-pub fn delete() -> Result<(), String> {
+pub fn delete(_target: &str) -> Result<(), String> {
     Ok(())
 }

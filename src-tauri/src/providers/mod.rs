@@ -12,7 +12,9 @@
 pub mod activities;
 pub mod ask;
 pub mod claude;
+pub mod calendar;
 pub mod clipboard;
+pub mod credentials;
 pub mod github;
 pub mod monitor;
 pub mod music;
@@ -53,6 +55,7 @@ pub fn registry() -> Vec<Arc<dyn Provider>> {
         Arc::new(claude::ClaudeProvider::default()),
         Arc::new(github::GithubProvider::default()),
         Arc::new(monitor::MonitorProvider::default()),
+        Arc::new(calendar::CalendarProvider::default()),
     ]
 }
 

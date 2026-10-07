@@ -97,6 +97,7 @@
   color: var(--text-faint);
 }
 .clock-cal-day {
+  position: relative;
   height: 21px;
   border-radius: 7px;
   font-size: 11.5px;
@@ -118,4 +119,195 @@
   color: #fff;
   font-weight: 750;
   background: #ff453a;
+}
+
+/* --- events ---------------------------------------------------------------- */
+.clock-main.has-events {
+  justify-content: flex-start;
+  padding-top: 6px;
+  gap: 3px;
+  flex: 1;
+}
+.clock-main.has-events .clock-time {
+  font-size: 36px;
+}
+.clock-cal-dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1px;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.clock-cal-dots i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+}
+.clock-cal-day.is-today .clock-cal-dots i {
+  background: #fff !important;
+}
+.clock-events {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+.clock-event {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  padding: 0 4px 0 8px;
+  border-radius: 7px;
+  font-size: 12px;
+  cursor: default;
+  box-shadow: inset 2.5px 0 0 var(--cal-color);
+  background: rgba(255, 255, 255, 0.04);
+}
+.clock-event:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.clock-event.is-due {
+  background: color-mix(in srgb, var(--cal-color) 18%, transparent);
+}
+.clock-event-time {
+  flex: none;
+  min-width: 38px;
+  font-size: 11px;
+  font-weight: 650;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+}
+.clock-event.is-live .clock-event-time {
+  color: var(--cal-color);
+}
+.clock-event-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-weight: 550;
+  color: var(--text-dim);
+}
+.clock-event-join {
+  flex: none;
+  height: 18px;
+  padding: 0 8px;
+  border-radius: 9px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--cal-color);
+}
+.clock-event-more {
+  padding-left: 8px;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* --- reminder pill ---------------------------------------------------------- */
+.clock-remind-icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+}
+.clock-remind-title {
+  min-width: 0;
+  max-width: 190px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.clock-remind-when {
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- settings window -------------------------------------------------------- */
+.cal-divider {
+  height: 1px;
+  margin: 0 0 4px;
+  background: var(--hairline);
+}
+.cal-form {
+  display: flex;
+  gap: 8px;
+}
+.cal-form .settings-input {
+  flex: 1;
+}
+.cal-link {
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--accent);
+}
+.cal-link:hover {
+  text-decoration: underline;
+}
+.settings-desc.cal-warn {
+  color: #ffbd2e;
+}
+.cal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.cal-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 34px;
+  padding: 0 6px 0 12px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.cal-swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+.cal-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 550;
+}
+.cal-item-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+.cal-item-meta.is-error {
+  color: #ff6b63;
+}
+.cal-remove {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--text-faint);
+  transition: color 0.2s, background 0.2s;
+}
+.cal-remove:hover {
+  color: #ff6b63;
+  background: rgba(255, 95, 87, 0.12);
 }
