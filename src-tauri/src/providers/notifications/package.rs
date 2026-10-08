@@ -52,6 +52,41 @@ pub fn has_identity() -> bool {
 }
 
 pub fn register(app: &AppHandle) -> Result<(), String> {
+    deploy(app, false)
+}
+
+/// The package keeps the logos and manifest it was registered with (the
+/// taskbar indexes them then; files added later are ignored). After an
+/// update, register this version over it. It's in use (by this very
+/// process), so Windows applies it the next time the app starts.
+///
+/// Also repairs a package whose folder lost its manifest: uninstalling with
+/// "delete app data" wipes the folder but leaves the package registered.
+pub fn refresh_registration(app: &AppHandle) {
+    if cfg!(debug_assertions) {
+        return; // re-registering from `tauri dev` breaks the next dev launch
+    }
+    let Ok(package) = Package::Current() else {
+        return;
+    };
+    let Ok(current) = package.Id().and_then(|id| id.Version()) else {
+        return;
+    };
+    let has_manifest = package
+        .InstalledPath()
+        .is_ok_and(|dir| std::path::Path::new(&dir.to_string()).join("AppxManifest.xml").exists());
+    let v = &app.package_info().version;
+    if has_manifest && (current.Major as u64, current.Minor as u64, current.Build as u64) == (v.major, v.minor, v.patch) {
+        return;
+    }
+    if let Err(e) = deploy(app, true) {
+        log::warn!("notifications: package update failed: {e}");
+    }
+}
+
+/// `in_place`: update the package registered from this same folder instead
+/// of removing it first (removing it would end this process).
+fn deploy(app: &AppHandle, in_place: bool) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let exe_dir = exe.parent().ok_or("no exe folder")?;
     let exe_name = exe.file_name().ok_or("no exe name")?.to_string_lossy().to_string();
@@ -70,18 +105,24 @@ pub fn register(app: &AppHandle) -> Result<(), String> {
     let result: windows::core::Result<()> = (|| {
         let manager = PackageManager::new()?;
         // A previous registration may point at another folder; replace it.
-        let existing =
-            manager.FindPackagesByUserSecurityIdNamePublisher(&HSTRING::new(), &HSTRING::from(NAME), &HSTRING::from(PUBLISHER))?;
-        let it = existing.First()?;
-        while it.HasCurrent()? {
-            let full_name = it.Current()?.Id()?.FullName()?;
-            let _ = manager.RemovePackageAsync(&full_name)?.join();
-            it.MoveNext()?;
+        if !in_place {
+            let existing = manager.FindPackagesByUserSecurityIdNamePublisher(
+                &HSTRING::new(),
+                &HSTRING::from(NAME),
+                &HSTRING::from(PUBLISHER),
+            )?;
+            let it = existing.First()?;
+            while it.HasCurrent()? {
+                let full_name = it.Current()?.Id()?.FullName()?;
+                let _ = manager.RemovePackageAsync(&full_name)?.join();
+                it.MoveNext()?;
+            }
         }
 
         let options = RegisterPackageOptions::new()?;
         options.SetExternalLocationUri(&Uri::CreateUri(&HSTRING::from(file_uri(exe_dir, true)))?)?;
         options.SetDeveloperMode(true)?;
+        options.SetDeferRegistrationWhenPackagesAreInUse(in_place)?;
         let deployment = manager
             .RegisterPackageByUriAsync(&Uri::CreateUri(&HSTRING::from(file_uri(&manifest, false)))?, &options)?
             .join()?;
