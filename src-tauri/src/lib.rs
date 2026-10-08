@@ -119,6 +119,7 @@ fn open_ask(app: &AppHandle) {
         return;
     }
     if let Some(win) = app.get_webview_window(window::ISLAND_LABEL) {
+        window::allow_activation();
         let _ = win.set_focus();
     }
     let _ = app.emit(ASK_EVENT, ());

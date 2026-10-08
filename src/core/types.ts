@@ -39,6 +39,11 @@ export interface ModuleView {
   hidden?: boolean;
   /** Color of the module's tab ring in the Windows Island style. */
   accent?: string;
+  /**
+   * Waiting on the user (e.g. a permission to answer): opening the island
+   * goes to this module's tab instead of the last one used.
+   */
+  attention?: boolean;
 }
 
 export interface IslandModule {

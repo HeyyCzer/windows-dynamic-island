@@ -1,5 +1,7 @@
 import { providerAction, useProvider } from "../../../core/bridge";
 import { useT, type MessageKey, type Translate } from "../../../core/i18n";
+import { useSetting } from "../../../core/settings";
+import { agentSettings } from "../settings";
 import type { AgentSession, AgentSnapshot, AgentStatus, UsageLimit } from "../common/types";
 
 /** Mirrors `ClaudeState` in `src-tauri/src/providers/claude/mod.rs`. */
@@ -19,6 +21,7 @@ interface ClaudeState {
 		source: "hooks" | "transcript";
 		summary: string | null;
 		prompt: string | null;
+		permission: { id: string; tool: string; detail: string | null; always: string | null; since: number } | null;
 	}[];
 	limits: {
 		fiveHour: { usedPct: number; resetsAt: number | null } | null;
@@ -30,7 +33,7 @@ interface ClaudeState {
 	model: string | null;
 	tokensToday: { input: number; output: number; cacheRead: number; cacheWrite: number; messages: number };
 	usage: { daily: { date: string; tokens: number; responses: number }[]; last5hTokens: number };
-	integration: { hooks: boolean; statusline: boolean; serverOk: boolean };
+	integration: { hooks: boolean; statusline: boolean; serverOk: boolean; permissions: boolean };
 }
 
 /** Mirrors `Activity` in `src-tauri/src/providers/claude/activity.rs`. */
@@ -47,6 +50,7 @@ const refreshLimits = () => void providerAction(PROVIDER, "refreshLimits").catch
 export function useClaude(): AgentSnapshot {
 	const state = useProvider<ClaudeState>(PROVIDER);
 	const t = useT();
+	const approveInIsland = useSetting(agentSettings.approveInIsland);
 
 	if (!state) return { available: false, sessions: [], limits: [] };
 
@@ -56,7 +60,7 @@ export function useClaude(): AgentSnapshot {
 	if (fiveHour) limits.push({ id: "5h", label: t("agents.limit.fiveHour"), usedPct: fiveHour.usedPct, resetsAt: toMs(fiveHour.resetsAt) });
 	if (sevenDay) limits.push({ id: "7d", label: t("agents.limit.sevenDay"), usedPct: sevenDay.usedPct, resetsAt: toMs(sevenDay.resetsAt) });
 
-	const { hooks, statusline, serverOk } = state.integration;
+	const { hooks, statusline, serverOk, permissions } = state.integration;
 	const installed = hooks && statusline;
 	return {
 		available: true,
@@ -81,15 +85,23 @@ export function useClaude(): AgentSnapshot {
 				summary: s.summary,
 				prompt: s.prompt,
 				cwd: s.cwd,
+				permission: s.permission,
 			})),
 		],
-		setup: installed
-			? undefined
-			: {
+		setup: !installed
+			? {
 				message: serverOk ? t("claude.setup.message") : t("claude.setup.serverDown"),
 				actionLabel: t("claude.setup.action"),
 				action: () => providerAction(PROVIDER, "install"),
-			},
+			}
+			: approveInIsland && !permissions
+				? {
+					// Installed by an older version: the permission hook gives up after 3 s.
+					message: t("claude.setup.outdated"),
+					actionLabel: t("claude.setup.update"),
+					action: () => providerAction(PROVIDER, "install"),
+				}
+				: undefined,
 	};
 }
 

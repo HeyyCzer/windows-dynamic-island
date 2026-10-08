@@ -58,13 +58,17 @@ export function useIslandController(modules: IslandModule[]) {
   // --- hover (driven by the Rust hit-test thread inside Tauri) -------------
   const hoverTimer = useRef<number | undefined>(undefined);
   // The open tab outlives the island closing for a while, then it's back to
-  // the default (the busiest module).
+  // the default (the busiest module). A module waiting on the user wins.
   const rememberTabUntil = useRef(0);
+  const attentionId = useRef<string | null>(null);
+  attentionId.current = entries.find((e) => e.view.attention)?.module.id ?? null;
   const setHover = useCallback((inside: boolean, immediate = false) => {
     window.clearTimeout(hoverTimer.current);
     const apply = () => {
       setHovered(inside);
       if (!inside) rememberTabUntil.current = Date.now() + REMEMBER_TAB_MS;
+      // `expand(tab)` (a click, a shortcut) marks its tab with Infinity: that one stays.
+      else if (attentionId.current && rememberTabUntil.current !== Infinity) setTab(attentionId.current);
       else if (Date.now() > rememberTabUntil.current) setTab(null);
     };
     if (immediate) apply();

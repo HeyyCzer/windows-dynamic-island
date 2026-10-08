@@ -147,6 +147,24 @@
   // AI Agents module (agent-agnostic UI)
   agents: {
     title: "AI Agents",
+    approveInIsland: {
+      label: "Answer permission requests in the island",
+      desc: "Allow or deny what Claude Code asks for right in the island. Answering in the terminal or VS Code keeps working.",
+    },
+    permission: {
+      // {project}: session's project folder, {tool}: tool name (Bash, Edit…)
+      title: "{project} wants to use {tool}",
+      // {tool}: tool name
+      compact: "Allow {tool}?",
+      allow: "Allow",
+      always: "Always allow",
+      // {rule}: the permission rules that get saved, e.g. "Bash(npm test)"
+      alwaysTitle: "Don't ask again for: {rule}",
+      deny: "Deny",
+      // {n}: other requests waiting
+      more: "+{n} waiting",
+      hint: "or answer in Claude Code",
+    },
     peekOnWaiting: {
       label: "Expand when an agent needs your attention",
       desc: "A permission request or a question waiting for your answer.",
@@ -269,6 +287,8 @@
       message: "Live status and plan limits via Claude Code hooks (settings.json is backed up first).",
       serverDown: "Local server unavailable (is port 47823 in use?).",
       action: "Enable integration",
+      outdated: "Update the integration to answer permission requests from the island.",
+      update: "Update integration",
     },
     integration: {
       title: "Claude Code integration",
@@ -277,6 +297,7 @@
       enable: "Enable",
       remove: "Remove",
       server: "Local server :47823",
+      permissions: "Permissions",
       restart: "Claude Code sessions that are already open must be restarted to load the hooks.",
     },
   },

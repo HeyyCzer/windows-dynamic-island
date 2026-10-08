@@ -27,6 +27,8 @@ const DONE_VISIBLE_MS = 8_000;
 const RECENT_MS = 30 * 60_000;
 /** Height of the 7-day usage row. */
 const USAGE_CHART = 74;
+/** The permission request card plus the "Now" heading. */
+const PERMISSION_PROMPT = 196;
 
 const RANK: Record<AgentStatus, number> = { waiting: 0, limitsReset: 1, working: 2, done: 3, idle: 4 };
 const PRIORITY: Record<AgentStatus, number> = { waiting: 90, limitsReset: 80, done: 70, working: 60, idle: 0 };
@@ -78,10 +80,13 @@ export const aiAgentsModule: IslandModule = {
 			.slice(0, 4);
 
 		const primary = agents[0];
+		const asking = sessions.some((s) => s.session.permission && s.agent.decide);
 
 		return {
 			active: !!hot,
 			priority: hot ? PRIORITY[hot.session.status] : 0,
+			// A permission to answer: opening the island goes straight to it.
+			attention: asking,
 			icon: <StatusGlyph agent={hot?.agent ?? primary} status={hot?.session.status ?? "idle"} size={18} />,
 			compact: hot && {
 				left: <AgentCompactLeft hot={hot} busyCount={busyCount} />,
@@ -89,10 +94,12 @@ export const aiAgentsModule: IslandModule = {
 				width: 340,
 			},
 			expanded: <AgentsPanel agents={agents} snapshots={snapshots} sessions={recent} />,
-			expandedSize: {
-				width: 620,
-				height: 236 + Math.max(1, recent.length) * 30 + (snapshots.some((s) => s.usage?.daily.length) ? USAGE_CHART : 0),
-			},
+			expandedSize: asking
+				? { width: 620, height: PERMISSION_PROMPT + Math.max(1, recent.length) * 30 }
+				: {
+					width: 620,
+					height: 236 + Math.max(1, recent.length) * 30 + (snapshots.some((s) => s.usage?.daily.length) ? USAGE_CHART : 0),
+				},
 			// Peek when an agent needs you, just finished or its limits reset (each is a setting).
 			activityKey:
 				hot && peekOn[hot.session.status]

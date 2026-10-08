@@ -17,5 +17,6 @@ export const claudeAgent: AgentDefinition = {
   openSession: (session) => {
     if (session.cwd) providerAction("claude", "openProject", session.cwd);
   },
+  decide: (session, decision) => providerAction("claude", "permission", { id: session.permission?.id, decision }),
   SettingsSection: ClaudeSettings,
 };
