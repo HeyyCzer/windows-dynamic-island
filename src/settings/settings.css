@@ -225,6 +225,10 @@ body:has(.settings) {
   gap: 8px;
   padding-bottom: 14px;
 }
+/* Opening a card, a block gets the room a row would have above it. */
+.settings-card > .settings-block:first-child {
+  padding-top: 14px;
+}
 .settings-block .settings-row {
   cursor: default;
 }
