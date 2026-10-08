@@ -18,6 +18,29 @@ use windows::Management::Deployment::{PackageManager, RegisterPackageOptions};
 const NAME: &str = "DynamicIsland";
 const PUBLISHER: &str = "CN=DynamicIsland";
 
+/// `icons/package/<name>`, written under the same name.
+macro_rules! taskbar {
+    ($($name:literal),* $(,)?) => {
+        [$(($name, include_bytes!(concat!("../../../icons/package/", $name)) as &[u8])),*]
+    };
+}
+
+/// With a package identity the taskbar shows the package's logo, not the
+/// window's icon, and it only looks for these `targetsize` variants: without
+/// them every window of the app gets a blank grey tile.
+const TASKBAR: [(&str, &[u8]); 10] = taskbar![
+    "Square44x44Logo.targetsize-16_altform-unplated.png",
+    "Square44x44Logo.targetsize-24_altform-unplated.png",
+    "Square44x44Logo.targetsize-32_altform-unplated.png",
+    "Square44x44Logo.targetsize-48_altform-unplated.png",
+    "Square44x44Logo.targetsize-256_altform-unplated.png",
+    "Square44x44Logo.targetsize-16_altform-lightunplated.png",
+    "Square44x44Logo.targetsize-24_altform-lightunplated.png",
+    "Square44x44Logo.targetsize-32_altform-lightunplated.png",
+    "Square44x44Logo.targetsize-48_altform-lightunplated.png",
+    "Square44x44Logo.targetsize-256_altform-lightunplated.png",
+];
+
 const ASSETS: &[(&str, &[u8])] = &[
     ("StoreLogo.png", include_bytes!("../../../icons/StoreLogo.png")),
     ("Square44x44Logo.png", include_bytes!("../../../icons/Square44x44Logo.png")),
@@ -34,10 +57,7 @@ pub fn register(app: &AppHandle) -> Result<(), String> {
     let exe_name = exe.file_name().ok_or("no exe name")?.to_string_lossy().to_string();
 
     let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("package");
-    std::fs::create_dir_all(dir.join("Assets")).map_err(|e| e.to_string())?;
-    for (name, bytes) in ASSETS {
-        std::fs::write(dir.join("Assets").join(name), bytes).map_err(|e| e.to_string())?;
-    }
+    write_assets(&dir)?;
     let manifest = dir.join("AppxManifest.xml");
     let version = app.package_info().version.clone();
     let xml = MANIFEST
@@ -73,6 +93,30 @@ pub fn register(app: &AppHandle) -> Result<(), String> {
         Ok(())
     })();
     result.map_err(|e| e.message())
+}
+
+fn write_assets(dir: &std::path::Path) -> Result<(), String> {
+    let assets = dir.join("Assets");
+    std::fs::create_dir_all(&assets).map_err(|e| e.to_string())?;
+    for (name, bytes) in ASSETS.iter().chain(TASKBAR.iter()) {
+        std::fs::write(assets.join(name), bytes).map_err(|e| e.to_string())?;
+    }
+    Ok(())
+}
+
+/// Packages registered by older versions lack the taskbar logos; the package
+/// folder is plain files, so adding them is enough (no re-registration).
+pub fn refresh_assets() {
+    let Ok(dir) = Package::Current().and_then(|p| p.InstalledPath()) else {
+        return;
+    };
+    let dir = std::path::PathBuf::from(dir.to_string());
+    if TASKBAR.iter().all(|(name, _)| dir.join("Assets").join(name).exists()) {
+        return;
+    }
+    if let Err(e) = write_assets(&dir) {
+        log::warn!("notifications: package assets: {e}");
+    }
 }
 
 /// `file:///C:/path%20with%20spaces/` (folders end with a slash).

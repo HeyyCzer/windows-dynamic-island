@@ -93,7 +93,10 @@ impl Provider for NotificationsProvider {
         let ctx = Arc::new(Ctx { hub, state: Mutex::default() });
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         ctx.publish();
-        std::thread::spawn(move || run(ctx));
+        std::thread::spawn(move || {
+            package::refresh_assets();
+            run(ctx)
+        });
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
