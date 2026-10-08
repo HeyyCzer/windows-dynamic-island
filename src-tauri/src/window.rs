@@ -73,7 +73,32 @@ pub fn allow_activation() {
 
 #[cfg(windows)]
 fn activation_allowed() -> bool {
-    tick_ms() < ACTIVATE_UNTIL.load(Ordering::Relaxed)
+    FILE_DRAG.load(Ordering::Relaxed) || tick_ms() < ACTIVATE_UNTIL.load(Ordering::Relaxed)
+}
+
+/// Files are being dragged in from another app. OLE refuses to drop on a
+/// window that can't be activated, so meanwhile the island may be.
+static FILE_DRAG: AtomicBool = AtomicBool::new(false);
+
+#[cfg(windows)]
+fn set_file_drag(win: &WebviewWindow, on: bool) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{GWL_EXSTYLE, GetWindowLongW, SetWindowLongW, WS_EX_NOACTIVATE};
+
+    FILE_DRAG.store(on, Ordering::Relaxed);
+    let Ok(hwnd) = win.hwnd() else {
+        return;
+    };
+    // The subclass puts `WS_EX_NOACTIVATE` back unless a drag is on.
+    unsafe {
+        let hwnd = HWND(hwnd.0);
+        SetWindowLongW(hwnd, GWL_EXSTYLE, GetWindowLongW(hwnd, GWL_EXSTYLE) & !(WS_EX_NOACTIVATE.0 as i32));
+    }
+}
+
+#[cfg(not(windows))]
+fn set_file_drag(_: &WebviewWindow, on: bool) {
+    FILE_DRAG.store(on, Ordering::Relaxed);
 }
 
 #[cfg(windows)]
@@ -147,6 +172,7 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut last_fg = 0isize;
         let mut button_down = false;
         let mut pressed_inside = false;
+        let mut file_drag = false;
         loop {
             std::thread::sleep(Duration::from_millis(25));
             let Some(win) = app.get_webview_window(ISLAND_LABEL) else {
@@ -190,6 +216,11 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
             button_down = down;
             let drop_zone = !fullscreen && down && !pressed_inside && cursor_inside(&app, &win, DROP_MARGIN);
+            let dragging_in = down && !pressed_inside && (file_drag || drop_zone);
+            if dragging_in != file_drag {
+                file_drag = dragging_in;
+                set_file_drag(&win, file_drag);
+            }
 
             let ignore = !inside && !drop_zone;
             if ignoring != Some(ignore) && win.set_ignore_cursor_events(ignore).is_ok() {
@@ -389,8 +420,10 @@ unsafe extern "system" fn overlay_proc(
             if which == GWL_STYLE.0 {
                 change.styleNew &= !(WS_CAPTION.0 | WS_SYSMENU.0);
             } else if which == GWL_EXSTYLE.0 {
-                change.styleNew =
-                    (change.styleNew | WS_EX_TOOLWINDOW.0 | WS_EX_NOACTIVATE.0) & !WS_EX_APPWINDOW.0;
+                change.styleNew = (change.styleNew | WS_EX_TOOLWINDOW.0) & !WS_EX_APPWINDOW.0;
+                if !FILE_DRAG.load(Ordering::Relaxed) {
+                    change.styleNew |= WS_EX_NOACTIVATE.0;
+                }
             }
         }
         WM_WINDOWPOSCHANGING if lparam.0 != 0 && !activation_allowed() => {
