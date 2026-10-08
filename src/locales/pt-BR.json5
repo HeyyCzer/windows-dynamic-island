@@ -275,6 +275,18 @@
     },
   },
 
+  // Agente OpenAI Codex
+  codex: {
+    limitsHint: "Os limites do plano aparecem após a próxima resposta do Codex.",
+    limitWindow: "Janela · {time}",
+    integration: {
+      title: "Codex",
+      desc: "Status ao vivo, tokens e limites do plano lidos das sessões do Codex em {dir} (CLI, extensão da IDE e app). Nada para instalar.",
+      found: "Codex encontrado",
+      missing: "Codex não encontrado neste computador",
+    },
+  },
+
   // O que uma sessão do Claude está fazendo
   activity: {
     thinking: "Pensando…",

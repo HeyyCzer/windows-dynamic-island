@@ -99,6 +99,37 @@
   color: var(--text-faint);
 }
 
+/* Which agent the card and chart below show (when several are installed). */
+.agents-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: -2px;
+}
+.agents-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 24px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-faint);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.agents-tab:hover {
+  background: rgba(255, 255, 255, 0.09);
+  color: var(--text-dim);
+}
+.agents-tab.is-active {
+  background: color-mix(in srgb, var(--agent) 18%, transparent);
+  color: var(--agent);
+}
+
 .agents-card {
   display: grid;
   grid-template-columns: 1.35fr 1fr;

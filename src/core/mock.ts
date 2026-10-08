@@ -32,6 +32,7 @@ export function startMock() {
 	publish();
 	setInterval(publish, 1000);
 	publishClaude(start);
+	publishCodex(start);
 	publishGithub(start);
 	publishWindowsIsland(start);
 	publishClipboard(start);
@@ -131,6 +132,44 @@ function publishClaude(now: number) {
 	};
 	setTimeout(() => publishLocal("claude", { ...reset, limitsResetAt: Date.now() }), 10_000);
 	setTimeout(() => publishLocal("claude", reset), 16_000);
+}
+
+function publishCodex(now: number) {
+	const sec = (s: number) => Math.floor((now + s * 1000) / 1000);
+	publishLocal("codex", {
+		available: true,
+		sessions: [
+			{
+				id: "x",
+				project: "rust-cli",
+				cwd: "~/projects/rust-cli",
+				status: "working",
+				activity: { kind: "run", arg: "cargo test" },
+				turnStartedAt: now - 42_000,
+				finishedAt: null,
+				lastEventAt: now - 2_000,
+				model: "gpt-5-codex",
+				contextPct: 23,
+				summary: null,
+				prompt: "Port the config parser to serde",
+			},
+		],
+		limits: {
+			primary: { usedPct: 22, windowMinutes: 300, resetsAt: sec(3 * 3600 + 5 * 60) },
+			secondary: { usedPct: 47, windowMinutes: 10_080, resetsAt: sec(4 * 86400) },
+			updatedAt: now,
+		},
+		model: "gpt-5-codex",
+		tokensToday: { input: 96_000, output: 41_000, cacheRead: 1_300_000, cacheWrite: 0, messages: 58 },
+		usage: {
+			daily: [1.2, 0, 3.4, 2.1, 0.8, 4.0, 1.4].map((m, i) => ({
+				date: new Date(now - (6 - i) * 86_400_000).toISOString().slice(0, 10),
+				tokens: Math.round(m * 1_000_000),
+				responses: Math.round(m * 7),
+			})),
+			last5hTokens: 900_000,
+		},
+	});
 }
 
 function publishGithub(now: number) {

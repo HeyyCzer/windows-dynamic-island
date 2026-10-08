@@ -153,7 +153,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
 }
 
 /// One line, no Markdown markers, at most ~160 characters.
-pub(super) fn preview(text: &str) -> String {
+pub(crate) fn preview(text: &str) -> String {
     let flat = text
         .replace("**", "")
         .replace('`', "")

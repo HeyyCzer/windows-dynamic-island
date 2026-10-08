@@ -12,7 +12,7 @@
 //!
 //! `integration.rs` wires the first two into `~/.claude/settings.json` on demand.
 
-mod activity;
+pub mod activity;
 mod hooks;
 pub mod integration;
 mod permissions;
@@ -29,6 +29,8 @@ use serde_json::Value;
 
 use super::{now_ms, Provider};
 use crate::hub::Hub;
+
+pub(crate) use hooks::preview;
 
 pub const ID: &str = "claude";
 pub const HOOK_PORT: u16 = 47823;
@@ -289,7 +291,7 @@ pub fn handle_hook(payload: &Value) {
 }
 
 /// `vscode://file/C:/path/to/project`
-fn vscode_url(cwd: &str) -> String {
+pub(crate) fn vscode_url(cwd: &str) -> String {
     let path = cwd.replace('\\', "/");
     let encoded: String = path
         .chars()

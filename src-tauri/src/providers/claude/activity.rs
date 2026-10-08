@@ -23,7 +23,7 @@ impl Activity {
         Self { kind, arg: None, permission: false }
     }
 
-    fn with(kind: &'static str, arg: impl AsRef<str>) -> Self {
+    pub fn with(kind: &'static str, arg: impl AsRef<str>) -> Self {
         Self {
             kind,
             arg: Some(truncate(arg.as_ref().trim(), 50)),
@@ -81,14 +81,14 @@ pub fn describe(tool: &str, input: &Value) -> Activity {
     }
 }
 
-fn file_name(path: &str) -> Option<String> {
+pub fn file_name(path: &str) -> Option<String> {
     if path.is_empty() {
         return None;
     }
     path.rsplit(['\\', '/']).next().map(str::to_string)
 }
 
-fn host(url: &str) -> &str {
+pub fn host(url: &str) -> &str {
     url.split("://").nth(1).unwrap_or(url).split('/').next().unwrap_or(url)
 }
 

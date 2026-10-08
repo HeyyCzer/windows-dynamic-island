@@ -302,6 +302,20 @@
     },
   },
 
+  // OpenAI Codex agent
+  codex: {
+    limitsHint: "Plan limits show up after Codex's next reply.",
+    // {time}: window length, e.g. "5h" or "7d"
+    limitWindow: "Window · {time}",
+    integration: {
+      title: "Codex",
+      // {dir}: folder Codex keeps its sessions in
+      desc: "Live status, tokens and plan limits read from Codex's sessions in {dir} (CLI, IDE extension and app). Nothing to install.",
+      found: "Codex found",
+      missing: "Codex not found on this computer",
+    },
+  },
+
   // What a Claude session is doing. Kinds come from
   // src-tauri/src/providers/claude/activity.rs; {arg} is a file name,
   // command, search pattern…
