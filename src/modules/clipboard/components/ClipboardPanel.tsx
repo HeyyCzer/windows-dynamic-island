@@ -4,7 +4,7 @@ import { providerAction } from "../../../core/bridge";
 import { useT, type Translate } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
 import { formatAgo, useNow } from "../../ai-agents/common/format";
-import { attachFiles, draftRequest, requestAskFocus } from "../../ask/store";
+import { attachFiles, draftRequest, requestAskFocus, useAskEnabled } from "../../ask/store";
 import { addToShelf } from "../../shelf/actions";
 import { CLIPBOARD_PROVIDER, CLIPBOARD_YELLOW, clipAction, type ClipboardState, type ClipItem } from "../types";
 
@@ -69,6 +69,7 @@ export function ClipboardPanel({ state, hero }: { state: ClipboardState | undefi
 /** Actions shared by rows and the hero, with a short confirmation. */
 function useItemActions(item: ClipItem) {
   const island = useIsland();
+  const askEnabled = useAskEnabled();
   const [done, setDone] = useState<"copied" | "kept" | null>(null);
   const timer = useRef<number | undefined>(undefined);
   const flash = (what: "copied" | "kept") => {
@@ -87,19 +88,22 @@ function useItemActions(item: ClipItem) {
         flash("kept");
       }
     },
-    ask: async () => {
-      if (item.kind === "text") {
-        const text = await clipAction<string>("text", item.id);
-        if (text) draftRequest.set(text);
-      } else if (item.kind === "image" && item.path) {
-        await attachFiles([item.path]);
-      } else {
-        const paths = await clipAction<string[]>("keep", item.id);
-        if (paths?.length) await attachFiles(paths);
-      }
-      requestAskFocus();
-      island.expand("ask");
-    },
+    // Left out while "Ask Claude" is turned off.
+    ask: askEnabled
+      ? async () => {
+          if (item.kind === "text") {
+            const text = await clipAction<string>("text", item.id);
+            if (text) draftRequest.set(text);
+          } else if (item.kind === "image" && item.path) {
+            await attachFiles([item.path]);
+          } else {
+            const paths = await clipAction<string[]>("keep", item.id);
+            if (paths?.length) await attachFiles(paths);
+          }
+          requestAskFocus();
+          island.expand("ask");
+        }
+      : undefined,
     open: () => clipAction("open", item.id),
     remove: () => clipAction("remove", item.id),
   };
@@ -161,7 +165,7 @@ function Row({ item }: { item: ClipItem }) {
         {a.done ? <span className="clip-done">✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}</span> : <Meta item={item} />}
       </div>
       <div className="clip-actions">
-        <IconButton icon="chat" label={t("clipboard.ask")} onClick={a.ask} />
+        {a.ask && <IconButton icon="chat" label={t("clipboard.ask")} onClick={a.ask} />}
         {item.kind !== "text" && <IconButton icon="folder" label={t("clipboard.keep")} onClick={a.keep} />}
         <IconButton icon="×" label={t("clipboard.remove")} onClick={a.remove} />
       </div>
@@ -184,9 +188,11 @@ function Hero({ item }: { item: ClipItem }) {
           <button className="clip-pill" title={t("clipboard.copy")} onClick={a.copy}>
             <Glyph name="copy" size={11} /> {t("clipboard.short.copy")}
           </button>
-          <button className="clip-pill" title={t("clipboard.ask")} onClick={a.ask}>
-            <Glyph name="chat" size={11} /> {t("clipboard.short.ask")}
-          </button>
+          {a.ask && (
+            <button className="clip-pill" title={t("clipboard.ask")} onClick={a.ask}>
+              <Glyph name="chat" size={11} /> {t("clipboard.short.ask")}
+            </button>
+          )}
           <button className="clip-pill" title={t("clipboard.keep")} onClick={a.keep}>
             <Glyph name="folder" size={11} /> {t("clipboard.short.keep")}
           </button>

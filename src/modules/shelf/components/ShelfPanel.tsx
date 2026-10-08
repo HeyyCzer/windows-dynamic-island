@@ -3,7 +3,7 @@ import { Glyph } from "../../../components/Glyph";
 import { providerAction } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { draggingFiles, useIsland } from "../../../core/island";
-import { attachFiles, requestAskFocus } from "../../ask/store";
+import { attachFiles, requestAskFocus, useAskEnabled } from "../../ask/store";
 import { SHELF_PROVIDER, shelfAction, type ShelfItem, type ShelfState } from "../actions";
 
 const DRAG_THRESHOLD = 5;
@@ -42,6 +42,7 @@ export function ShelfPanel({ state }: { state: ShelfState | undefined }) {
 function Tile({ item }: { item: ShelfItem }) {
   const t = useT();
   const island = useIsland();
+  const askEnabled = useAskEnabled();
   const press = useRef<{ x: number; y: number; id: number } | null>(null);
 
   // Drag it out to any app (Explorer, WhatsApp, an e-mail…): the OS takes
@@ -73,17 +74,19 @@ function Tile({ item }: { item: ShelfItem }) {
         {item.thumb ? <img src={item.thumb} alt="" draggable={false} /> : <FileIcon item={item} />}
       </div>
       <span className="shelf-name">{item.name}</span>
-      <button
-        className="shelf-btn ask"
-        title={t("shelf.ask")}
-        onClick={() => {
-          attachFiles([item.path]);
-          requestAskFocus();
-          island.expand("ask");
-        }}
-      >
-        <Glyph name="chat" size={10} />
-      </button>
+      {askEnabled && (
+        <button
+          className="shelf-btn ask"
+          title={t("shelf.ask")}
+          onClick={() => {
+            attachFiles([item.path]);
+            requestAskFocus();
+            island.expand("ask");
+          }}
+        >
+          <Glyph name="chat" size={10} />
+        </button>
+      )}
       <button className="shelf-btn remove" title={t("shelf.remove")} onClick={() => shelfAction("remove", item.path)}>
         ×
       </button>
