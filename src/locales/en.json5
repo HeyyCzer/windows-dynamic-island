@@ -119,10 +119,11 @@
     launcher: "All modules",
     pinned: "In the tab bar",
     drag: "Drag to reorder",
-    inBar: "Tab bar",
-    inLauncher: "Launcher",
-    pin: "Show in the tab bar",
-    unpin: "Move to the launcher",
+    place: "Where the module's tab goes",
+    placeDesc: "It's always in the launcher too (the grid button).",
+    inBar: "In bar if not empty",
+    inBarAlways: "Always in bar",
+    inLauncher: "Launcher only",
   },
 
   // Music module

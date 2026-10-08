@@ -104,10 +104,11 @@
     launcher: "Todos os módulos",
     pinned: "Na barra de abas",
     drag: "Arraste para reordenar",
-    inBar: "Barra",
-    inLauncher: "Menu",
-    pin: "Mostrar na barra de abas",
-    unpin: "Mover para o menu de módulos",
+    place: "Onde fica a aba do módulo",
+    placeDesc: "Ele também fica sempre no menu de módulos (o botão de grade).",
+    inBar: "Barra quando em uso",
+    inBarAlways: "Sempre na barra",
+    inLauncher: "Só no menu",
   },
 
   // Módulo de música

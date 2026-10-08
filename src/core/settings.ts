@@ -120,7 +120,29 @@ export const layoutSettings = {
     label: "layout.pinned",
     default: ["music", "ai-agents", "ask", "notifications", "clipboard", "monitor", "clock"],
   } satisfies SettingDef<string[]>,
+  /** Module ids kept in the tab bar even when they have nothing to show (e.g. an empty shelf). */
+  pinnedAlways: {
+    key: "island.pinnedAlways",
+    label: "layout.pinned",
+    default: [] as string[],
+  } satisfies SettingDef<string[]>,
 };
+
+/** Where a module's tab goes: the launcher only, the tab bar, or the tab bar even when empty. */
+export type Placement = "launcher" | "bar" | "always";
+
+export function placementOf(values: Record<string, unknown>, id: string): Placement {
+  if (readSetting(values, layoutSettings.pinnedAlways).includes(id)) return "always";
+  return readSetting(values, layoutSettings.pinned).includes(id) ? "bar" : "launcher";
+}
+
+export function setPlacement(values: Record<string, unknown>, id: string, placement: Placement) {
+  const without = (list: string[]) => list.filter((p) => p !== id);
+  const pinned = without(readSetting(values, layoutSettings.pinned));
+  const always = without(readSetting(values, layoutSettings.pinnedAlways));
+  setSetting(layoutSettings.pinned, placement === "bar" ? [...pinned, id] : pinned);
+  setSetting(layoutSettings.pinnedAlways, placement === "always" ? [...always, id] : always);
+}
 
 /** `items` sorted by the saved order; unknown ones keep their place at the end. */
 export function inOrder<T>(items: T[], idOf: (item: T) => string, order: string[]): T[] {

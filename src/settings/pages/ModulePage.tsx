@@ -4,6 +4,7 @@ import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
+import { PlacementSelect } from "../components/PlacementSelect";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
 export function ModulePage({ values }: { values: Record<string, unknown> }) {
@@ -42,6 +43,13 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
           </div>
           <Toggle checked={enabled} onChange={(v) => setSetting(enabledDef, v)} />
         </label>
+        <div className={`settings-row is-static ${enabled ? "" : "is-disabled"}`}>
+          <div className="settings-text">
+            <span className="settings-label">{t("layout.place")}</span>
+            <span className="settings-desc">{t("layout.placeDesc")}</span>
+          </div>
+          <PlacementSelect moduleId={module.id} disabled={!enabled} />
+        </div>
       </section>
       <motion.div
         className="settings-group"
