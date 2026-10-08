@@ -309,9 +309,10 @@ fn ensure_topmost(_: &WebviewWindow, _: bool) {}
 /// "traffic lights") then put them on the island's full-width strip, right over
 /// the minimize/maximize/close buttons of maximized apps. A subclass filters
 /// every style change instead: no caption or system menu, and a tool window
-/// (also kept out of Alt+Tab).
+/// (also kept out of Alt+Tab). It also keeps Windows from painting a title bar
+/// over the strip.
 ///
-/// It also never becomes the active window by itself: each of those flag
+/// Nor does it ever become the active window by itself: each of those flag
 /// changes ends in `ShowWindow(SW_SHOW)`, which activated the island whenever
 /// the pointer crossed it, and so did clicking it. That took the keyboard
 /// from the app in use (and made such tools treat the strip as the active
@@ -366,13 +367,22 @@ unsafe extern "system" fn overlay_proc(
     _id: usize,
     _data: usize,
 ) -> windows::Win32::Foundation::LRESULT {
+    use windows::Win32::Foundation::{LPARAM, LRESULT};
     use windows::Win32::UI::Shell::DefSubclassProc;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, SWP_NOACTIVATE, WINDOWPOS, WM_STYLECHANGING, WM_WINDOWPOSCHANGING,
-        WS_CAPTION, WS_EX_APPWINDOW, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_SYSMENU,
+        GWL_EXSTYLE, GWL_STYLE, STYLESTRUCT, SWP_NOACTIVATE, WINDOWPOS, WM_NCACTIVATE, WM_NCPAINT,
+        WM_STYLECHANGING, WM_WINDOWPOSCHANGING, WS_CAPTION, WS_EX_APPWINDOW, WS_EX_NOACTIVATE,
+        WS_EX_TOOLWINDOW, WS_SYSMENU,
     };
 
     match msg {
+        // There is no frame, but `DefWindowProc` still paints a classic title bar
+        // ("Dynamic Island" on a dark band) across the whole strip when the window
+        // gets activated (dropping on the shelf, typing a question…).
+        WM_NCPAINT => return LRESULT(0),
+        // Still delivered (tao tracks focus with it); lParam -1 tells
+        // `DefWindowProc` not to repaint the non-client area.
+        WM_NCACTIVATE => return unsafe { DefSubclassProc(hwnd, msg, wparam, LPARAM(-1)) },
         WM_STYLECHANGING if lparam.0 != 0 => {
             let change = unsafe { &mut *(lparam.0 as *mut STYLESTRUCT) };
             let which = wparam.0 as i32;

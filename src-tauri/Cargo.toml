@@ -1,6 +1,6 @@
 [package]
 name = "dynamic-island"
-version = "0.3.0"
+version = "0.3.1"
 description = "Dynamic Island for Windows"
 license = "GPL-3.0-or-later"
 edition = "2024"
@@ -31,6 +31,12 @@ log = "0.4"
 tauri-plugin-updater = "2"
 tauri-plugin-global-shortcut = "2"
 png = "0.17"
+# Calendar: iCal recurrence + time zones, Google OAuth (PKCE).
+rrule = "0.14"
+chrono-tz = "0.10"
+sha2 = "0.10"
+getrandom = "0.3"
+url = "2"
 
 [target.'cfg(windows)'.dependencies]
 # Drags shelf items out of the island into other apps (OLE drag & drop).

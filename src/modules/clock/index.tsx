@@ -2,146 +2,51 @@
  * Clock — the time, and a month calendar to look up dates, as a tab of the
  * open island. (In the Windows Island style the resting pill also shows the
  * time; see `IdleClock`.)
+ *
+ * With a Google account or iCal links connected (backend:
+ * `src-tauri/src/providers/calendar/`), busy days get a dot per calendar, the
+ * focused day lists its events, and the next event takes over the island a
+ * few minutes before it starts.
  */
-import { useState, type WheelEvent } from "react";
 import { Glyph } from "../../components/Glyph";
+import { Marquee } from "../../components/Marquee";
+import { useProvider } from "../../core/bridge";
 import { useLocale, useT } from "../../core/i18n";
+import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { useNow } from "../ai-agents/common/format";
+import { CalendarSettings } from "./components/CalendarSettings";
+import { ClockPanel } from "./components/ClockPanel";
+import { dueEvent, nextStart } from "./events";
+import { calendarSettings, remindMinutes } from "./settings";
+import { CALENDAR_PROVIDER, CLOCK_RED, type CalEvent, type CalendarState } from "./types";
 import "./clock.css";
 
-const DAY_MS = 86_400_000;
-/** The wheel over the calendar flips months at most this often. */
-const WHEEL_STEP_MS = 220;
+/** Panel height with the day's event list under the date. */
+const HEIGHT_WITH_EVENTS = 236;
 
-/** First day of the week for a locale (1 = Monday … 7 = Sunday). */
-function firstDayOfWeek(locale: string): number {
-  try {
-    const l = new Intl.Locale(locale) as Intl.Locale & {
-      getWeekInfo?: () => { firstDay: number };
-      weekInfo?: { firstDay: number };
-    };
-    return (l.getWeekInfo?.() ?? l.weekInfo)?.firstDay ?? 1;
-  } catch {
-    return 1;
-  }
+function ReminderLeft({ event, color }: { event: CalEvent; color: string }) {
+  const t = useT();
+  return (
+    <>
+      <span className="clock-remind-icon" style={{ background: `${color}29` }}>
+        <Glyph name="calendar" size={12} color={color} />
+      </span>
+      <Marquee text={event.title || t("calendar.untitled")} className="clock-remind-title" />
+    </>
+  );
 }
 
-/** ISO week number (Monday weeks; week 1 holds the first Thursday). */
-function isoWeek(d: Date): number {
-  const t = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  t.setDate(t.getDate() + 3 - ((t.getDay() + 6) % 7));
-  const week1 = new Date(t.getFullYear(), 0, 4);
-  return 1 + Math.round(((t.getTime() - week1.getTime()) / DAY_MS - 3 + ((week1.getDay() + 6) % 7)) / 7);
-}
-
-const sameDay = (a: Date, b: Date) => a.toDateString() === b.toDateString();
-const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
-/** Six rows of seven days covering `month`, starting on the locale's first weekday. */
-function monthGrid(month: Date, firstDay: number): Date[] {
-  const first = new Date(month.getFullYear(), month.getMonth(), 1);
-  const offset = (first.getDay() - (firstDay % 7) + 7) % 7;
-  return Array.from({ length: 42 }, (_, i) => new Date(first.getFullYear(), first.getMonth(), 1 - offset + i));
-}
-
-function ClockPanel() {
+function ReminderRight({ event, now, color }: { event: CalEvent; now: number; color: string }) {
   const t = useT();
   const locale = useLocale();
-  const now = useNow(1000);
-  const today = new Date(now);
-  const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selected, setSelected] = useState<Date | null>(null);
-
-  const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(now);
-  const seconds = String(today.getSeconds()).padStart(2, "0");
-  const firstDay = firstDayOfWeek(locale);
-  const days = monthGrid(month, firstDay);
-  // Trim a trailing week that belongs entirely to the next month.
-  const rows = days.slice(35).every((d) => d.getMonth() !== month.getMonth()) ? 5 : 6;
-  const weekdays = days.slice(0, 7).map((d) => new Intl.DateTimeFormat(locale, { weekday: "narrow" }).format(d));
-  const monthLabel = new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }).format(month);
-  const onCurrentMonth = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth();
-
-  // Left side: today, or the picked day and how far away it is.
-  const focus = selected ?? today;
-  const longDate = new Intl.DateTimeFormat(locale, { weekday: "long", day: "numeric", month: "long" }).format(focus);
-  const distance = Math.round((startOfDay(focus).getTime() - startOfDay(today).getTime()) / DAY_MS);
-  const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(distance, "day");
-
-  const shift = (n: number) => setMonth((m) => new Date(m.getFullYear(), m.getMonth() + n, 1));
-  const goToday = () => {
-    setMonth(new Date(today.getFullYear(), today.getMonth(), 1));
-    setSelected(null);
-  };
-
-  const [lastWheel, setLastWheel] = useState(0);
-  const onWheel = (e: WheelEvent) => {
-    if (Math.abs(e.deltaY) < 4 || e.timeStamp - lastWheel < WHEEL_STEP_MS) return;
-    setLastWheel(e.timeStamp);
-    shift(Math.sign(e.deltaY));
-  };
-
+  const minutes = Math.ceil((event.start - now) / 60_000);
   return (
-    <div className="clock-panel" onClick={(e) => e.stopPropagation()}>
-      <div className="clock-main">
-        <span className="clock-time">
-          {time}
-          <span className="clock-seconds">{seconds}</span>
-        </span>
-        <span className="clock-date">{longDate}</span>
-        <span className="clock-meta">
-          {selected && !sameDay(selected, today) ? relative : t("clock.week", { n: isoWeek(focus) })}
-        </span>
-      </div>
-
-      <div className="clock-cal" data-scroll onWheel={onWheel}>
-        <div className="clock-cal-head">
-          <span className="clock-cal-month">{monthLabel}</span>
-          {(!onCurrentMonth || selected) && (
-            <button className="clock-cal-today" onClick={goToday}>
-              {t("clock.today")}
-            </button>
-          )}
-          <button className="clock-cal-nav" title={t("clock.prev")} onClick={() => shift(-1)}>
-            ‹
-          </button>
-          <button className="clock-cal-nav" title={t("clock.next")} onClick={() => shift(1)}>
-            ›
-          </button>
-        </div>
-        <div className="clock-cal-grid">
-          {weekdays.map((w, i) => (
-            <span key={`w${i}`} className="clock-cal-weekday">
-              {w}
-            </span>
-          ))}
-          {days.slice(0, rows * 7).map((d) => {
-            const classes = [
-              "clock-cal-day",
-              d.getMonth() !== month.getMonth() && "is-other",
-              sameDay(d, today) && "is-today",
-              selected && sameDay(d, selected) && "is-selected",
-              (d.getDay() === 0 || d.getDay() === 6) && "is-weekend",
-            ]
-              .filter(Boolean)
-              .join(" ");
-            return (
-              <button
-                key={d.toDateString()}
-                className={classes}
-                onClick={() => {
-                  setSelected(sameDay(d, today) ? null : d);
-                  if (d.getMonth() !== month.getMonth()) setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
-                }}
-              >
-                {d.getDate()}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
+    <span className="clock-remind-when" style={{ color }}>
+      {minutes <= 0
+        ? t("calendar.now")
+        : new Intl.RelativeTimeFormat(locale, { style: "short" }).format(minutes, "minute")}
+    </span>
   );
 }
 
@@ -149,14 +54,38 @@ export const clockModule: IslandModule = {
   id: "clock",
   title: "clock.title",
   settingsIcon: <Glyph name="calendar" size={14} />,
+  settings: Object.values(calendarSettings),
+  SettingsSection: CalendarSettings,
   useView(): ModuleView {
+    const calendar = useProvider<CalendarState>(CALENDAR_PROVIDER);
+    const remind = useSetting(calendarSettings.remind);
+    const lead = useSetting(remindMinutes) * 60_000;
+    const events = calendar?.events ?? [];
+
+    // Tick only while an event is close; otherwise a slow clock notices the next one coming.
+    const coarse = useNow(30_000);
+    const close = remind && !!(dueEvent(events, coarse, lead) ?? nextStart(events, coarse, lead + 60_000));
+    const fine = useNow(5_000, close);
+    const now = close ? Math.max(fine, coarse) : coarse;
+    const due = remind ? dueEvent(events, now, lead) : undefined;
+    const color = (due && calendar?.calendars.find((c) => c.key === due.calendar)?.color) || CLOCK_RED;
+    const started = !!due && now >= due.start;
+
     return {
-      active: false,
-      priority: 0,
-      accent: "#FF453A",
+      active: !!due,
+      // A meeting about to start beats music, under Ask Claude and the system alerts.
+      priority: 55,
+      accent: CLOCK_RED,
       icon: <Glyph name="calendar" size={14} />,
-      expanded: <ClockPanel />,
-      expandedSize: { width: 560, height: 214 },
+      compact: due && {
+        left: <ReminderLeft event={due} color={color} />,
+        right: <ReminderRight event={due} now={now} color={color} />,
+        width: 320,
+      },
+      expanded: <ClockPanel calendar={calendar} highlight={due?.id} />,
+      expandedSize: { width: 560, height: calendar?.calendars.length ? HEIGHT_WITH_EVENTS : 214 },
+      // Peeks when the reminder shows up, and again when the event starts.
+      activityKey: due ? `${due.id}:${started ? "start" : "soon"}` : undefined,
     };
   },
 };

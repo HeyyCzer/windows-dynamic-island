@@ -36,6 +36,7 @@ export function startMock() {
 	publishWindowsIsland(start);
 	publishClipboard(start);
 	publishMonitor();
+	publishCalendar(start);
 	setInterval(() => {
 		if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
 	}, 33);
@@ -154,6 +155,51 @@ function publishGithub(now: number) {
 		loading: false,
 		updatedAt: now - 90_000,
 		newIssue: { repo: "HeyyCzer/windows-dynamic-island", issue: newest, seenAt: now },
+	});
+}
+
+function publishCalendar(now: number) {
+	const day = (offset: number, h = 0, m = 0) => {
+		const d = new Date(now);
+		return new Date(d.getFullYear(), d.getMonth(), d.getDate() + offset, h, m).getTime();
+	};
+	const work = "google:me@example.com";
+	const family = "google:family";
+	const holidays = "ics:4f2a91";
+	const ev = (id: string, calendar: string, title: string, start: number, end: number, extra: object = {}) => ({
+		id,
+		calendar,
+		title,
+		start,
+		end,
+		allDay: false,
+		location: null,
+		meetingUrl: null,
+		url: "https://calendar.google.com/",
+		...extra,
+	});
+	// Starts in 8 minutes: shows the reminder pill right away.
+	const soon = Math.ceil((now + 8 * 60_000) / 60_000) * 60_000;
+	publishLocal("calendar", {
+		google: { builtinClient: true, hasClient: true, connected: true, account: "me@example.com", error: null },
+		feeds: [{ id: "4f2a91", host: "calendar.google.com", name: "Feriados no Brasil", error: null }],
+		calendars: [
+			{ key: work, name: "me@example.com", color: "#039BE5", source: "google", defaultVisible: true, visible: true, error: null },
+			{ key: family, name: "Família", color: "#33B679", source: "google", defaultVisible: true, visible: true, error: null },
+			{ key: holidays, name: "Feriados no Brasil", color: "#FF9F0A", source: "ics", defaultVisible: true, visible: true, error: null },
+		],
+		events: [
+			ev("a", work, "Daily stand-up", soon, soon + 15 * 60_000, { meetingUrl: "https://meet.google.com/abc-defg-hij" }),
+			ev("b", work, "Design review: island reminders", day(0, 16), day(0, 17)),
+			ev("c", family, "Jantar com a família", day(0, 20), day(0, 22), { location: "Casa" }),
+			ev("d", work, "1:1", day(1, 10), day(1, 10, 30)),
+			ev("e", holidays, "Feriado", day(5), day(6), { allDay: true }),
+			ev("f", family, "Viagem", day(9), day(12), { allDay: true }),
+			ev("g", work, "Sprint planning", day(-3, 9), day(-3, 11)),
+		].sort((a, b) => a.start - b.start),
+		range: [day(-40), day(100)],
+		loading: false,
+		updatedAt: now,
 	});
 }
 

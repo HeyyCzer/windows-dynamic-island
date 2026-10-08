@@ -6,11 +6,10 @@
 //! requests (a repo's `open_issues_count` doesn't).
 //!
 //! Auth, in order: a token saved from the settings window (kept in the Windows
-//! Credential Manager, see `credentials.rs`), the GitHub CLI (`gh auth token`),
+//! Credential Manager, see `providers/credentials.rs`), the GitHub CLI (`gh auth token`),
 //! or anonymous — public repos only, with a much lower rate limit.
 
 mod api;
-mod credentials;
 
 use std::sync::Mutex;
 use std::sync::Arc;
@@ -21,12 +20,13 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::{Listener, Manager};
 
-use super::{Provider, now_ms};
+use super::{Provider, credentials, now_ms};
 use crate::hub::Hub;
 use crate::settings::{self, Settings};
 
 pub const ID: &str = "github";
 
+const TOKEN_TARGET: &str = "dynamic-island:github";
 const REPOS_KEY: &str = "github.repos";
 const ENABLED_KEY: &str = "module.github.enabled";
 const POLL_MS: u64 = 5 * 60 * 1000;
@@ -152,12 +152,12 @@ impl Provider for GithubProvider {
                 }
                 // Only keep tokens GitHub accepts.
                 let login = api::login(token).map_err(|e| e.code().to_string())?;
-                credentials::write(token)?;
+                credentials::write(TOKEN_TARGET, token)?;
                 self.wake(Wake::Auth);
                 return Ok(Value::String(login));
             }
             "clearToken" => {
-                credentials::delete()?;
+                credentials::delete(TOKEN_TARGET)?;
                 self.wake(Wake::Auth);
             }
             "open" => {
@@ -302,7 +302,7 @@ fn valid_repo(r: &str) -> bool {
 }
 
 fn resolve_token() -> (Option<String>, Auth) {
-    if let Some(t) = credentials::read() {
+    if let Some(t) = credentials::read(TOKEN_TARGET) {
         return (Some(t), Auth::Token);
     }
     if let Some(t) = gh_token() {

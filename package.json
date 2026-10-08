@@ -1,7 +1,7 @@
 {
   "name": "windows-dynamic-island",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.3.1",
   "license": "GPL-3.0-or-later",
   "type": "module",
   "scripts": {
@@ -10,6 +10,7 @@
     "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build",
+    "app:build:local": "tauri build --config src-tauri/tauri.nosign.conf.json",
     "v": "bun pm version",
     "version": "bun scripts/sync-cargo-version.ts"
   },

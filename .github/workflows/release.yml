@@ -19,6 +19,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Tags and full history, so the notes can diff against the last release.
+          fetch-depth: 0
 
       - uses: oven-sh/setup-bun@v2
 
@@ -34,6 +37,47 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # Release notes: commits pushed straight to main since the previous tag,
+      # plus GitHub's generated list of merged pull requests (whose own commits
+      # are left out of the first list, being off the first-parent line).
+      - name: Release notes
+        id: notes
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="v$(jq -r .version package.json)"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            prev=$(git describe --tags --abbrev=0 "$tag^" 2>/dev/null || true)
+          else
+            prev=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || true)
+          fi
+          range=${prev:+$prev..}HEAD
+
+          commits=$(git log "$range" --first-parent --no-merges --format='%s|%h|%H' \
+            | grep -Ev '^v?[0-9]+\.[0-9]+\.[0-9]+\|' \
+            | while IFS='|' read -r subject short full; do
+                echo "- $subject ([\`$short\`](${{ github.server_url }}/${{ github.repository }}/commit/$full))"
+              done)
+
+          generated=$(gh api "repos/${{ github.repository }}/releases/generate-notes" \
+            -f tag_name="$tag" -f target_commitish="$GITHUB_SHA" \
+            ${prev:+-f previous_tag_name="$prev"} --jq .body)
+
+          {
+            echo 'body<<RELEASE_NOTES_EOF'
+            echo 'Download **`Dynamic.Island_*_x64-setup.exe`** and run it (installs for the current user, no admin needed).'
+            echo 'The `.msi` is there for managed installs.'
+            if [ -n "$commits" ]; then
+              echo
+              echo '## Commits'
+              echo "$commits"
+            fi
+            echo
+            echo "$generated"
+            echo 'RELEASE_NOTES_EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -41,13 +85,15 @@ jobs:
           # `plugins.updater.pubkey` in tauri.conf.json.
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # OAuth client ("Desktop app") built in for Google Calendar sign-in.
+          # Without it, users paste their own in the settings window.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         with:
           tauriScript: bun tauri
           tagName: v__VERSION__
           releaseName: Dynamic Island v__VERSION__
-          releaseBody: |
-            Download **`Dynamic.Island_*_x64-setup.exe`** and run it (installs for the current user, no admin needed).
-            The `.msi` is there for managed installs.
+          releaseBody: ${{ steps.notes.outputs.body }}
           # `latest.json` is what installed apps poll to find updates.
           uploadUpdaterJson: true
           updaterJsonPreferNsis: true

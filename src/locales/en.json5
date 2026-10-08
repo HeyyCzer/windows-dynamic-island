@@ -557,6 +557,72 @@
     week: "Week {n}",
   },
 
+  // Calendar: Google account and iCal links, shown by the clock module
+  // (src-tauri/src/providers/calendar)
+  calendar: {
+    allDay: "All day",
+    untitled: "(No title)",
+    // {n}: number of events not listed
+    more: "+{n} more",
+    free: "Nothing scheduled",
+    join: "Join",
+    now: "Now",
+    remind: {
+      label: "Upcoming event alert",
+      desc: "Shows the next event in the island before it starts, with a button to join the call.",
+    },
+    remindMinutes: {
+      label: "Alert time",
+      desc: "How early the alert shows up.",
+      atStart: "When it starts",
+      // {n}: minutes
+      before: "{n} min before",
+    },
+    google: {
+      title: "Google Calendar",
+      none: "Sign in to see your Google calendars.",
+      // {account}: e-mail
+      connected: "Connected as {account}.",
+      revoked: "Google no longer accepts this sign-in. Connect again.",
+      waiting: "Finish signing in in the browser…",
+      connect: "Connect",
+      cancel: "Cancel",
+      disconnect: "Disconnect",
+      noClient: "This build has no Google sign-in set up. Paste the ID and secret of an OAuth client of type \"Desktop app\".",
+      clientHow: "Google Cloud → APIs & Services: enable the Google Calendar API, then create an OAuth client ID of type Desktop app.",
+      clientOpen: "Open Google Cloud",
+      clientId: "Client ID",
+      clientSecret: "Client secret",
+      clientSave: "Save",
+      clientRemove: "Remove the saved OAuth client",
+      browserDone: "Connected! You can close this tab and go back to the island.",
+      browserDenied: "Access was not granted. You can close this tab.",
+    },
+    ics: {
+      title: "iCal links",
+      desc: "Google Calendar: Settings → your calendar → \"Secret address in iCal format\". Outlook and iCloud links work too. Kept in the Windows Credential Manager; they can lag a few hours behind.",
+      placeholder: "https://…/basic.ics",
+      add: "Add",
+      remove: "Remove",
+    },
+    calendars: {
+      title: "Calendars",
+      desc: "Choose which calendars show in the island.",
+    },
+    error: {
+      unauthorized: "Access denied",
+      notFound: "Not found",
+      invalid: "Not a calendar link",
+      network: "Offline",
+      http: "Server error",
+      noClient: "No OAuth client",
+      denied: "Access was not granted",
+      timeout: "Sign-in timed out",
+      duplicate: "Already added",
+      tooMany: "Too many links",
+    },
+  },
+
   // Alerts raised by the backend (src-tauri/src/providers/activities)
   system: {
     volume: {
