@@ -1,6 +1,4 @@
-import { useEffect, useRef } from "react";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
-import { isTauri } from "./bridge";
+import { useTauriEvent } from "./bridge";
 
 interface Handlers {
   onEnter: () => void;
@@ -8,29 +6,18 @@ interface Handlers {
   onDrop: (paths: string[]) => void;
 }
 
-/** Files dragged from Explorer (or any app) onto the island window. */
-export function useFileDrop(handlers: Handlers) {
-  const ref = useRef(handlers);
-  ref.current = handlers;
+/** Mirrors `DropEvent` in `src-tauri/src/file_drop.rs`. */
+type DropEvent = { type: "enter" } | { type: "leave" } | { type: "drop"; paths: string[] };
 
-  useEffect(() => {
-    if (!isTauri) return;
-    let unlisten: (() => void) | undefined;
-    let disposed = false;
-    getCurrentWebview()
-      .onDragDropEvent((e) => {
-        const p = e.payload;
-        if (p.type === "enter") ref.current.onEnter();
-        else if (p.type === "leave") ref.current.onLeave();
-        else if (p.type === "drop") ref.current.onDrop(p.paths);
-      })
-      .then((fn) => {
-        if (disposed) fn();
-        else unlisten = fn;
-      });
-    return () => {
-      disposed = true;
-      unlisten?.();
-    };
-  }, []);
+/**
+ * Files dragged from Explorer (or any app) onto the island window. The
+ * backend has its own drop target (wry's misses the island, see
+ * `file_drop.rs`); text, links and the like never get here.
+ */
+export function useFileDrop(handlers: Handlers) {
+  useTauriEvent<DropEvent>("island://file-drop", (e) => {
+    if (e.type === "enter") handlers.onEnter();
+    else if (e.type === "leave") handlers.onLeave();
+    else handlers.onDrop(e.paths);
+  });
 }

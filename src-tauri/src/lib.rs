@@ -1,4 +1,5 @@
 mod display;
+mod file_drop;
 mod hub;
 mod i18n;
 mod pip;
@@ -59,6 +60,7 @@ pub fn run() {
                 display::place(&win)?;
                 win.set_ignore_cursor_events(true)?;
                 win.show()?;
+                file_drop::hook(&handle, &win);
             }
             window::spawn_hit_test(handle.clone());
             display::spawn_placement(handle.clone());

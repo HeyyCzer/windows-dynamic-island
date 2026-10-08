@@ -86,6 +86,11 @@ fn set_file_drag(win: &WebviewWindow, on: bool) {
     use windows::Win32::UI::WindowsAndMessaging::{GWL_EXSTYLE, GetWindowLongW, SetWindowLongW, WS_EX_NOACTIVATE};
 
     FILE_DRAG.store(on, Ordering::Relaxed);
+    if on {
+        // WebView2 may have made new windows since the last drag: hook them too.
+        let w = win.clone();
+        let _ = win.run_on_main_thread(move || crate::file_drop::hook(w.app_handle(), &w));
+    }
     let Ok(hwnd) = win.hwnd() else {
         return;
     };
