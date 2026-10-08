@@ -395,7 +395,7 @@
     },
     hide: {
       label: "Hide the island",
-      desc: "The black hole swallows it until you bring it back. Clicking the tray icon does the same.",
+      desc: "Keeps it hidden until you bring it back, even after restarting. Clicking the tray icon does the same.",
     },
   },
 

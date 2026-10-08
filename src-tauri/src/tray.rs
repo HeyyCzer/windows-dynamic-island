@@ -12,8 +12,6 @@ use crate::window::{ISLAND_LABEL, RECENTER_EVENT};
 const TRAY_ID: &str = "main";
 /// Swallowed by the black hole (tray click): the island stays hidden, even across restarts.
 pub const HIDDEN_KEY: &str = "island.hidden";
-/// Shown in the tray while the island is hidden.
-const BLACK_HOLE: &[u8] = include_bytes!("../icons/blackhole.ico");
 
 /// Menu items kept around so their labels can follow the UI language.
 struct TrayItems {
@@ -118,6 +116,17 @@ pub fn toggle_hidden(app: &AppHandle) {
     crate::settings::set(app, HIDDEN_KEY, serde_json::Value::Bool(!is_hidden(app)));
 }
 
+/// The app icon, greyed out and faded: shown in the tray while the island is hidden.
+fn dimmed(icon: &Image<'_>) -> Image<'static> {
+    let mut rgba = icon.rgba().to_vec();
+    for px in rgba.chunks_exact_mut(4) {
+        let luma = (px[0] as u32 * 299 + px[1] as u32 * 587 + px[2] as u32 * 114) / 1000;
+        px[..3].fill(luma as u8);
+        px[3] = (px[3] as u32 * 45 / 100) as u8;
+    }
+    Image::new_owned(rgba, icon.width(), icon.height())
+}
+
 fn toggle_key(hidden: bool) -> &'static str {
     if hidden { "tray.show" } else { "tray.hide" }
 }
@@ -129,7 +138,7 @@ pub fn sync_hidden(app: &AppHandle) {
         let _ = items.toggle.set_text(i18n::t(app, toggle_key(hidden)));
     }
     let Some(tray) = app.tray_by_id(TRAY_ID) else { return };
-    let icon = if hidden { Image::from_bytes(BLACK_HOLE).ok() } else { app.default_window_icon().cloned() };
+    let icon = app.default_window_icon().map(|icon| if hidden { dimmed(icon) } else { icon.clone() });
     let _ = tray.set_icon(icon);
     let tooltip = if hidden { i18n::t(app, "tray.hiddenTooltip") } else { "Dynamic Island".to_string() };
     let _ = tray.set_tooltip(Some(tooltip));

@@ -362,7 +362,7 @@
     },
     hide: {
       label: "Ocultar a ilha",
-      desc: "O buraco negro engole a ilha até você trazê-la de volta. Clicar no ícone da bandeja faz o mesmo.",
+      desc: "Mantém a ilha escondida até você trazê-la de volta, mesmo após reiniciar. Clicar no ícone da bandeja faz o mesmo.",
     },
   },
 
