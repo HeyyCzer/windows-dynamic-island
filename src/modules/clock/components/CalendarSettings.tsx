@@ -247,24 +247,29 @@ function Calendars() {
           <span className="settings-desc">{t("calendar.calendars.desc")}</span>
         </div>
         <ul className="cal-list">
-          {calendars.map((c) => (
-            <li key={c.key} className="cal-item">
-              <i className="cal-swatch" style={{ background: c.color }} />
-              <span className="cal-item-name">{c.name}</span>
-              <span className={`cal-item-meta ${c.error ? "is-error" : ""}`}>
-                {c.error ? errorText(t, c.error) : c.source === "google" ? "Google" : "iCal"}
-              </span>
-              <Toggle
-                checked={c.visible}
-                onChange={(v) => {
-                  const next = { ...visibility, [c.key]: v };
-                  // Back to the calendar's own default: forget the override.
-                  if (v === c.defaultVisible) delete next[c.key];
-                  setSetting(calendarVisibility, next);
-                }}
-              />
-            </li>
-          ))}
+          {calendars.map((c) => {
+            // From the setting, not `c.visible`: that one only catches up after
+            // the backend has fetched every calendar again.
+            const visible = visibility[c.key] ?? c.defaultVisible;
+            return (
+              <li key={c.key} className="cal-item">
+                <i className="cal-swatch" style={{ background: c.color }} />
+                <span className="cal-item-name">{c.name}</span>
+                <span className={`cal-item-meta ${c.error ? "is-error" : ""}`}>
+                  {c.error ? errorText(t, c.error) : c.source === "google" ? "Google" : "iCal"}
+                </span>
+                <Toggle
+                  checked={visible}
+                  onChange={(v) => {
+                    const next = { ...visibility, [c.key]: v };
+                    // Back to the calendar's own default: forget the override.
+                    if (v === c.defaultVisible) delete next[c.key];
+                    setSetting(calendarVisibility, next);
+                  }}
+                />
+              </li>
+            );
+          })}
         </ul>
       </div>
     </>

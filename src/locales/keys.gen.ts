@@ -229,6 +229,7 @@ export type MessageKey =
   | "appearance.hide.label"
   | "appearance.hide.desc"
   | "activities.title"
+  | "activities.empty"
   | "activities.volume.label"
   | "activities.volume.desc"
   | "activities.battery.label"
