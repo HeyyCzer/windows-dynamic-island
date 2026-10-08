@@ -95,7 +95,6 @@ impl Provider for NotificationsProvider {
         ctx.publish();
         std::thread::spawn(move || {
             package::refresh_assets();
-            package::refresh_registration(ctx.hub.app());
             run(ctx)
         });
     }
