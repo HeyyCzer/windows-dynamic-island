@@ -401,6 +401,7 @@
   // Live activities module (local API + system alerts)
   activities: {
     title: "Live Activities",
+    empty: "Nothing going on right now",
     volume: {
       label: "Volume",
       desc: "A level bar when the volume changes.",

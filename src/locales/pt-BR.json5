@@ -367,6 +367,7 @@
 
   activities: {
     title: "Atividades ao vivo",
+    empty: "Nada acontecendo agora",
     volume: {
       label: "Volume",
       desc: "Uma barra de nível quando o volume muda.",

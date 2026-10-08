@@ -6,6 +6,11 @@
   overflow-y: auto;
   scrollbar-width: none;
 }
+.activities-empty {
+  margin: auto;
+  font-size: 13px;
+  color: var(--text-faint);
+}
 
 .activity-card {
   position: relative;

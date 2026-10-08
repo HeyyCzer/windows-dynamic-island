@@ -160,11 +160,12 @@ export function useIslandController(modules: IslandModule[]) {
   const focused = entries.find((e) => e.module.id === focusedId);
   const launcher = mode === "expanded" && focusedId === LAUNCHER;
   /**
-   * Tab bar: the pinned modules that aren't hidden, any busy one, and the
-   * focused one. Everything enabled is in the launcher.
+   * Tab bar: the pinned modules (even when empty: the user asked for them),
+   * any busy one that isn't hidden, and the focused one. Everything enabled
+   * is in the launcher.
    */
   const tabs = entries.filter(
-    (e) => (!e.view.hidden && (pinned.includes(e.module.id) || e.view.active)) || e.module.id === focusedId,
+    (e) => pinned.includes(e.module.id) || (!e.view.hidden && e.view.active) || e.module.id === focusedId,
   );
 
   const expand = useCallback(

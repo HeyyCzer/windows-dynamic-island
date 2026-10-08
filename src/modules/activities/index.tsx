@@ -9,6 +9,7 @@
  */
 import { Badge, Glyph } from "../../components/Glyph";
 import { useProvider } from "../../core/bridge";
+import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, useSettings } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { ActivityCard } from "./components/ActivityCard";
@@ -72,6 +73,7 @@ export const activitiesModule: IslandModule = {
           {ongoing.map((a) => (
             <ActivityCard key={a.id} activity={a} compact />
           ))}
+          {!ongoing.length && <Empty />}
         </div>
       ),
       expandedSize: alert
@@ -82,3 +84,9 @@ export const activitiesModule: IslandModule = {
     };
   },
 };
+
+/** Pinned to the tab bar with nothing going on. */
+function Empty() {
+  const t = useT();
+  return <div className="activities-empty">{t("activities.empty")}</div>;
+}
