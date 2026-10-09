@@ -119,7 +119,7 @@ pub fn toggle_hidden(app: &AppHandle) {
 /// The app icon, greyed out and faded: shown in the tray while the island is hidden.
 fn dimmed(icon: &Image<'_>) -> Image<'static> {
     let mut rgba = icon.rgba().to_vec();
-    for px in rgba.chunks_exact_mut(4) {
+    for px in rgba.as_chunks_mut::<4>().0 {
         let luma = (px[0] as u32 * 299 + px[1] as u32 * 587 + px[2] as u32 * 114) / 1000;
         px[..3].fill(luma as u8);
         px[3] = (px[3] as u32 * 45 / 100) as u8;
