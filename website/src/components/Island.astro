@@ -1,0 +1,348 @@
+---
+// A working model of the island hanging from the top edge: it opens on a
+// Claude Code permission request, and the buttons play out what happens next.
+import type { Lang } from "../i18n";
+import { strings } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const t = strings[Astro.props.lang].island;
+---
+
+<div class="island-stage">
+  <div class="island" data-state="waiting" role="region" aria-label="Dynamic Island">
+    <div class="layer compact" data-for="waiting">
+      <span class="asterisk" aria-hidden="true"></span>
+      <span class="waiting">{t.waiting}</span>
+      <span class="badge">2</span>
+      <span class="timer" data-timer>5:15</span>
+    </div>
+
+    <div class="layer request" data-for="request">
+      <div class="request-head">
+        <span class="asterisk" aria-hidden="true"></span>
+        <span>{t.request}</span>
+        <span class="project">{t.project}</span>
+      </div>
+      <code class="command">{t.command}</code>
+      <div class="actions">
+        <button type="button" class="primary" data-answer="allow">{t.allow}</button>
+        <button type="button" data-answer="allow">{t.always}</button>
+        <button type="button" data-answer="deny">{t.deny}</button>
+      </div>
+    </div>
+
+    <div class="layer compact" data-for="working">
+      <span class="asterisk spinning" aria-hidden="true"></span>
+      <span>{t.working}</span>
+      <span class="timer" data-working>0:00</span>
+    </div>
+
+    <div class="layer compact" data-for="denied">
+      <span class="asterisk" aria-hidden="true"></span>
+      <span class="denied">{t.denied}</span>
+    </div>
+
+    <button type="button" class="layer compact music" data-for="music" aria-label={t.replay}>
+      <span class="art" aria-hidden="true"></span>
+      <span class="track">{t.track}</span>
+      <span class="artist">{t.artist}</span>
+      <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+    </button>
+  </div>
+  <p class="island-hint">{t.hint}</p>
+</div>
+
+<script>
+  type State = "waiting" | "request" | "working" | "denied" | "music";
+
+  for (const island of document.querySelectorAll<HTMLElement>(".island")) {
+    const layers = island.querySelectorAll<HTMLElement>(".layer");
+    const waitTimer = island.querySelector<HTMLElement>("[data-timer]")!;
+    const workTimer = island.querySelector<HTMLElement>("[data-working]")!;
+    let pending: number | undefined;
+    let waited = 5 * 60 + 15;
+    let worked = 0;
+
+    const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+    function go(state: State, next?: [State, number]) {
+      island.dataset.state = state;
+      // Only the visible layer can be reached with the keyboard.
+      for (const layer of layers) layer.inert = layer.dataset.for !== state;
+      window.clearTimeout(pending);
+      if (next) pending = window.setTimeout(() => go(...next), next[1]);
+      if (state === "working") worked = 0;
+    }
+
+    window.setInterval(() => {
+      waitTimer.textContent = clock(++waited);
+      workTimer.textContent = clock(++worked);
+    }, 1000);
+
+    island.addEventListener("click", (e) => {
+      const target = (e.target as HTMLElement).closest<HTMLElement>("[data-answer], .music");
+      if (!target) return;
+      if (target.classList.contains("music")) go("waiting", ["request", 700]);
+      else if (target.dataset.answer === "deny") go("denied", ["music", 1600]);
+      else go("working", ["music", 2800]);
+    });
+
+    go("waiting", ["request", 1200]);
+  }
+</script>
+
+<style>
+  .island-stage {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    justify-items: center;
+    /* Room for the open request, so the page doesn't move when it opens. */
+    height: 250px;
+  }
+
+  .island {
+    --w: 300px;
+    --h: 40px;
+    position: relative;
+    width: min(var(--w), 100vw - 32px);
+    height: var(--h);
+    background: var(--island);
+    border-radius: 0 0 22px 22px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    transition:
+      width 0.5s cubic-bezier(0.32, 1.25, 0.5, 1),
+      height 0.5s cubic-bezier(0.32, 1.25, 0.5, 1),
+      border-radius 0.5s ease;
+  }
+
+  .island[data-state="request"] {
+    --w: 540px;
+    --h: 180px;
+    border-radius: 0 0 30px 30px;
+  }
+
+  .island[data-state="music"] {
+    --w: 340px;
+  }
+
+  .layer {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .island[data-state="waiting"] [data-for="waiting"],
+  .island[data-state="request"] [data-for="request"],
+  .island[data-state="working"] [data-for="working"],
+  .island[data-state="denied"] [data-for="denied"],
+  .island[data-state="music"] [data-for="music"] {
+    opacity: 1;
+    transition-delay: 0.18s;
+  }
+
+  .compact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 18px;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .asterisk {
+    flex: none;
+    width: 18px;
+    height: 18px;
+    background: var(--claude);
+    /* Claude's starburst: eight rounded rays. */
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9 4.9 19.1'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+
+  .spinning {
+    animation: spin 2.4s linear infinite;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
+  .waiting {
+    color: var(--waiting);
+  }
+
+  .denied {
+    color: #ff6961;
+  }
+
+  .badge {
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    background: var(--card);
+    font-size: 0.75rem;
+  }
+
+  .timer {
+    margin-left: auto;
+    color: var(--claude);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .request {
+    display: grid;
+    align-content: start;
+    gap: 14px;
+    padding: 18px 22px 0;
+  }
+
+  .request-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .project {
+    color: var(--text-faint);
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .command {
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: var(--card);
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.875rem;
+    color: var(--text);
+  }
+
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .actions button {
+    flex: 1 1 auto;
+    padding: 9px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    font: inherit;
+    font-size: 0.875rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .actions button:hover {
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .actions .primary {
+    background: var(--text);
+    color: #000;
+  }
+
+  .actions .primary:hover {
+    background: #fff;
+  }
+
+  .music {
+    width: 100%;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .art {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #ff7a45, #c13fd6 60%, #7a2bf0);
+  }
+
+  .artist {
+    color: var(--text-dim);
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bars {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 16px;
+    margin-left: auto;
+  }
+
+  .bars i {
+    width: 3px;
+    height: 100%;
+    border-radius: 2px;
+    background: #ff4fc4;
+    transform-origin: center;
+    animation: level 0.9s ease-in-out infinite alternate;
+  }
+
+  .bars i:nth-child(2) { animation-delay: -0.3s; }
+  .bars i:nth-child(3) { animation-delay: -0.6s; }
+  .bars i:nth-child(4) { animation-delay: -0.15s; }
+  .bars i:nth-child(5) { animation-delay: -0.45s; }
+
+  @keyframes level {
+    from {
+      transform: scaleY(0.35);
+    }
+  }
+
+  .island-hint {
+    max-width: 44ch;
+    margin: 0;
+    padding-inline: 16px;
+    font-size: 0.8125rem;
+    color: var(--text-faint);
+    text-align: center;
+    transition: opacity 0.3s ease;
+  }
+
+  @media (max-width: 520px) {
+    .island-stage {
+      height: 300px;
+    }
+
+    .island[data-state="request"] {
+      --h: 216px;
+    }
+
+    .actions {
+      flex-wrap: wrap;
+    }
+
+    .actions .primary {
+      flex-basis: 100%;
+    }
+  }
+</style>

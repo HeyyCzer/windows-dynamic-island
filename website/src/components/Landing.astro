@@ -1,0 +1,327 @@
+---
+import { Image } from "astro:assets";
+import Base from "../layouts/Base.astro";
+import Island from "./Island.astro";
+import { DOWNLOAD, REPO, href, strings, type Lang } from "../i18n";
+import pkg from "../../../package.json";
+
+import agents from "../../../docs/screenshots/agents.png";
+import music from "../../../docs/screenshots/music.png";
+import compact from "../../../docs/screenshots/compact.png";
+import launcher from "../../../docs/screenshots/launcher.png";
+import shelf from "../../../docs/screenshots/shelf.png";
+import lookDynamic from "../../../docs/screenshots/look-dynamic.png";
+import lookClassic from "../../../docs/screenshots/look-windows-classic.png";
+import lookMono from "../../../docs/screenshots/look-windows-mono.png";
+import lookAurora from "../../../docs/screenshots/look-windows-aurora.png";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = strings[lang];
+
+const features = [
+  { ...t.features.agents, src: agents },
+  { ...t.features.music, src: music },
+  { ...t.features.ask, src: compact },
+  { ...t.features.launcher, src: launcher },
+  { ...t.features.shelf, src: shelf },
+];
+const looks = [lookDynamic, lookClassic, lookMono, lookAurora];
+---
+
+<Base lang={lang} title={t.meta.title} page="">
+  <header class="hero">
+    <Island lang={lang} />
+    <div class="wrap hero-copy">
+      <h1>{t.hero.title}</h1>
+      <p class="lead">{t.hero.lead}</p>
+      <div class="cta">
+        <a class="button primary" href={DOWNLOAD}>{t.hero.download}</a>
+        <a class="button" href={REPO}>{t.hero.github}</a>
+      </div>
+      <p class="note">{t.hero.note}</p>
+    </div>
+  </header>
+
+  <main>
+    <section class="wrap features">
+      {
+        features.map((f) => (
+          <article class="feature">
+            <div class="feature-copy">
+              <h2>{f.title}</h2>
+              <p>{f.body}</p>
+            </div>
+            <Image class="shot" src={f.src} quality={90} alt={f.alt} widths={[640, f.src.width]} sizes="(max-width: 860px) 100vw, 620px" />
+          </article>
+        ))
+      }
+    </section>
+
+    <section class="wrap looks">
+      <div class="section-head">
+        <h2>{t.looks.title}</h2>
+        <p>{t.looks.body}</p>
+      </div>
+      <div class="looks-grid">
+        {
+          looks.map((src, i) => (
+            <figure>
+              <Image class="shot" src={src} quality={90} alt={t.looks.items[i]} />
+              <figcaption>{t.looks.items[i]}</figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="wrap more">
+      <h2>{t.more.title}</h2>
+      <dl>
+        {
+          t.more.items.map(([term, desc]) => (
+            <div>
+              <dt>{term}</dt>
+              <dd>{desc}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </section>
+
+    <section class="wrap privacy">
+      <h2>{t.privacy.title}</h2>
+      <p>{t.privacy.body}</p>
+      <a href={href(lang, "privacy")}>{t.privacy.link}</a>
+    </section>
+  </main>
+
+  <footer class="wrap footer">
+    <a href={DOWNLOAD}>{t.footer.version}: v{pkg.version}</a>
+    <a href={href(lang, "privacy")}>{t.footer.privacy}</a>
+    <a href={`${REPO}/issues`}>{t.footer.issues}</a>
+    <a href={href(t.otherLang.lang)} hreflang={t.otherLang.lang} lang={t.otherLang.lang}>{t.otherLang.label}</a>
+    <span>{t.footer.license}</span>
+  </footer>
+</Base>
+
+<style>
+  .hero {
+    padding-bottom: clamp(64px, 10vw, 120px);
+  }
+
+  .hero-copy {
+    display: grid;
+    justify-items: center;
+    text-align: center;
+    margin-top: clamp(24px, 5vw, 48px);
+  }
+
+  h1 {
+    max-width: 18ch;
+    margin: 0;
+    font-size: clamp(2.25rem, 6vw, 4.25rem);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+
+  .lead {
+    max-width: 52ch;
+    margin: 24px 0 0;
+    font-size: clamp(1.0625rem, 2vw, 1.25rem);
+    color: var(--text-dim);
+    text-wrap: pretty;
+  }
+
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 36px;
+  }
+
+  .button {
+    padding: 13px 24px;
+    border-radius: 999px;
+    background: var(--card);
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease;
+  }
+
+  .button:hover {
+    background: rgba(255, 255, 255, 0.13);
+  }
+
+  .button.primary {
+    background: var(--text);
+    color: #000;
+  }
+
+  .button.primary:hover {
+    background: #fff;
+  }
+
+  .note {
+    margin: 18px 0 0;
+    font-size: 0.875rem;
+    color: var(--text-faint);
+  }
+
+  h2 {
+    margin: 0;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.12;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  .features {
+    display: grid;
+    gap: clamp(72px, 10vw, 128px);
+  }
+
+  .feature {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+  }
+
+  .feature-copy p {
+    max-width: 40ch;
+    margin: 16px 0 0;
+    color: var(--text-dim);
+  }
+
+  .shot {
+    width: 100%;
+    border-radius: 16px;
+    outline: 1px solid var(--hairline);
+    outline-offset: -1px;
+  }
+
+  .looks {
+    margin-top: clamp(112px, 14vw, 176px);
+  }
+
+  .section-head p {
+    max-width: 56ch;
+    margin: 16px 0 0;
+    color: var(--text-dim);
+  }
+
+  .looks-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 32px 24px;
+    margin-top: 48px;
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  figcaption {
+    margin-top: 12px;
+    font-size: 0.875rem;
+    color: var(--text-faint);
+  }
+
+  .more {
+    margin-top: clamp(112px, 14vw, 176px);
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 48px;
+    margin: 40px 0 0;
+  }
+
+  dl div {
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+  }
+
+  dt {
+    font-weight: 600;
+  }
+
+  dd {
+    margin: 6px 0 0;
+    color: var(--text-dim);
+    font-size: 0.9375rem;
+  }
+
+  .privacy {
+    margin-top: clamp(112px, 14vw, 176px);
+    padding: clamp(32px, 5vw, 56px);
+    border-radius: 28px;
+    background: var(--island);
+  }
+
+  .privacy p {
+    max-width: 58ch;
+    margin: 16px 0 24px;
+    color: var(--text-dim);
+  }
+
+  .privacy a {
+    color: var(--accent);
+    font-weight: 600;
+    text-underline-offset: 4px;
+  }
+
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 28px;
+    margin-top: 72px;
+    padding: 28px 0 48px;
+    border-top: 1px solid var(--hairline);
+    font-size: 0.875rem;
+    color: var(--text-faint);
+  }
+
+  .footer a {
+    color: var(--text-dim);
+    text-decoration: none;
+  }
+
+  .footer a:hover {
+    color: var(--text);
+  }
+
+  .footer span {
+    margin-left: auto;
+  }
+
+  @media (max-width: 860px) {
+    .feature {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .looks-grid,
+    dl {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .footer span {
+      margin-left: 0;
+    }
+  }
+</style>
