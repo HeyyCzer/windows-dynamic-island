@@ -19,7 +19,7 @@ Dynamic Island for Windows ("the app") is a free, open-source desktop app publis
 | Tokens and private links (Google Calendar refresh token, GitHub token, private calendar feed URLs) | Windows Credential Manager | Keep secrets out of plain-text files |
 | Shelf items (paths to files you dropped, not the files) | `%APPDATA%\com.heyyczer.dynamicisland\shelf.json` | Keep the shelf between restarts |
 | Screenshots and attachments for Ask Claude, clipboard pictures | `%APPDATA%\com.heyyczer.dynamicisland\` and, when you choose to keep a picture, *Pictures\Screenshots* | Attach them to a question or let you drag them out |
-| Calendar events, clipboard text, mirrored notifications, now-playing info, system stats | Memory only | Show them in the island; gone when the app closes |
+| Calendar events, clipboard text, mirrored notifications, now-playing info, system stats, the text read off the screen by Find on screen | Memory only | Show them in the island; gone when the app closes |
 
 The app reads, without uploading anywhere, information Windows and other apps already keep on your computer: media playback info, Windows notifications (only after you enable the Notifications module), the clipboard (anything copied by password managers is ignored), battery, volume, Bluetooth devices, performance counters, and Claude Code's local transcripts and settings in `~/.claude`.
 

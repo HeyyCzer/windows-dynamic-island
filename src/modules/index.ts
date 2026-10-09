@@ -4,6 +4,7 @@ import { aiAgentsModule } from "./ai-agents";
 import { askModule } from "./ask";
 import { clipboardModule } from "./clipboard";
 import { clockModule } from "./clock";
+import { findModule } from "./find";
 import { githubModule } from "./github";
 import { monitorModule } from "./monitor";
 import { musicModule } from "./music";
@@ -22,6 +23,7 @@ export const modules: IslandModule[] = [
   musicModule,
   aiAgentsModule,
   askModule,
+  findModule,
   notificationsModule,
   activitiesModule,
   shelfModule,

@@ -202,6 +202,9 @@ export function useIslandController(modules: IslandModule[]) {
   // Global shortcut (Ctrl+Alt+Space): open "Ask Claude".
   const askEnabled = entries.some((e) => e.module.id === "ask");
   useTauriEvent("island://ask", () => askEnabled && expand("ask"));
+  // Ctrl+Alt+F: "Find on screen".
+  const findEnabled = entries.some((e) => e.module.id === "find");
+  useTauriEvent("island://find", () => findEnabled && expand("find"));
 
   // Mouse wheel over the open island flips through the tabs.
   const lastWheel = useRef(0);

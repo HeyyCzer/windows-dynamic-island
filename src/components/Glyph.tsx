@@ -44,6 +44,10 @@ const GLYPHS: Record<string, number> = {
   pulse: 0xe9d9,
   text: 0xe8d2,
   open: 0xe8a7,
+  search: 0xe721,
+  "chevron-up": 0xe70e,
+  "chevron-down": 0xe70d,
+  refresh: 0xe72c,
   // Not in the icon font: falls back to Segoe UI Symbol.
   claude: 0x273b,
 };

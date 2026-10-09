@@ -540,6 +540,25 @@
     },
   },
 
+  // Find on screen module (src-tauri/src/providers/find)
+  find: {
+    title: "Find on screen",
+    placeholder: "Find on screen…",
+    // {n}: the current match; {total}: how many there are
+    counter: "{n} of {total}",
+    prev: "Previous (Shift+Enter)",
+    next: "Next (Enter)",
+    rescan: "Read the screen again",
+    reading: "Reading the screen…",
+    none: "Not on the screen. If it changed, read it again (↻).",
+    hint: "Enter: next · Shift+Enter: previous · Esc: close · Ctrl+Alt+F opens it from anywhere",
+    noOcr: "Windows has no text recognition for your languages. Add one in Settings → Time & language → Language & region.",
+    moveCursor: {
+      label: "Take the mouse to each match",
+      desc: "Enter moves the mouse pointer onto the next match, ready to click.",
+    },
+  },
+
   // System monitor module
   monitor: {
     title: "System monitor",

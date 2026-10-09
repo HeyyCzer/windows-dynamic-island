@@ -21,7 +21,7 @@ Esta é uma tradução da [versão em inglês](https://heyyczer.github.io/window
 | Tokens e links privados (refresh token do Google Agenda, token do GitHub, URLs de feeds de agenda privados) | Gerenciador de Credenciais do Windows | Manter segredos fora de arquivos de texto |
 | Itens da prateleira (caminhos dos arquivos que você soltou, não os arquivos) | `%APPDATA%\com.heyyczer.dynamicisland\shelf.json` | Manter a prateleira entre reinícios |
 | Prints e anexos do Pergunte ao Claude, imagens da área de transferência | `%APPDATA%\com.heyyczer.dynamicisland\` e, quando você escolhe guardar uma imagem, *Imagens\Capturas de Tela* | Anexar a uma pergunta ou deixar você arrastar para fora |
-| Eventos da agenda, texto da área de transferência, notificações espelhadas, o que está tocando, estatísticas do sistema | Só na memória | Mostrar na ilha; somem quando o app fecha |
+| Eventos da agenda, texto da área de transferência, notificações espelhadas, o que está tocando, estatísticas do sistema, o texto lido da tela pelo Procurar na tela | Só na memória | Mostrar na ilha; somem quando o app fecha |
 
 O app lê, sem enviar para lugar nenhum, informações que o Windows e outros apps já guardam no seu computador: dados de reprodução de mídia, notificações do Windows (só depois que você ativa o módulo Notificações), a área de transferência (o que é copiado por gerenciadores de senha é ignorado), bateria, volume, dispositivos Bluetooth, contadores de desempenho e as transcrições e configurações locais do Claude Code em `~/.claude`.
 

@@ -22,6 +22,7 @@ pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
 
 /// The global shortcut fired: the frontend opens the "Ask Claude" page.
 const ASK_EVENT: &str = "island://ask";
+const FIND_EVENT: &str = "island://find";
 
 pub fn run() {
     tauri::Builder::default()
@@ -33,9 +34,13 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
+                .with_handler(|app, shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
-                        open_ask(app);
+                        if shortcut.key == Code::KeyF {
+                            open_find(app);
+                        } else {
+                            open_ask(app);
+                        }
                     }
                 })
                 .build(),
@@ -69,6 +74,7 @@ pub fn run() {
             tray::enable_autostart_on_first_run(&handle);
             updater::spawn(handle.clone());
             register_ask_shortcut(&handle);
+            register_find_shortcut(&handle);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -117,6 +123,23 @@ fn register_ask_shortcut(app: &AppHandle) {
 }
 
 fn open_ask(app: &AppHandle) {
+    open_typing(app, ASK_EVENT);
+}
+
+/// Ctrl+Alt+F opens "Find on screen" from anywhere.
+fn register_find_shortcut(app: &AppHandle) {
+    let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF);
+    if app.global_shortcut().register(shortcut).is_err() {
+        log::warn!("find shortcut unavailable: Ctrl+Alt+F is taken by another app");
+    }
+}
+
+fn open_find(app: &AppHandle) {
+    open_typing(app, FIND_EVENT);
+}
+
+/// Opens a page of the island that takes the keyboard (`event` tells which).
+fn open_typing(app: &AppHandle, event: &str) {
     if tray::is_hidden(app) {
         return;
     }
@@ -124,5 +147,5 @@ fn open_ask(app: &AppHandle) {
         window::allow_activation();
         let _ = win.set_focus();
     }
-    let _ = app.emit(ASK_EVENT, ());
+    let _ = app.emit(event, ());
 }
