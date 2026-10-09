@@ -9,10 +9,10 @@ export interface FindState {
   count: number;
   /** The current match (0-based). */
   current: number | null;
-  /** How long the last reading took (ms). */
-  took: number | null;
-  /** `noOcr`: Windows has no OCR for the profile's languages. */
-  error: string | null;
+  /** `noOcr`: Windows has no OCR for the profile's languages; `failed`: nothing could be read. */
+  error: "noOcr" | "failed" | null;
+  /** Global shortcut that opens the page ("Ctrl+Alt+F"). */
+  hotkey: string | null;
 }
 
 export const FIND_PROVIDER = "find";
@@ -20,4 +20,7 @@ export const FIND_YELLOW = "#FFD60A";
 
 /** The global shortcut opened the page: its field takes the keyboard. */
 export const focusRequest = createStore(false);
-export const requestFindFocus = () => focusRequest.set(true);
+
+export function requestFindFocus() {
+  focusRequest.set(true);
+}

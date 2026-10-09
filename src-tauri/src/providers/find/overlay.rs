@@ -6,6 +6,9 @@
 //! Each window only spans the matches, never a whole monitor: Windows takes
 //! a topmost window that covers one for a fullscreen app (`QUNS_BUSY`), and
 //! the island would hide (and notifications hold back).
+//!
+//! The windows are left out of screen captures, so reading the screen again
+//! doesn't need to hide them.
 
 use std::sync::mpsc;
 use std::sync::{Arc, Mutex};
@@ -26,6 +29,7 @@ use windows::Win32::UI::WindowsAndMessaging::{
 use windows::core::w;
 
 use super::text::Rect;
+use crate::screen;
 
 /// Every match (yellow) and the current one (orange), as `0xRRGGBB`.
 const MATCH: u32 = 0xFFD60A;
@@ -39,9 +43,19 @@ pub struct Mark {
     pub current: bool,
 }
 
+/// The marks on one monitor.
+#[derive(Debug, Clone)]
+pub struct Group {
+    /// Index of the monitor, which keeps its window between searches.
+    pub monitor: usize,
+    /// The monitor on the desktop.
+    pub rect: RECT,
+    pub marks: Vec<Mark>,
+}
+
 enum Msg {
-    /// Each monitor (desktop rect) with its marks; the other windows hide.
-    Show(Vec<(RECT, Vec<Mark>)>),
+    /// The monitors with marks; the other windows hide.
+    Show(Vec<Group>),
     Hide,
 }
 
@@ -61,8 +75,8 @@ impl Overlay {
         Some(Self { thread, pending })
     }
 
-    pub fn show(&self, monitors: Vec<(RECT, Vec<Mark>)>) {
-        self.post(Msg::Show(monitors));
+    pub fn show(&self, groups: Vec<Group>) {
+        self.post(Msg::Show(groups));
     }
 
     pub fn hide(&self) {
@@ -98,30 +112,32 @@ fn run(pending: Arc<Mutex<Option<Msg>>>, below: Option<isize>, ready: mpsc::Send
         };
         RegisterClassW(&class);
 
-        let mut windows: Vec<(RECT, HWND)> = Vec::new();
+        // One window per monitor index, made the first time it has marks.
+        let mut windows: Vec<(usize, HWND)> = Vec::new();
         while GetMessageW(&mut msg, None, 0, 0).as_bool() {
             if msg.hwnd.is_invalid() && msg.message == WM_APP {
                 let next = pending.lock().unwrap().take();
                 match next {
-                    Some(Msg::Show(monitors)) => {
-                        for (rect, hwnd) in &windows {
-                            if !monitors.iter().any(|(r, _)| r == rect) {
+                    Some(Msg::Show(groups)) => {
+                        for (monitor, hwnd) in &windows {
+                            if !groups.iter().any(|g| g.monitor == *monitor) {
                                 let _ = ShowWindow(*hwnd, SW_HIDE);
                             }
                         }
-                        for (rect, marks) in monitors {
-                            let hwnd = match windows_for(&windows, &rect) {
+                        for group in groups {
+                            let hwnd = match window_for(&windows, group.monitor) {
                                 Some(hwnd) => hwnd,
-                                None => match create(&class, rect) {
+                                None => match create(&class, group.rect) {
                                     Some(hwnd) => {
-                                        windows.push((rect, hwnd));
+                                        windows.push((group.monitor, hwnd));
                                         hwnd
                                     }
                                     None => continue,
                                 },
                             };
-                            let Some(area) = area(rect, &marks) else { continue };
-                            paint(hwnd, area, &marks);
+                            // Painting moves the window over its marks.
+                            let Some(area) = area(group.rect, &group.marks) else { continue };
+                            paint(hwnd, area, &group.marks);
                             let after = below.map(|h| HWND(h as *mut _)).unwrap_or(HWND_TOPMOST);
                             let _ = SetWindowPos(
                                 hwnd,
@@ -174,12 +190,12 @@ fn area(monitor: RECT, marks: &[Mark]) -> Option<RECT> {
     (area.right > area.left && area.bottom > area.top).then_some(area)
 }
 
-fn windows_for(windows: &[(RECT, HWND)], rect: &RECT) -> Option<HWND> {
-    windows.iter().find(|(r, _)| r == rect).map(|(_, hwnd)| *hwnd)
+fn window_for(windows: &[(usize, HWND)], monitor: usize) -> Option<HWND> {
+    windows.iter().find(|(m, _)| *m == monitor).map(|(_, hwnd)| *hwnd)
 }
 
 unsafe fn create(class: &WNDCLASSW, rect: RECT) -> Option<HWND> {
-    unsafe {
+    let hwnd = unsafe {
         CreateWindowExW(
             WS_EX_LAYERED | WS_EX_TRANSPARENT | WS_EX_TOPMOST | WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE,
             class.lpszClassName,
@@ -194,8 +210,10 @@ unsafe fn create(class: &WNDCLASSW, rect: RECT) -> Option<HWND> {
             Some(class.hInstance),
             None,
         )
-        .ok()
-    }
+        .ok()?
+    };
+    screen::exclude_from_capture(hwnd, true);
+    Some(hwnd)
 }
 
 /// Premultiplied BGRA of `rgb` at `alpha` (0..=255).
@@ -213,13 +231,15 @@ fn draw(pixels: &mut [u32], width: i32, height: i32, origin: (i32, i32), marks: 
     for mark in sorted {
         let (fill, border, thickness) =
             if mark.current { (pixel(CURRENT, 110), pixel(CURRENT, 255), 3) } else { (pixel(MATCH, 70), pixel(MATCH, 235), 2) };
+        // The whole box (border included), then only the part in the buffer:
+        // a mark cut by the monitor's edge has no border along the cut.
         let r = mark.rect;
-        let x0 = ((r.x - PAD).floor() as i32 - origin.0).max(0);
-        let y0 = ((r.y - PAD).floor() as i32 - origin.1).max(0);
-        let x1 = ((r.x + r.w + PAD).ceil() as i32 - origin.0).min(width);
-        let y1 = ((r.y + r.h + PAD).ceil() as i32 - origin.1).min(height);
-        for y in y0..y1 {
-            for x in x0..x1 {
+        let x0 = (r.x - PAD).floor() as i32 - origin.0;
+        let y0 = (r.y - PAD).floor() as i32 - origin.1;
+        let x1 = (r.x + r.w + PAD).ceil() as i32 - origin.0;
+        let y1 = (r.y + r.h + PAD).ceil() as i32 - origin.1;
+        for y in y0.max(0)..y1.min(height) {
+            for x in x0.max(0)..x1.min(width) {
                 let edge = x - x0 < thickness || x1 - 1 - x < thickness || y - y0 < thickness || y1 - 1 - y < thickness;
                 pixels[(y * width + x) as usize] = if edge { border } else { fill };
             }
@@ -308,7 +328,8 @@ mod tests {
         let mark = Mark { rect: Rect { x: 106.0, y: 54.0, w: 20.0, h: 2.0 }, current: true };
         draw(&mut pixels, 10, 10, (100, 50), &[mark]);
         assert_eq!(pixels[0], 0);
-        assert_ne!(pixels[5 * 10 + 9], 0);
+        // The cut edge is filled, not bordered.
+        assert_eq!(pixels[5 * 10 + 9], pixel(CURRENT, 110));
         // x 103..129 → 3..10, y 51..59 → 1..9 once padded and clipped.
         assert_eq!(pixels.iter().filter(|&&p| p != 0).count(), 7 * 8);
     }

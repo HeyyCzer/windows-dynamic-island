@@ -10,7 +10,7 @@ import { useProvider } from "../../core/bridge";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { FindPanel } from "./components/FindPanel";
 import { findSettings } from "./settings";
-import { FIND_PROVIDER, FIND_YELLOW, type FindState } from "./types";
+import { FIND_PROVIDER, FIND_YELLOW, type FindState } from "./store";
 import "./find.css";
 
 export const findModule: IslandModule = {

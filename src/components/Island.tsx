@@ -13,7 +13,7 @@ import { GearIcon, GridIcon } from "./icons";
 import { useSyncLocale, useT } from "../core/i18n";
 import { IdleClock } from "./IdleClock";
 import { attachFiles, requestAskFocus } from "../modules/ask/store";
-import { requestFindFocus } from "../modules/find/types";
+import { requestFindFocus } from "../modules/find/store";
 import { addToShelf } from "../modules/shelf/actions";
 
 interface Geo {

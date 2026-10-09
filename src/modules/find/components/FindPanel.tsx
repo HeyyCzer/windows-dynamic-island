@@ -3,7 +3,7 @@ import { Glyph } from "../../../components/Glyph";
 import { command, providerAction } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
-import { FIND_PROVIDER, FIND_YELLOW, focusRequest, type FindState } from "../types";
+import { FIND_PROVIDER, FIND_YELLOW, focusRequest, type FindState } from "../store";
 
 /** Typing highlights the matches on the screen; Enter takes the mouse to the next one. */
 export function FindPanel({ state }: { state: FindState | undefined }) {
@@ -44,6 +44,17 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
     window.setTimeout(() => input.current?.focus(), 30);
   }
 
+  function scan() {
+    providerAction(FIND_PROVIDER, "scan");
+  }
+
+  function onFocus() {
+    island.keepOpen(true, "find");
+    // The search starts: the screen is read as it is now, once. Coming back
+    // to the field (Alt+Tab) keeps what was read; ↻ reads it again.
+    if (!state?.scanned && !scanning && !state?.error) scan();
+  }
+
   function step(action: "next" | "prev") {
     providerAction(FIND_PROVIDER, action);
   }
@@ -54,7 +65,7 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
       step(e.key === "ArrowUp" || (e.key === "Enter" && e.shiftKey) ? "prev" : "next");
     } else if (e.key === "Escape") {
       e.preventDefault();
-      setQuery("");
+      // Right away, not once the page has animated out.
       providerAction(FIND_PROVIDER, "clear");
       input.current?.blur();
       command("restore_focus");
@@ -66,23 +77,18 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
   const keepFocus = (e: MouseEvent) => e.preventDefault();
 
   const count = state?.count ?? 0;
-  const counter = scanning
-    ? "…"
-    : !query.trim() || !state?.scanned
-      ? ""
-      : count
-        ? t("find.counter", { n: (state.current ?? 0) + 1, total: count })
-        : t("find.counter", { n: 0, total: 0 });
-  const hint =
-    state?.error === "noOcr"
-      ? t("find.noOcr")
-      : state?.error
-        ? state.error
-        : scanning
-          ? t("find.reading")
-          : query.trim() && state?.scanned && !count
-            ? t("find.none")
-            : t("find.hint");
+  const searched = !!query.trim() && !!state?.scanned;
+  const noMatch = searched && !count;
+
+  let counter = "";
+  if (scanning) counter = "…";
+  else if (searched) counter = t("find.counter", { n: count ? (state?.current ?? 0) + 1 : 0, total: count });
+
+  let hint: string;
+  if (state?.error) hint = t(state.error === "noOcr" ? "find.noOcr" : "find.failed");
+  else if (scanning) hint = t("find.reading");
+  else if (noMatch) hint = t("find.none");
+  else hint = state?.hotkey ? `${t("find.hint")} · ${t("find.hotkey", { keys: state.hotkey })}` : t("find.hint");
 
   return (
     <div className="find-panel" onClick={(e) => e.stopPropagation()}>
@@ -96,27 +102,17 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={onKeyDown}
           onMouseDown={takeKeyboard}
-          onFocus={() => {
-            island.keepOpen(true, "find");
-            // A new search reads the screen as it is now.
-            if (!scanning) providerAction(FIND_PROVIDER, "scan");
-          }}
+          onFocus={onFocus}
           onBlur={() => island.keepOpen(false, "find")}
         />
-        <span className={`find-count ${query.trim() && state?.scanned && !count ? "is-none" : ""}`}>{counter}</span>
+        <span className={`find-count ${noMatch ? "is-none" : ""}`}>{counter}</span>
         <button className="find-btn" title={t("find.prev")} disabled={!count} onMouseDown={keepFocus} onClick={() => step("prev")}>
           <Glyph name="chevron-up" size={12} />
         </button>
         <button className="find-btn" title={t("find.next")} disabled={!count} onMouseDown={keepFocus} onClick={() => step("next")}>
           <Glyph name="chevron-down" size={12} />
         </button>
-        <button
-          className="find-btn"
-          title={t("find.rescan")}
-          disabled={scanning}
-          onMouseDown={keepFocus}
-          onClick={() => providerAction(FIND_PROVIDER, "scan")}
-        >
+        <button className="find-btn" title={t("find.rescan")} disabled={scanning} onMouseDown={keepFocus} onClick={scan}>
           <Glyph name="refresh" size={12} />
         </button>
       </div>

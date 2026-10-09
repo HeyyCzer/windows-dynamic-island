@@ -328,6 +328,8 @@ export type MessageKey =
   | "find.reading"
   | "find.none"
   | "find.hint"
+  | "find.hotkey"
+  | "find.failed"
   | "find.noOcr"
   | "find.moveCursor.label"
   | "find.moveCursor.desc"

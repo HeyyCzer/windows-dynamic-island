@@ -4,6 +4,7 @@ mod hub;
 mod i18n;
 mod pip;
 mod providers;
+mod screen;
 mod settings;
 mod tray;
 mod updater;
@@ -20,7 +21,8 @@ use providers::Providers;
 pub use providers::claude::statusline::BRIDGE_FLAG as STATUSLINE_BRIDGE_FLAG;
 pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
 
-/// The global shortcut fired: the frontend opens the "Ask Claude" page.
+/// A global shortcut fired: the frontend opens the "Ask Claude" or "Find on
+/// screen" page.
 const ASK_EVENT: &str = "island://ask";
 const FIND_EVENT: &str = "island://find";
 
@@ -36,11 +38,8 @@ pub fn run() {
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
-                        if shortcut.key == Code::KeyF {
-                            open_find(app);
-                        } else {
-                            open_ask(app);
-                        }
+                        let event = if *shortcut == find_shortcut() { FIND_EVENT } else { ASK_EVENT };
+                        open_page(app, event);
                     }
                 })
                 .build(),
@@ -122,24 +121,21 @@ fn register_ask_shortcut(app: &AppHandle) {
     log::warn!("ask shortcut unavailable: both combinations are taken by other apps");
 }
 
-fn open_ask(app: &AppHandle) {
-    open_typing(app, ASK_EVENT);
+/// Ctrl+Alt+F opens "Find on screen" from anywhere.
+fn find_shortcut() -> Shortcut {
+    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF)
 }
 
-/// Ctrl+Alt+F opens "Find on screen" from anywhere.
 fn register_find_shortcut(app: &AppHandle) {
-    let shortcut = Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF);
-    if app.global_shortcut().register(shortcut).is_err() {
+    if app.global_shortcut().register(find_shortcut()).is_ok() {
+        providers::find::set_hotkey(Some("Ctrl+Alt+F".to_string()));
+    } else {
         log::warn!("find shortcut unavailable: Ctrl+Alt+F is taken by another app");
     }
 }
 
-fn open_find(app: &AppHandle) {
-    open_typing(app, FIND_EVENT);
-}
-
-/// Opens a page of the island that takes the keyboard (`event` tells which).
-fn open_typing(app: &AppHandle, event: &str) {
+/// Brings the island forward on a page that takes the keyboard (`event` tells which).
+fn open_page(app: &AppHandle, event: &str) {
     if tray::is_hidden(app) {
         return;
     }

@@ -500,7 +500,9 @@
     rescan: "Ler a tela de novo",
     reading: "Lendo a tela…",
     none: "Não está na tela. Se ela mudou, leia de novo (↻).",
-    hint: "Enter: próximo · Shift+Enter: anterior · Esc: fechar · Ctrl+Alt+F abre de qualquer lugar",
+    hint: "Enter: próximo · Shift+Enter: anterior · Esc: fechar",
+    hotkey: "{keys} abre de qualquer lugar",
+    failed: "Não deu para ler a tela. Tente de novo (↻).",
     noOcr: "O Windows não tem reconhecimento de texto para os seus idiomas. Adicione em Configurações → Hora e idioma → Idioma e região.",
     moveCursor: {
       label: "Levar o mouse até cada resultado",

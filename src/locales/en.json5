@@ -551,7 +551,10 @@
     rescan: "Read the screen again",
     reading: "Reading the screen…",
     none: "Not on the screen. If it changed, read it again (↻).",
-    hint: "Enter: next · Shift+Enter: previous · Esc: close · Ctrl+Alt+F opens it from anywhere",
+    hint: "Enter: next · Shift+Enter: previous · Esc: close",
+    // {keys}: the global shortcut, e.g. "Ctrl+Alt+F"
+    hotkey: "{keys} opens it from anywhere",
+    failed: "Couldn't read the screen. Try again (↻).",
     noOcr: "Windows has no text recognition for your languages. Add one in Settings → Time & language → Language & region.",
     moveCursor: {
       label: "Take the mouse to each match",

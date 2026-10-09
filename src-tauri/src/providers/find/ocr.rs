@@ -5,13 +5,25 @@
 use windows::Graphics::Imaging::{BitmapPixelFormat, SoftwareBitmap};
 use windows::Media::Ocr::OcrEngine;
 use windows::Storage::Streams::DataWriter;
+use windows::Win32::Foundation::RECT;
 use windows::Win32::System::Com::{COINIT_MULTITHREADED, CoInitializeEx};
 
-use super::screen::Shot;
 use super::text::{Line, Rect, Word};
+use crate::screen::Image;
 
 /// How much neighbouring tiles share, so a word cut by one edge is whole in the other.
 const OVERLAP: u32 = 160;
+/// Used when Windows doesn't say how big a picture its OCR takes.
+const DEFAULT_MAX: u32 = 2600;
+/// Lines whose middles are this close (in pixels) count as one row when
+/// tiles are put back in reading order.
+const ROW: f64 = 12.0;
+
+/// One monitor's picture and where it sits on the desktop.
+pub struct Shot {
+    pub rect: RECT,
+    pub image: Image,
+}
 
 /// A piece of one side of the picture, and the part of it whose words it keeps
 /// (each overlap is split in the middle, so no word is read twice).
@@ -30,6 +42,7 @@ impl Tile {
 }
 
 fn tiles(len: u32, max: u32, overlap: u32) -> Vec<Tile> {
+    debug_assert!(overlap < max);
     if len <= max {
         return vec![Tile { start: 0, size: len, keep_from: 0, keep_to: len }];
     }
@@ -47,44 +60,49 @@ fn tiles(len: u32, max: u32, overlap: u32) -> Vec<Tile> {
     tiles
 }
 
-fn crop(shot: &Shot, x: u32, y: u32, width: u32, height: u32) -> Vec<u8> {
-    let stride = shot.width as usize * 4;
-    let mut out = Vec::with_capacity(width as usize * height as usize * 4);
-    for row in y..y + height {
-        let from = row as usize * stride + x as usize * 4;
-        out.extend_from_slice(&shot.bgra[from..from + width as usize * 4]);
-    }
-    out
-}
-
 fn bitmap(bgra: &[u8], width: u32, height: u32) -> windows::core::Result<SoftwareBitmap> {
     let writer = DataWriter::new()?;
     writer.WriteBytes(bgra)?;
     SoftwareBitmap::CreateCopyFromBuffer(&writer.DetachBuffer()?, BitmapPixelFormat::Bgra8, width as i32, height as i32)
 }
 
-/// Reads every monitor's picture; lines come back in reading order.
-pub fn read(shots: &[Shot]) -> Result<Vec<Line>, String> {
+/// Reads every monitor's picture; lines come back in reading order. Fails
+/// with `noOcr` (no OCR for the profile's languages) or `failed` (nothing
+/// could be read).
+pub fn read(shots: &[Shot]) -> Result<Vec<Line>, &'static str> {
     unsafe {
         let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
     }
     // No OCR for any of the profile's languages (Settings → Time & language).
-    let engine = OcrEngine::TryCreateFromUserProfileLanguages().map_err(|_| "noOcr".to_string())?;
-    let max = OcrEngine::MaxImageDimension().unwrap_or(2600).max(OVERLAP * 4);
+    let engine = OcrEngine::TryCreateFromUserProfileLanguages().map_err(|_| "noOcr")?;
+    // Tiles narrower than two overlaps would barely move forward.
+    let max = OcrEngine::MaxImageDimension().unwrap_or(DEFAULT_MAX).max(OVERLAP * 4);
     let mut lines = Vec::new();
+    let (mut tried, mut failed) = (0, 0);
     for (monitor, shot) in shots.iter().enumerate() {
-        for ty in tiles(shot.height, max, OVERLAP) {
-            for tx in tiles(shot.width, max, OVERLAP) {
-                read_tile(&engine, shot, monitor, tx, ty, &mut lines).map_err(|e| e.message())?;
+        let (rows, columns) = (tiles(shot.image.height, max, OVERLAP), tiles(shot.image.width, max, OVERLAP));
+        let start = lines.len();
+        for &ty in &rows {
+            for &tx in &columns {
+                tried += 1;
+                // A tile that can't be read leaves a gap; the rest still counts.
+                if let Err(e) = read_tile(&engine, shot, monitor, tx, ty, &mut lines) {
+                    log::warn!("find: OCR of monitor {monitor} failed: {e}");
+                    failed += 1;
+                }
             }
         }
+        // Tiles break the order: top to bottom, then left to right.
+        if rows.len() * columns.len() > 1 {
+            lines[start..].sort_by_key(|l| {
+                let first = l.words[0].rect;
+                (((first.y + first.h / 2.0) / ROW).round() as i64, first.x as i64)
+            });
+        }
     }
-    // Tiles break the order: top to bottom, then left to right, per monitor.
-    let key = |l: &Line| {
-        let first = l.words[0].rect;
-        (l.monitor, ((first.y + first.h / 2.0) / 12.0).round() as i64, first.x as i64)
-    };
-    lines.sort_by_key(key);
+    if tried == 0 || failed == tried {
+        return Err("failed");
+    }
     Ok(lines)
 }
 
@@ -96,7 +114,10 @@ fn read_tile(
     ty: Tile,
     lines: &mut Vec<Line>,
 ) -> windows::core::Result<()> {
-    let picture = bitmap(&crop(shot, tx.start, ty.start, tx.size, ty.size), tx.size, ty.size)?;
+    let Some(tile) = shot.image.crop(tx.start as i32, ty.start as i32, tx.size as i32, ty.size as i32) else {
+        return Ok(());
+    };
+    let picture = bitmap(&tile.bgra, tile.width, tile.height)?;
     let result = engine.RecognizeAsync(&picture)?.join()?;
     for line in result.Lines()? {
         let mut words = Vec::new();
@@ -109,8 +130,8 @@ fn read_tile(
             words.push(Word {
                 text: word.Text()?.to_string(),
                 rect: Rect {
-                    x: (shot.left as f32 + x) as f64,
-                    y: (shot.top as f32 + y) as f64,
+                    x: (shot.rect.left as f32 + x) as f64,
+                    y: (shot.rect.top as f32 + y) as f64,
                     w: r.Width as f64,
                     h: r.Height as f64,
                 },

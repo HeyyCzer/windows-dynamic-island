@@ -7,11 +7,11 @@
 
 mod ocr;
 mod overlay;
-mod screen;
 mod text;
 
+use std::collections::BTreeMap;
 use std::sync::{Arc, Mutex, OnceLock, mpsc};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use serde::Serialize;
 use serde_json::Value;
@@ -19,18 +19,28 @@ use tauri::{Manager, WebviewWindow};
 use windows::Win32::Foundation::{HWND, RECT};
 use windows::Win32::UI::WindowsAndMessaging::SetCursorPos;
 
-use self::overlay::{Mark, Overlay};
+use self::ocr::Shot;
+use self::overlay::{Group, Mark, Overlay};
 use self::text::{Found, Line};
 use super::Provider;
 use crate::hub::Hub;
+use crate::screen;
 use crate::settings::Settings;
 use crate::window::ISLAND_LABEL;
 
 pub const ID: &str = "find";
 const MOVE_CURSOR_KEY: &str = "find.moveCursor";
-/// Time for the highlights and the island to leave the picture before it's taken.
+/// Time for the island to leave the picture before it's taken.
 const SETTLE: Duration = Duration::from_millis(80);
 
+static HOTKEY: Mutex<Option<String>> = Mutex::new(None);
+
+/// Called once the global shortcut is registered.
+pub fn set_hotkey(label: Option<String>) {
+    *HOTKEY.lock().unwrap() = label;
+}
+
+/// Mirrors `FindState` in `src/modules/find/store.ts`.
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 struct FindState {
@@ -41,13 +51,19 @@ struct FindState {
     count: usize,
     /// The current match (0-based).
     current: Option<usize>,
-    /// How long the last reading took (ms).
-    took: Option<u64>,
-    error: Option<String>,
+    /// `noOcr` (no OCR for the profile's languages) or `failed`.
+    error: Option<&'static str>,
+    /// Global shortcut that opens the page ("Ctrl+Alt+F").
+    hotkey: Option<String>,
 }
 
 #[derive(Default)]
 struct Session {
+    /// Bumped when the search ends, so a reading still going on is dropped.
+    generation: u64,
+    scanning: bool,
+    scanned: bool,
+    error: Option<&'static str>,
     lines: Vec<Line>,
     /// Desktop rect of each monitor the lines refer to.
     monitors: Vec<RECT>,
@@ -56,34 +72,41 @@ struct Session {
     current: usize,
     /// The mouse already went to `current`: the next Enter moves on.
     visited: bool,
-    state: FindState,
 }
 
 impl Session {
+    /// Ends the search: what was read is dropped.
+    fn reset(&mut self) {
+        *self = Session { generation: self.generation + 1, ..Default::default() };
+    }
+
     fn rematch(&mut self) {
         self.matches = text::find(&self.lines, &self.query);
         self.current = 0;
         self.visited = false;
     }
 
-    fn state(&mut self) -> FindState {
-        self.state.count = self.matches.len();
-        self.state.current = (!self.matches.is_empty()).then_some(self.current);
-        self.state.clone()
+    fn state(&self) -> FindState {
+        FindState {
+            scanning: self.scanning,
+            scanned: self.scanned,
+            count: self.matches.len(),
+            current: (!self.matches.is_empty()).then_some(self.current),
+            error: self.error,
+            hotkey: HOTKEY.lock().unwrap().clone(),
+        }
     }
 
     /// The marks, grouped by monitor.
-    fn marks(&self) -> Vec<(RECT, Vec<Mark>)> {
-        let mut monitors: Vec<(RECT, Vec<Mark>)> = Vec::new();
+    fn marks(&self) -> Vec<Group> {
+        let mut groups: BTreeMap<usize, Vec<Mark>> = BTreeMap::new();
         for (i, found) in self.matches.iter().enumerate() {
-            let Some(&rect) = self.monitors.get(found.monitor) else { continue };
-            let mark = Mark { rect: found.rect, current: i == self.current };
-            match monitors.iter_mut().find(|(r, _)| *r == rect) {
-                Some((_, marks)) => marks.push(mark),
-                None => monitors.push((rect, vec![mark])),
-            }
+            groups.entry(found.monitor).or_default().push(Mark { rect: found.rect, current: i == self.current });
         }
-        monitors
+        groups
+            .into_iter()
+            .filter_map(|(monitor, marks)| Some(Group { monitor, rect: *self.monitors.get(monitor)?, marks }))
+            .collect()
     }
 
     /// Moves to the next (or previous) match. The first Enter of a search
@@ -125,7 +148,7 @@ impl FindProvider {
     }
 
     /// Shows the highlights (hides them when nothing matches) and publishes.
-    fn refresh(&self, session: &mut Session) {
+    fn refresh(&self, session: &Session) {
         if !session.matches.is_empty() {
             if let Some(overlay) = self.overlay() {
                 overlay.show(session.marks());
@@ -145,61 +168,70 @@ impl FindProvider {
         let (done, wait) = mpsc::channel();
         let _ = hub.app().run_on_main_thread(move || {
             if let Ok(hwnd) = win.hwnd() {
-                screen::exclude(HWND(hwnd.0), excluded);
+                screen::exclude_from_capture(HWND(hwnd.0), excluded);
             }
             let _ = done.send(());
         });
         let _ = wait.recv_timeout(Duration::from_secs(1));
     }
 
-    fn scan(&self) -> Result<Value, String> {
-        {
-            let mut s = self.session.lock().unwrap();
-            if s.state.scanning {
-                return Ok(Value::Null);
-            }
-            s.state.scanning = true;
-            s.state.error = None;
-            self.hub.get().ok_or("not started")?.publish(ID, s.state());
-        }
-        if let Some(Some(overlay)) = self.overlay.get() {
-            overlay.hide();
-        }
+    /// Every monitor as it is now, without the island (the highlights are
+    /// never in captures).
+    fn capture(&self) -> Vec<Shot> {
         self.exclude_island(true);
         std::thread::sleep(SETTLE);
-        let started = Instant::now();
-        let shots: Vec<screen::Shot> = screen::monitors().into_iter().filter_map(screen::capture).collect();
+        let shots = screen::monitors()
+            .into_iter()
+            .filter_map(|rect| Some(Shot { rect, image: screen::area(rect)? }))
+            .collect();
         self.exclude_island(false);
+        shots
+    }
+
+    fn scan(&self) {
+        let generation = {
+            let mut s = self.session.lock().unwrap();
+            if s.scanning {
+                return;
+            }
+            s.scanning = true;
+            s.error = None;
+            self.refresh(&s);
+            s.generation
+        };
+        let shots = self.capture();
         let read = ocr::read(&shots);
 
         let mut s = self.session.lock().unwrap();
-        s.state.scanning = false;
+        // The search ended while reading: what was read goes nowhere.
+        if s.generation != generation {
+            return;
+        }
+        s.scanning = false;
         match read {
             Ok(lines) => {
                 s.lines = lines;
-                s.monitors = shots
-                    .iter()
-                    .map(|shot| RECT {
-                        left: shot.left,
-                        top: shot.top,
-                        right: shot.left + shot.width as i32,
-                        bottom: shot.top + shot.height as i32,
-                    })
-                    .collect();
-                s.state.scanned = true;
-                s.state.took = Some(started.elapsed().as_millis() as u64);
+                s.monitors = shots.iter().map(|shot| shot.rect).collect();
+                s.scanned = true;
             }
-            Err(e) => s.state.error = Some(e),
+            Err(e) => {
+                s.lines.clear();
+                s.monitors.clear();
+                s.scanned = false;
+                s.error = Some(e);
+            }
         }
         s.rematch();
-        self.refresh(&mut s);
-        Ok(Value::Null)
+        self.refresh(&s);
     }
 
     fn step(&self, forward: bool) {
-        let mut s = self.session.lock().unwrap();
-        let Some(found) = s.step(forward) else { return };
-        self.refresh(&mut s);
+        let found = {
+            let mut s = self.session.lock().unwrap();
+            let Some(found) = s.step(forward) else { return };
+            self.refresh(&s);
+            found
+        };
         let move_cursor = self
             .hub
             .get()
@@ -227,22 +259,22 @@ impl Provider for FindProvider {
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
         match action {
-            // Reads the screen again (a search starts, or the refresh button).
-            "scan" => return self.scan(),
+            // Reads the screen (a search starts, or the refresh button).
+            "scan" => self.scan(),
             // `{ query }`: highlights its matches in what was read.
             "search" => {
                 let mut s = self.session.lock().unwrap();
                 s.query = payload["query"].as_str().unwrap_or_default().to_string();
                 s.rematch();
-                self.refresh(&mut s);
+                self.refresh(&s);
             }
             "next" => self.step(true),
             "prev" => self.step(false),
             // The search ended: highlights off, and what was read is dropped.
             "clear" => {
                 let mut s = self.session.lock().unwrap();
-                *s = Session::default();
-                self.refresh(&mut s);
+                s.reset();
+                self.refresh(&s);
             }
             _ => return Err(format!("{ID}: unknown action '{action}'")),
         }
@@ -301,5 +333,27 @@ mod tests {
         let mut s = session(&["stop"]);
         assert_eq!(s.step(true), None);
         assert_eq!(s.state().current, None);
+    }
+
+    #[test]
+    fn ending_the_search_drops_what_was_read() {
+        let mut s = session(&["go"]);
+        s.scanned = true;
+        let before = s.generation;
+        s.reset();
+        assert!(s.lines.is_empty() && s.matches.is_empty() && !s.scanned);
+        assert_ne!(s.generation, before);
+    }
+
+    #[test]
+    fn marks_are_grouped_by_monitor() {
+        let mut s = session(&["go", "go"]);
+        let other = Line { monitor: 1, ..s.lines[0].clone() };
+        s.lines.push(other);
+        s.monitors = vec![RECT { right: 1920, bottom: 1080, ..Default::default() }; 2];
+        s.rematch();
+        let groups = s.marks();
+        assert_eq!(groups.iter().map(|g| (g.monitor, g.marks.len())).collect::<Vec<_>>(), [(0, 2), (1, 2)]);
+        assert!(groups[0].marks[0].current && !groups[1].marks[0].current);
     }
 }

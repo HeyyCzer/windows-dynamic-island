@@ -6,13 +6,11 @@ use std::time::{Duration, SystemTime};
 
 use windows::Win32::Foundation::{HWND, POINT, RECT};
 use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_EXTENDED_FRAME_BOUNDS};
-use windows::Win32::Graphics::Gdi::{
-    BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, GetDC, GetDIBits, GetMonitorInfoW,
-    MonitorFromPoint, ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HDC, HGDIOBJ,
-    MONITORINFO, MONITOR_DEFAULTTONEAREST, SRCCOPY,
-};
+use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromPoint, MONITORINFO, MONITOR_DEFAULTTONEAREST};
 use windows::Win32::Storage::Xps::{PrintWindow, PRINT_WINDOW_FLAGS};
 use windows::Win32::UI::WindowsAndMessaging::{GetCursorPos, GetWindowRect, GetWindowTextW, IsIconic, IsWindowVisible};
+
+use crate::screen::{self, Image};
 
 /// Longest side sent to Claude: a 4K screenshot would cost a fortune in tokens.
 const MAX_SIDE: u32 = 1600;
@@ -40,13 +38,6 @@ pub fn capture(hwnd: Option<HWND>, folder: &Path) -> Option<Shot> {
     Some(Shot { path, title })
 }
 
-/// Top-down BGRA pixels.
-struct Image {
-    width: u32,
-    height: u32,
-    bgra: Vec<u8>,
-}
-
 fn capture_window(hwnd: HWND) -> Option<Image> {
     unsafe {
         let mut window = RECT::default();
@@ -72,16 +63,16 @@ fn capture_window(hwnd: HWND) -> Option<Image> {
         }
 
         // PrintWindow draws the window itself, even if something (like the island) covers it.
-        let printed = grab(w, h, |dc| PrintWindow(hwnd, dc, PRINT_WINDOW_FLAGS(PW_RENDERFULLCONTENT)).as_bool());
-        let crop = (frame.left - window.left, frame.top - window.top, frame.right - frame.left, frame.bottom - frame.top);
+        let printed = screen::grab(w, h, |dc| PrintWindow(hwnd, dc, PRINT_WINDOW_FLAGS(PW_RENDERFULLCONTENT)).as_bool());
+        let (x, y) = (frame.left - window.left, frame.top - window.top);
         if let Some(full) = printed
-            && let Some(image) = crop_image(&full, crop)
+            && let Some(image) = full.crop(x, y, frame.right - frame.left, frame.bottom - frame.top)
             && !is_blank(&image)
         {
             return Some(image);
         }
         // Some apps (games, protected video) draw nothing for PrintWindow: copy the screen instead.
-        screen_area(frame.left, frame.top, frame.right - frame.left, frame.bottom - frame.top)
+        screen::area(frame)
     }
 }
 
@@ -94,70 +85,8 @@ fn capture_monitor() -> Option<Image> {
         if !GetMonitorInfoW(monitor, &mut info).as_bool() {
             return None;
         }
-        let r = info.rcMonitor;
-        screen_area(r.left, r.top, r.right - r.left, r.bottom - r.top)
+        screen::area(info.rcMonitor)
     }
-}
-
-fn screen_area(x: i32, y: i32, w: i32, h: i32) -> Option<Image> {
-    if w <= 0 || h <= 0 {
-        return None;
-    }
-    unsafe {
-        let screen = GetDC(None);
-        let image = grab(w, h, |dc| BitBlt(dc, 0, 0, w, h, Some(screen), x, y, SRCCOPY).is_ok());
-        ReleaseDC(None, screen);
-        image
-    }
-}
-
-/// Runs `draw` into a `w`×`h` memory bitmap and reads its pixels back.
-fn grab(w: i32, h: i32, draw: impl FnOnce(HDC) -> bool) -> Option<Image> {
-    unsafe {
-        let screen = GetDC(None);
-        let dc = CreateCompatibleDC(Some(screen));
-        let bitmap = CreateCompatibleBitmap(screen, w, h);
-        let previous = SelectObject(dc, HGDIOBJ::from(bitmap));
-        let drawn = draw(dc);
-
-        let mut info = BITMAPINFO {
-            bmiHeader: BITMAPINFOHEADER {
-                biSize: std::mem::size_of::<BITMAPINFOHEADER>() as u32,
-                biWidth: w,
-                // Negative height: top-down rows.
-                biHeight: -h,
-                biPlanes: 1,
-                biBitCount: 32,
-                biCompression: BI_RGB.0,
-                ..Default::default()
-            },
-            ..Default::default()
-        };
-        let mut bgra = vec![0u8; (w * h * 4) as usize];
-        SelectObject(dc, previous);
-        let lines = GetDIBits(dc, bitmap, 0, h as u32, Some(bgra.as_mut_ptr() as *mut _), &mut info, DIB_RGB_COLORS);
-
-        let _ = DeleteObject(HGDIOBJ::from(bitmap));
-        let _ = DeleteDC(dc);
-        ReleaseDC(None, screen);
-        (drawn && lines == h).then_some(Image { width: w as u32, height: h as u32, bgra })
-    }
-}
-
-fn crop_image(image: &Image, (x, y, w, h): (i32, i32, i32, i32)) -> Option<Image> {
-    let x = x.clamp(0, image.width as i32) as u32;
-    let y = y.clamp(0, image.height as i32) as u32;
-    let w = (w.max(0) as u32).min(image.width - x);
-    let h = (h.max(0) as u32).min(image.height - y);
-    if w == 0 || h == 0 {
-        return None;
-    }
-    let mut bgra = Vec::with_capacity((w * h * 4) as usize);
-    for row in y..y + h {
-        let start = ((row * image.width + x) * 4) as usize;
-        bgra.extend_from_slice(&image.bgra[start..start + (w * 4) as usize]);
-    }
-    Some(Image { width: w, height: h, bgra })
 }
 
 /// All one color (typically black): the window didn't draw into PrintWindow.
