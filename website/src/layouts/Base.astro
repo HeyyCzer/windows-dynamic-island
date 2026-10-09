@@ -1,0 +1,163 @@
+---
+import social from "../../../docs/social-preview.png";
+import icon from "../../../src-tauri/icons/128x128@2x.png";
+import { href, strings, type Lang } from "../i18n";
+
+interface Props {
+	lang: Lang;
+	title: string;
+	page: "" | "privacy";
+}
+
+const { lang, title, page } = Astro.props;
+const t = strings[lang];
+const other = t.otherLang;
+const canonical = new URL(href(lang, page), Astro.site);
+---
+
+<!doctype html>
+<html lang={t.htmlLang}>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="dark" />
+		<title>{title}</title>
+		<meta name="description" content={t.meta.description} />
+		<link rel="canonical" href={canonical} />
+		<link
+			rel="alternate"
+			hreflang="en"
+			href={new URL(href("en", page), Astro.site)}
+		/>
+		<link
+			rel="alternate"
+			hreflang="pt-BR"
+			href={new URL(href("pt-br", page), Astro.site)}
+		/>
+		<link rel="icon" type="image/png" href={icon.src} />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={t.meta.description} />
+		<meta property="og:url" content={canonical} />
+		<meta property="og:image" content={new URL(social.src, Astro.site)} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			rel="stylesheet"
+			href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&display=swap"
+		/>
+
+		<meta
+			name="google-site-verification"
+			content="hkufpl1ZmKG8oSpCV_nKrU-mY01i6VkRhuqrRQ_2TpI"
+		/>
+	</head>
+	<body>
+		<nav class="lang" aria-label="Language">
+			<a
+				href={href(other.lang, page)}
+				hreflang={other.lang}
+				lang={other.lang}>{other.label}</a
+			>
+		</nav>
+		<slot />
+	</body>
+</html>
+
+<style is:global>
+	:root {
+		/* The desktop the island sits on; matches the screenshots' wallpaper. */
+		--desk: #11111d;
+		--desk-raised: #191929;
+		--island: #000;
+		--text: #f5f5f7;
+		--text-dim: rgba(245, 245, 247, 0.62);
+		--text-faint: rgba(245, 245, 247, 0.38);
+		--hairline: rgba(255, 255, 255, 0.09);
+		--card: rgba(255, 255, 255, 0.07);
+		--accent: #a0a4ff;
+		--waiting: #f5b83d;
+		--claude: #d97757;
+		--gutter: clamp(16px, 5vw, 48px);
+		--measure: 1120px;
+		color-scheme: dark;
+	}
+
+	*,
+	*::before,
+	*::after {
+		box-sizing: border-box;
+	}
+
+	html {
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		margin: 0;
+		background: var(--desk);
+		color: var(--text);
+		font-family: "Familjen Grotesk", system-ui, sans-serif;
+		font-size: 1.0625rem;
+		line-height: 1.55;
+		-webkit-font-smoothing: antialiased;
+		overflow-x: hidden;
+	}
+
+	img {
+		max-width: 100%;
+		height: auto;
+		display: block;
+	}
+
+	a {
+		color: inherit;
+	}
+
+	:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 3px;
+		border-radius: 6px;
+	}
+
+	.wrap {
+		width: min(var(--measure), 100% - 2 * var(--gutter));
+		margin-inline: auto;
+	}
+
+	.lang {
+		position: absolute;
+		top: 14px;
+		right: var(--gutter);
+		z-index: 2;
+		font-size: 0.875rem;
+	}
+
+	.lang a {
+		color: var(--text-dim);
+		text-decoration: none;
+		padding: 6px 10px;
+	}
+
+	.lang a:hover {
+		color: var(--text);
+	}
+
+	/* On narrow screens the island takes the whole top edge; the footer has the switch too. */
+	@media (max-width: 760px) {
+		.lang {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			transition-duration: 0.01ms !important;
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+		}
+	}
+</style>

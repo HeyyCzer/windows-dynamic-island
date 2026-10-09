@@ -1,0 +1,119 @@
+---
+import { getEntry, render } from "astro:content";
+import Base from "../layouts/Base.astro";
+import { href, strings, type Lang } from "../i18n";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = strings[lang];
+// Entry ids come from the file names in docs/privacy.
+const entry = await getEntry("privacy", lang === "en" ? "index" : "pt-br");
+if (!entry) throw new Error(`Missing privacy policy for ${lang}`);
+const { Content } = await render(entry);
+---
+
+<Base lang={lang} title={t.meta.privacyTitle} page="privacy">
+  <main class="policy">
+    <a class="back" href={href(lang)}>{t.policy.back}</a>
+    <article>
+      <Content />
+    </article>
+  </main>
+</Base>
+
+<style>
+  .policy {
+    width: min(720px, 100% - 2 * var(--gutter));
+    margin-inline: auto;
+    padding: 72px 0 96px;
+  }
+
+  .back {
+    color: var(--text-dim);
+    font-size: 0.9375rem;
+    text-decoration: none;
+  }
+
+  .back:hover {
+    color: var(--text);
+  }
+
+  article {
+    margin-top: 32px;
+    overflow-wrap: anywhere;
+  }
+
+  article :global(h1) {
+    margin: 0 0 8px;
+    font-size: clamp(2rem, 5vw, 2.75rem);
+    line-height: 1.08;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  article :global(h2) {
+    margin: 56px 0 0;
+    font-size: 1.5rem;
+    letter-spacing: -0.015em;
+  }
+
+  article :global(h3) {
+    margin: 32px 0 0;
+    font-size: 1.125rem;
+  }
+
+  article :global(p),
+  article :global(ul) {
+    margin: 14px 0 0;
+    color: var(--text-dim);
+  }
+
+  article :global(li + li) {
+    margin-top: 8px;
+  }
+
+  article :global(strong) {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  article :global(a) {
+    color: var(--accent);
+    text-underline-offset: 3px;
+  }
+
+  article :global(code) {
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--card);
+    font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: 0.85em;
+    color: var(--text);
+  }
+
+  /* Wide tables scroll inside themselves instead of the page. */
+  article :global(table) {
+    display: block;
+    overflow-x: auto;
+    margin-top: 20px;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+
+  article :global(th),
+  article :global(td) {
+    padding: 10px 14px 10px 0;
+    border-bottom: 1px solid var(--hairline);
+    text-align: left;
+    vertical-align: top;
+    color: var(--text-dim);
+  }
+
+  article :global(th) {
+    color: var(--text);
+    font-weight: 600;
+  }
+</style>
