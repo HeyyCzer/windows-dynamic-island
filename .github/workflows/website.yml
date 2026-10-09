@@ -1,0 +1,50 @@
+name: Website
+
+# Builds website/ (Astro) and publishes it to GitHub Pages. Runs when the site,
+# the privacy policy, the screenshots or the app version (shown in the footer)
+# change on main. Needs Settings → Pages → Source set to "GitHub Actions".
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "website/**"
+      - "docs/privacy/**"
+      - "docs/screenshots/**"
+      - "docs/social-preview.png"
+      - "src-tauri/icons/**"
+      - "package.json"
+      - ".github/workflows/website.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Third-party action, pinned to a commit.
+      - uses: withastro/action@3eafd002e65cc31b4f0eae0bb05450d521562247 # v6.1.3
+        with:
+          path: website
+          package-manager: bun@1.4.2
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
