@@ -4,6 +4,7 @@ mod hub;
 mod i18n;
 mod pip;
 mod providers;
+mod screen;
 mod settings;
 mod tray;
 mod updater;
@@ -20,8 +21,10 @@ use providers::Providers;
 pub use providers::claude::statusline::BRIDGE_FLAG as STATUSLINE_BRIDGE_FLAG;
 pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
 
-/// The global shortcut fired: the frontend opens the "Ask Claude" page.
+/// A global shortcut fired: the frontend opens the "Ask Claude" or "Find on
+/// screen" page.
 const ASK_EVENT: &str = "island://ask";
+const FIND_EVENT: &str = "island://find";
 
 pub fn run() {
     tauri::Builder::default()
@@ -33,9 +36,10 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
-                .with_handler(|app, _shortcut, event| {
+                .with_handler(|app, shortcut, event| {
                     if event.state() == ShortcutState::Pressed {
-                        open_ask(app);
+                        let event = if *shortcut == find_shortcut() { FIND_EVENT } else { ASK_EVENT };
+                        open_page(app, event);
                     }
                 })
                 .build(),
@@ -69,6 +73,7 @@ pub fn run() {
             tray::enable_autostart_on_first_run(&handle);
             updater::spawn(handle.clone());
             register_ask_shortcut(&handle);
+            register_find_shortcut(&handle);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -116,7 +121,21 @@ fn register_ask_shortcut(app: &AppHandle) {
     log::warn!("ask shortcut unavailable: both combinations are taken by other apps");
 }
 
-fn open_ask(app: &AppHandle) {
+/// Ctrl+Alt+F opens "Find on screen" from anywhere.
+fn find_shortcut() -> Shortcut {
+    Shortcut::new(Some(Modifiers::CONTROL | Modifiers::ALT), Code::KeyF)
+}
+
+fn register_find_shortcut(app: &AppHandle) {
+    if app.global_shortcut().register(find_shortcut()).is_ok() {
+        providers::find::set_hotkey(Some("Ctrl+Alt+F".to_string()));
+    } else {
+        log::warn!("find shortcut unavailable: Ctrl+Alt+F is taken by another app");
+    }
+}
+
+/// Brings the island forward on a page that takes the keyboard (`event` tells which).
+fn open_page(app: &AppHandle, event: &str) {
     if tray::is_hidden(app) {
         return;
     }
@@ -124,5 +143,5 @@ fn open_ask(app: &AppHandle) {
         window::allow_activation();
         let _ = win.set_focus();
     }
-    let _ = app.emit(ASK_EVENT, ());
+    let _ = app.emit(event, ());
 }

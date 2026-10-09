@@ -13,6 +13,7 @@ import { GearIcon, GridIcon } from "./icons";
 import { useSyncLocale, useT } from "../core/i18n";
 import { IdleClock } from "./IdleClock";
 import { attachFiles, requestAskFocus } from "../modules/ask/store";
+import { requestFindFocus } from "../modules/find/store";
 import { addToShelf } from "../modules/shelf/actions";
 
 interface Geo {
@@ -155,6 +156,7 @@ export function Island() {
 
 	// Global shortcut: the ask page opens (controller) and its input takes the keyboard.
 	useTauriEvent("island://ask", requestAskFocus);
+	useTauriEvent("island://find", requestFindFocus);
 
 	const api: IslandApi = useMemo(
 		() => ({ mode, tab: ctl.tab, expand: ctl.expand, collapse: ctl.collapse, keepOpen: ctl.keepOpen }),

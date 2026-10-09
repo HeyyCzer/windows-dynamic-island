@@ -15,6 +15,7 @@ An iPhone/macOS-style Dynamic Island for the top of your Windows desktop. It sho
 ## Highlights
 
 - 🤖 **Your Claude Code sessions, live.** Which session is working, which one is waiting for your permission, and how much of your plan you've used, without switching windows.
+- 🔍 **Ctrl+F for the whole screen.** **Ctrl+Alt+F** finds any text on your monitors, even inside pictures, highlights every match and takes the mouse to each one.
 - 🎵 **Music from any player.** Spotify, browsers, Apple Music: track, artwork, controls and a visualizer. A YouTube video plays muted right in the island, and **Pin** pops it out into a small floating window.
 - 💬 **Ask Claude from anywhere.** Press **Ctrl+Alt+Space** and type. It uses your Claude Code login, so no API key is needed, and it can attach a screenshot of the window you were in.
 - 🧩 **As many modules as you want, without clutter.** The modules you pin sit in the tab bar and the rest are one click away in the launcher. Drag to reorder them or turn them off.
@@ -81,6 +82,13 @@ Not into the colorful look? You don't have to use it. **Settings → Appearance*
 - The answer streams in; if you leave, the island tells you when Claude answered
 - 📷 attaches a screenshot of the window you were using; files dropped on it (or sent from the shelf) become attachments
 - Runs `claude -p` headless with hooks off, so these chats don't show up as sessions. Read-only tools and web search work; for edits it suggests opening Claude Code
+
+**Find on screen**: like a browser's Ctrl+F, for the whole screen. Press **Ctrl+Alt+F** anywhere (or open it from the launcher) and type.
+
+- Reads everything on every monitor with Windows' own text recognition, so text inside pictures, videos and apps that don't let you search counts too
+- Every match is highlighted, the current one in orange; **Enter** takes the mouse to the next one (**Shift+Enter** goes back), ready to click
+- Ignores case and accents, and finds phrases across words. **↻** reads the screen again if it changed; **Esc** clears everything
+- Runs offline. The screen is read when you start a search and is kept in memory only while the search is open
 
 **Launcher and tabs**: the grid button in the tab bar opens every module as a tile. In **Settings → Modules** you can drag modules to reorder the tabs, choose which ones sit in the tab bar and which stay in the launcher, and turn them on or off. A busy module shows up in the bar even when it isn't pinned, and the island reopens on the last tab you used if you come back within a few minutes.
 
@@ -190,14 +198,14 @@ bun run app:build    # installers in src-tauri/target/release/bundle/
 ```
 src/
   core/        island state, provider bridge, settings, appearance, i18n
-  modules/     one folder per module (music, ai-agents, ask, notifications, activities, shelf, clipboard,
+  modules/     one folder per module (music, ai-agents, ask, find, notifications, activities, shelf, clipboard,
                github, monitor, clock), each with its own UI and settings
   locales/     translations (*.json5)
   settings/    settings window
   pip/         pinned YouTube video window
 src-tauri/src/
   providers/   OS-side data sources, one per module (media controls, Claude Code, GitHub, local API + volume,
-               battery and Bluetooth, Windows notifications, `claude -p` chat, shelf, clipboard history,
+               battery and Bluetooth, Windows notifications, `claude -p` chat, screen text (OCR), shelf, clipboard history,
                performance counters)
   window.rs    click-through overlay window (no caption buttons) + hover hit-testing
   tray.rs      tray menu and black hole

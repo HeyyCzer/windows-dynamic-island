@@ -1,0 +1,75 @@
+.find-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.find-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 6px 0 14px;
+  border-radius: 19px;
+  background: rgba(255, 255, 255, 0.07);
+}
+.find-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 4px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  user-select: text;
+}
+.find-field input::placeholder {
+  color: var(--text-faint);
+}
+
+.find-count {
+  flex: none;
+  min-width: 44px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--text-dim);
+}
+.find-count.is-none {
+  color: #ff6b63;
+}
+
+.find-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: var(--text-dim);
+}
+.find-btn:hover:not(:disabled) {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.1);
+}
+.find-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.find-hint {
+  padding: 0 14px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.find-hint.is-error {
+  color: #ff6b63;
+}

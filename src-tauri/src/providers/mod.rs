@@ -16,6 +16,7 @@ pub mod calendar;
 pub mod clipboard;
 pub mod codex;
 pub mod credentials;
+pub mod find;
 pub mod github;
 pub mod monitor;
 pub mod music;
@@ -51,6 +52,7 @@ pub fn registry() -> Vec<Arc<dyn Provider>> {
         Arc::new(music::MusicProvider::default()),
         Arc::new(notifications::NotificationsProvider::default()),
         Arc::new(ask::AskProvider::default()),
+        Arc::new(find::FindProvider::default()),
         Arc::new(shelf::ShelfProvider::default()),
         Arc::new(clipboard::ClipboardProvider::default()),
         Arc::new(claude::ClaudeProvider::default()),
