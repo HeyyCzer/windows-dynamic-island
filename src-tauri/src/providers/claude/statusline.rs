@@ -19,14 +19,31 @@ use super::hooks::STATUSLINE_PATH;
 use super::{now_ms, Ctx, LimitWindow, Limits, HOOK_PORT};
 
 pub const BRIDGE_FLAG: &str = "--claude-statusline";
-const IDENTIFIER: &str = "dev.rafap.dynamicisland";
+/// `identifier` from `tauri.conf.json` (see `build.rs`).
+const IDENTIFIER: &str = env!("APP_IDENTIFIER");
+/// Folder older versions used, whatever the identifier was.
+const LEGACY_IDENTIFIER: &str = "dev.rafap.dynamicisland";
 const LIMITS_FILE: &str = "claude-limits.json";
 pub const ORIGINAL_FILE: &str = "claude-statusline-original.json";
 
 /// Same directory Tauri uses as `app_config_dir` on Windows.
 pub fn config_dir() -> PathBuf {
     let base = std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
-    base.join(IDENTIFIER)
+    let dir = base.join(IDENTIFIER);
+    migrate_legacy(&base.join(LEGACY_IDENTIFIER), &dir);
+    dir
+}
+
+/// Copies files saved by older versions, so an installed integration still
+/// finds the user's original statusline (and can restore it on uninstall).
+fn migrate_legacy(legacy: &std::path::Path, dir: &std::path::Path) {
+    for name in [ORIGINAL_FILE, LIMITS_FILE] {
+        let (from, to) = (legacy.join(name), dir.join(name));
+        if !to.exists() && from.exists() {
+            let _ = std::fs::create_dir_all(dir);
+            let _ = std::fs::copy(from, to);
+        }
+    }
 }
 
 // ------------------------------------------------------------ island side --

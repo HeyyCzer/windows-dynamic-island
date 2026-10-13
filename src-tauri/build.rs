@@ -4,12 +4,23 @@ use serde_json::{Map, Value};
 
 fn main() {
     embed_locales();
+    embed_identifier();
     println!("cargo:rerun-if-changed=app.manifest");
     // Tauri's default manifest plus the `<msix>` link to the sparse package
     // that lets the island read Windows notifications.
     let windows = tauri_build::WindowsAttributes::new().app_manifest(include_str!("app.manifest"));
     tauri_build::try_build(tauri_build::Attributes::new().windows_attributes(windows))
         .expect("failed to run tauri-build");
+}
+
+/// `APP_IDENTIFIER` env var with `tauri.conf.json`'s `identifier`, for code
+/// that runs without an `AppHandle` (the statusline bridge).
+fn embed_identifier() {
+    println!("cargo:rerun-if-changed=tauri.conf.json");
+    let text = std::fs::read_to_string("tauri.conf.json").expect("tauri.conf.json not found");
+    let conf: Value = serde_json::from_str(&text).expect("tauri.conf.json: invalid JSON");
+    let id = conf["identifier"].as_str().expect("tauri.conf.json: no identifier");
+    println!("cargo:rustc-env=APP_IDENTIFIER={id}");
 }
 
 /// Generates `$OUT_DIR/locales.rs`: every `src/locales/*.json5` as
