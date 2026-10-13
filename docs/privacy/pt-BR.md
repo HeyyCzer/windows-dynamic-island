@@ -4,7 +4,7 @@
 
 Dynamic Island para Windows ("o app") é um app de desktop gratuito e de código aberto, publicado em [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island). Esta política explica quais dados o app acessa, para onde eles vão e como removê-los.
 
-Esta é uma tradução da [versão em inglês](https://heyyczer.github.io/windows-dynamic-island/privacy/). Se houver qualquer diferença entre as duas, vale a versão em inglês.
+Esta é uma tradução da [versão em inglês](https://island.heyyczer.com/privacy/). Se houver qualquer diferença entre as duas, vale a versão em inglês.
 
 ## Resumo
 
