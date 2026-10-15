@@ -1,6 +1,6 @@
 # Política de Privacidade — Dynamic Island para Windows
 
-*Última atualização: 8 de outubro de 2026*
+*Última atualização: 15 de outubro de 2026*
 
 Dynamic Island para Windows ("o app") é um app de desktop gratuito e de código aberto, publicado em [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island). Esta política explica quais dados o app acessa, para onde eles vão e como removê-los.
 
@@ -24,6 +24,20 @@ Esta é uma tradução da [versão em inglês](https://island.heyyczer.com/priva
 | Eventos da agenda, texto da área de transferência, notificações espelhadas, o que está tocando, estatísticas do sistema, o texto lido da tela pelo Procurar na tela | Só na memória | Mostrar na ilha; somem quando o app fecha |
 
 O app lê, sem enviar para lugar nenhum, informações que o Windows e outros apps já guardam no seu computador: dados de reprodução de mídia, notificações do Windows (só depois que você ativa o módulo Notificações), a área de transferência (o que é copiado por gerenciadores de senha é ignorado), bateria, volume, dispositivos Bluetooth, contadores de desempenho e as transcrições e configurações locais do Claude Code em `~/.claude`.
+
+## Como seus dados são protegidos
+
+Como o app não tem servidor, nenhum dado seu chega até nós, então não existe banco de dados nosso que possa vazar. No seu computador e no caminho até os serviços que você conecta, o app protege seus dados assim:
+
+- **Criptografia em trânsito.** Toda requisição para Google, GitHub, Anthropic e YouTube usa HTTPS (TLS). Dados de usuário do Google nunca trafegam por conexão sem criptografia.
+- **Criptografia em repouso.** Segredos (o refresh token do Google, o token do GitHub e as URLs de feeds de agenda privados) ficam só no Gerenciador de Credenciais do Windows, que os criptografa com a Proteção de Dados do Windows (DPAPI), vinculada à sua conta de usuário do Windows. Eles nunca são gravados em arquivos de configuração, logs ou qualquer outro arquivo de texto, e outros usuários do Windows no mesmo computador não conseguem lê-los.
+- **Login seguro.** O login do Google acontece na própria página do Google; o app nunca vê sua senha. Ele usa OAuth com PKCE (S256) e um valor `state` aleatório, e o navegador volta para um servidor de uso único em `127.0.0.1` (porta aleatória, acessível só do seu computador), que é fechado assim que o login termina ou após três minutos.
+- **Privilégio mínimo.** O app pede só o escopo somente leitura `calendar.readonly`, então não consegue alterar nem apagar nada na sua conta Google.
+- **Acesso curto e só em memória.** Os access tokens do Google expiram em cerca de uma hora e ficam só na memória. Os eventos da agenda ficam só na memória, nunca são gravados em disco, logs ou caches, e são descartados quando o app fecha ou você desconecta.
+- **Só local.** Os servidores internos do app (a API local, a ponte do Claude Code e o retorno do login) escutam só em `127.0.0.1` e não podem ser acessados pela sua rede nem pela internet.
+- **Área de transferência sensível ignorada.** O que gerenciadores de senha marcam como privado nunca é lido, e as imagens da área de transferência salvas para arrastar são apagadas toda vez que o app inicia.
+- **Revogação.** **Desconectar** revoga o token junto ao Google e o apaga do seu computador.
+- **Código aberto.** Todo o código do app é público em [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island), então qualquer pessoa pode conferir como os dados são tratados. Problemas de segurança podem ser relatados pelas issues do repositório.
 
 ## Serviços online
 

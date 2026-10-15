@@ -1,6 +1,6 @@
 # Privacy Policy — Dynamic Island for Windows
 
-*Last updated: October 8, 2026*
+*Last updated: October 15, 2026*
 
 Dynamic Island for Windows ("the app") is a free, open-source desktop app published at [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island). This policy explains what data the app touches, where it goes and how to remove it.
 
@@ -22,6 +22,20 @@ Dynamic Island for Windows ("the app") is a free, open-source desktop app publis
 | Calendar events, clipboard text, mirrored notifications, now-playing info, system stats, the text read off the screen by Find on screen | Memory only | Show them in the island; gone when the app closes |
 
 The app reads, without uploading anywhere, information Windows and other apps already keep on your computer: media playback info, Windows notifications (only after you enable the Notifications module), the clipboard (anything copied by password managers is ignored), battery, volume, Bluetooth devices, performance counters, and Claude Code's local transcripts and settings in `~/.claude`.
+
+## How your data is protected
+
+Because the app has no server, none of your data ever reaches us, so there is no database of ours that could leak. On your computer and on the way to the services you connect, the app protects it like this:
+
+- **Encrypted in transit.** Every request to Google, GitHub, Anthropic and YouTube uses HTTPS (TLS). Google user data is never sent over an unencrypted connection.
+- **Encrypted at rest.** Secrets (the Google refresh token, the GitHub token and private calendar feed URLs) are kept only in the Windows Credential Manager, which encrypts them with Windows Data Protection (DPAPI) tied to your Windows user account. They are never written to settings files, logs or any other plain-text file, and other Windows users on the same computer cannot read them.
+- **Secure sign-in.** Google sign-in happens on Google's own page; the app never sees your password. It uses OAuth with PKCE (S256) and a random `state` value, and the browser returns to a one-time server on `127.0.0.1` (a random port, reachable only from your computer) that closes as soon as sign-in finishes or after three minutes.
+- **Least privilege.** The app requests only the read-only scope `calendar.readonly`, so it cannot change or delete anything in your Google account.
+- **Short-lived, memory-only access.** Google access tokens expire after about an hour and are kept in memory only. Calendar events are kept in memory only, are never written to disk, logs or caches, and are discarded when the app closes or you disconnect.
+- **Local only.** The app's built-in servers (the local API, the Claude Code bridge and the sign-in redirect) listen on `127.0.0.1` only and cannot be reached from your network or the internet.
+- **Sensitive clipboard content skipped.** Anything password managers mark as private is never read, and clipboard pictures saved for dragging are deleted every time the app starts.
+- **Revocation.** **Disconnect** revokes the Google token with Google and deletes it from your computer.
+- **Open source.** All of the app's code is public at [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island), so anyone can check how data is handled. Security problems can be reported through the repository's issues.
 
 ## Online services
 
