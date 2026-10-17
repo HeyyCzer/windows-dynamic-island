@@ -40,6 +40,7 @@ export type MessageKey =
   | "settings.about.updates.latest"
   | "settings.about.updates.ready"
   | "settings.about.updates.dev"
+  | "settings.about.updates.portable"
   | "settings.about.updates.error"
   | "settings.about.updates.check"
   | "settings.about.updates.install"

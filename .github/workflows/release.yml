@@ -68,6 +68,7 @@ jobs:
             echo 'body<<RELEASE_NOTES_EOF'
             echo 'Download **`Dynamic.Island_*_x64-setup.exe`** and run it (installs for the current user, no admin needed).'
             echo 'The `.msi` is there for managed installs.'
+            echo 'No install at all? Grab **`Dynamic.Island_*_x64-portable.zip`**, extract it anywhere and run `dynamic-island.exe` (it does not update itself).'
             if [ -n "$commits" ]; then
               echo
               echo '## Commits'
@@ -99,3 +100,19 @@ jobs:
           updaterJsonPreferNsis: true
           releaseDraft: false
           prerelease: false
+
+      # Portable build: the same exe plus an empty `.portable` marker, which
+      # turns off self-update and autostart-on-first-run (src/portable.rs).
+      - name: Portable zip
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          $dir = "portable/Dynamic Island"
+          New-Item -ItemType Directory -Force $dir | Out-Null
+          Copy-Item src-tauri/target/release/dynamic-island.exe $dir
+          New-Item -ItemType File "$dir/.portable" | Out-Null
+          $zip = "Dynamic.Island_${version}_x64-portable.zip"
+          Compress-Archive -Path $dir -DestinationPath $zip
+          gh release upload "v$version" $zip --clobber

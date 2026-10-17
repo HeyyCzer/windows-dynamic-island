@@ -68,6 +68,7 @@
         latest: "Você está na versão mais recente.",
         ready: "Versão {version} pronta para instalar.",
         dev: "Builds de desenvolvimento não atualizam.",
+        portable: "A versão portátil não se atualiza sozinha. Baixe a nova no GitHub.",
         error: "Não foi possível verificar.",
         check: "Verificar",
         install: "Reiniciar e atualizar",

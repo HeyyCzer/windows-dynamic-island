@@ -3,6 +3,7 @@ mod file_drop;
 mod hub;
 mod i18n;
 mod pip;
+mod portable;
 mod providers;
 mod screen;
 mod settings;

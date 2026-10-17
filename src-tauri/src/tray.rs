@@ -191,6 +191,9 @@ pub fn enable_autostart_on_first_run(app: &AppHandle) {
     if cfg!(debug_assertions) {
         return; // never register the dev binary
     }
+    if crate::portable::is_portable() {
+        return; // may run from a removable drive; left to the user
+    }
     let Ok(dir) = app.path().app_config_dir() else {
         return;
     };

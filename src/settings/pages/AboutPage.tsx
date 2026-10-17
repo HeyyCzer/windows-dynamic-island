@@ -6,7 +6,7 @@ import { useT } from "../../core/i18n";
 const REPO_URL = "https://github.com/HeyyCzer/windows-dynamic-island";
 
 type UpdateStatus =
-  | { state: "idle" | "checking" | "latest" | "dev" | "error" }
+  | { state: "idle" | "checking" | "latest" | "dev" | "portable" | "error" }
   | { state: "ready"; version: string };
 
 /** Manual update check; a found update is downloaded and installed on demand. */
@@ -20,7 +20,7 @@ function UpdateRow() {
       const version = await command<string | null>("check_update");
       setStatus(version ? { state: "ready", version } : { state: "latest" });
     } catch (e) {
-      setStatus({ state: e === "dev" ? "dev" : "error" });
+      setStatus({ state: e === "dev" || e === "portable" ? (e as "dev" | "portable") : "error" });
     }
   };
 

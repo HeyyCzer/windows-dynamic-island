@@ -79,6 +79,7 @@
         // {version}: the new version, e.g. 1.2.3
         ready: "Version {version} is ready to install.",
         dev: "Development builds don't update.",
+        portable: "The portable version doesn't update itself. Download the new one from GitHub.",
         error: "Couldn't check for updates.",
         check: "Check",
         install: "Restart and update",
