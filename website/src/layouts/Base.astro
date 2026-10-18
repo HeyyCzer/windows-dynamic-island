@@ -13,6 +13,10 @@ const { lang, title, page } = Astro.props;
 const t = strings[lang];
 const other = t.otherLang;
 const canonical = new URL(href(lang, page), Astro.site);
+// This page in every language, for the browser-language redirect below.
+const pages = Object.fromEntries(
+	(Object.keys(strings) as Lang[]).map((l) => [l, href(l, page)]),
+);
 ---
 
 <!doctype html>
@@ -21,6 +25,43 @@ const canonical = new URL(href(lang, page), Astro.site);
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="color-scheme" content="dark" />
+		<!--
+			GitHub Pages can't negotiate languages, so the browser does it: on the
+			default (English) pages, send visitors to the first language in their
+			browser list that the site has. Picking a language in the switch is
+			remembered and always wins.
+		-->
+		<script is:inline define:vars={{ lang, pages }}>
+			const KEY = "lang";
+			let saved = null;
+			try {
+				saved = localStorage.getItem(KEY);
+			} catch {}
+			document.addEventListener("click", (e) => {
+				const a = e.target.closest?.("a[hreflang]");
+				if (!a) return;
+				try {
+					localStorage.setItem(KEY, a.hreflang);
+				} catch {}
+			});
+
+			const pick = () => {
+				const ours = Object.keys(pages);
+				for (const wanted of navigator.languages ?? [navigator.language]) {
+					const w = wanted.toLowerCase();
+					const hit =
+						ours.find((l) => l === w) ??
+						ours.find((l) => l.split("-")[0] === w.split("-")[0]);
+					if (hit) return hit;
+				}
+				return null;
+			};
+
+			const target = saved && pages[saved] ? saved : lang === "en" ? pick() : null;
+			if (target && target !== lang) {
+				location.replace(pages[target] + location.search + location.hash);
+			}
+		</script>
 		<title>{title}</title>
 		<meta name="description" content={t.meta.description} />
 		<link rel="canonical" href={canonical} />
