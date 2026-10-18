@@ -5,6 +5,8 @@ import Island from "./Island.astro";
 import { DOWNLOAD, REPO, href, strings, type Lang } from "../i18n";
 import pkg from "../../../package.json";
 
+import demo from "../../../docs/demo.gif";
+
 import agents from "../../../docs/screenshots/agents.png";
 import music from "../../../docs/screenshots/music.png";
 import compact from "../../../docs/screenshots/compact.png";
@@ -47,6 +49,11 @@ const looks = [lookDynamic, lookClassic, lookMono, lookAurora];
   </header>
 
   <main>
+    <section class="wrap demo">
+      <h2 class="visually-hidden">{t.demo.title}</h2>
+      <img class="shot demo-gif" src={demo.src} width={demo.width} height={demo.height} alt={t.demo.alt} loading="lazy" decoding="async" />
+    </section>
+
     <section class="wrap features">
       {
         features.map((f) => (
@@ -181,6 +188,25 @@ const looks = [lookDynamic, lookClassic, lookMono, lookAurora];
     font-weight: 600;
     letter-spacing: -0.02em;
     text-wrap: balance;
+  }
+
+  .demo {
+    max-width: 880px;
+    margin-bottom: clamp(88px, 12vw, 144px);
+  }
+
+  .demo-gif {
+    display: block;
+    height: auto;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   .features {

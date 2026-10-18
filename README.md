@@ -8,7 +8,7 @@ An iPhone/macOS-style Dynamic Island for the top of your Windows desktop. It sho
 
 [**Download the latest release**](https://github.com/HeyyCzer/windows-dynamic-island/releases/latest)
 
-<img src="docs/screenshots/compact.png" width="576" alt="Compact island: a Claude Code session waiting for permission, with music and GitHub bubbles" />
+<img src="docs/demo.gif" width="760" alt="The island in use: a WhatsApp message arrives, the next song starts, Claude Code asks to run a command, the volume changes, then the music and notifications tabs" />
 
 </div>
 

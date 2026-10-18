@@ -7,23 +7,33 @@ const art =
 		`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='#ff6a3d'/><stop offset='1' stop-color='#7b2ff7'/></linearGradient></defs><rect width='120' height='120' fill='url(#g)'/><circle cx='60' cy='60' r='26' fill='rgba(0,0,0,.35)'/></svg>`,
 	);
 
+const art2 =
+	"data:image/svg+xml;utf8," +
+	encodeURIComponent(
+		`<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><defs><linearGradient id='g' x1='0' y1='1' x2='1' y2='0'><stop offset='0' stop-color='#e8173c'/><stop offset='1' stop-color='#ffb02e'/></linearGradient></defs><rect width='120' height='120' fill='url(#g)'/><rect x='34' y='34' width='52' height='52' rx='10' fill='rgba(0,0,0,.3)'/></svg>`,
+	);
+
+const tracks = [
+	{ title: "Midnight City (Extended Version)", artist: "M83", album: "Hurry Up, We're Dreaming", durationMs: 283_000, thumbnail: art },
+	{ title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", durationMs: 200_000, thumbnail: art2 },
+];
+
 export function startMock() {
-	const start = Date.now();
+	// `?demo` plays a scripted tour (README GIF) instead of the random previews.
+	const demo = new URLSearchParams(location.search).has("demo");
+	let start = Date.now();
 	let playing = true;
+	let track = 0;
 
 	const publish = () =>
 		publishLocal("music", {
 			available: true,
 			playing,
-			title: "Midnight City (Extended Version)",
-			artist: "M83",
-			album: "Hurry Up, We're Dreaming",
+			...tracks[track],
 			appId: "Spotify.exe",
 			appName: "Spotify",
-			positionMs: ((Date.now() - start) % 240_000) + 30_000,
+			positionMs: ((Date.now() - start) % 240_000) + (demo ? 0 : 30_000),
 			positionAt: Date.now(),
-			durationMs: 283_000,
-			thumbnail: art,
 			canNext: true,
 			canPrevious: true,
 			youtubeId: null,
@@ -31,13 +41,21 @@ export function startMock() {
 
 	publish();
 	setInterval(publish, 1000);
-	publishClaude(start);
-	publishCodex(start);
-	publishGithub(start);
-	publishWindowsIsland(start);
-	publishClipboard(start);
+	if (demo) {
+		startDemo(start, () => {
+			track = 1;
+			start = Date.now() - 41_000;
+			publish();
+		});
+	} else {
+		publishClaude(start);
+		publishCodex(start);
+		publishGithub(start);
+		publishWindowsIsland(start);
+		publishClipboard(start);
+		publishCalendar(start);
+	}
 	publishMonitor();
-	publishCalendar(start);
 	setInterval(() => {
 		if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
 	}, 33);
@@ -51,10 +69,9 @@ export function startMock() {
 	});
 }
 
-function publishClaude(now: number) {
+function claudeState(now: number) {
 	const sec = (s: number) => Math.floor((now + s * 1000) / 1000);
-
-	const claudeBase = {
+	return {
 		sessions: [
 			{
 				id: "a",
@@ -121,8 +138,12 @@ function publishClaude(now: number) {
 			})),
 			last5hTokens: 2_300_000,
 		},
-		integration: { hooks: true, statusline: true, serverOk: true },
+		integration: { hooks: true, statusline: true, serverOk: true, permissions: true },
 	};
+}
+
+function publishClaude(now: number) {
+	const claudeBase = claudeState(now);
 	publishLocal("claude", claudeBase);
 
 	// Emulate the backend rolling the 5h window over after 10s, then clearing the flag.
@@ -385,4 +406,102 @@ function publishMonitor() {
 	};
 	tick();
 	setInterval(tick, 1000);
+}
+
+/**
+ * The README GIF: a quiet island where things happen one after another — a
+ * WhatsApp message, the next song, Claude asking to run a command.
+ */
+function startDemo(now: number, nextTrack: () => void) {
+	const base = claudeState(now);
+	const [editing, , finished] = base.sessions;
+	const tests = {
+		...base.sessions[1],
+		status: "working",
+		activity: { kind: "run", arg: "bun test" },
+		turnStartedAt: now - 95_000,
+		lastEventAt: now,
+		permission: null as object | null,
+	};
+	const claude = (...sessions: object[]) => publishLocal("claude", { ...base, sessions, limitsResetAt: null });
+	const activities = (items: object[]) => publishLocal("activities", { apiPort: 5199, hasBattery: true, items });
+	// Starts once the opening peek of the first song is over.
+	const at = (ms: number, fn: () => void) => setTimeout(fn, 4_000 + ms);
+
+	const history = [
+		{ id: 2, app: "Outlook", aumid: "", logo: null, title: "Weekly sync", body: "Moved to 3 PM", receivedAt: now - 1_800_000, read: true },
+	];
+	claude(editing, finished);
+	activities([]);
+	publishLocal("notifications", { access: "allowed", error: null, items: history });
+	publishLocal("ask", { available: true, running: false, status: null, unread: false, hotkey: "Ctrl+Alt+Space", messages: [] });
+	publishLocal("shelf", { items: [] });
+	publishLocal("clipboard", { items: [] });
+
+	at(2_500, () => {
+		const message = { id: 3, app: "WhatsApp", aumid: "", logo: null, title: "Ana", body: "Are we still on for tonight?", receivedAt: Date.now(), read: false };
+		publishLocal("notifications", { access: "allowed", error: null, items: [message, ...history] });
+		activities([
+			{
+				id: "notification.3",
+				title: message.title,
+				subtitle: message.body,
+				caption: message.app,
+				icon: "bell",
+				image: null,
+				color: "#0A84FF",
+				progress: null,
+				expiresAt: Date.now() + 4_500,
+				priority: 60,
+				action: null,
+				style: "standard",
+				expand: true,
+				source: "notification",
+				updatedAt: Date.now(),
+			},
+		]);
+	});
+	at(7_000, () => {
+		activities([]);
+		history.unshift({ id: 3, app: "WhatsApp", aumid: "", logo: null, title: "Ana", body: "Are we still on for tonight?", receivedAt: Date.now() - 5_000, read: true });
+		publishLocal("notifications", { access: "allowed", error: null, items: history });
+	});
+	at(8_500, nextTrack);
+	at(13_500, () =>
+		claude(
+			{
+				...tests,
+				status: "waiting",
+				activity: { kind: "run", arg: "bun test", permission: true },
+				tool: "Bash",
+				lastEventAt: Date.now(),
+				permission: { id: "p1", tool: "Bash", detail: "bun test --coverage", always: "Bash(bun test:*)", since: Date.now() },
+			},
+			editing,
+			finished,
+		),
+	);
+	at(18_500, () => claude({ ...tests, lastEventAt: Date.now() }, editing, finished));
+	at(20_500, () => {
+		activities([
+			{
+				id: "system.volume",
+				title: "Volume",
+				subtitle: null,
+				caption: null,
+				icon: "volume",
+				image: null,
+				color: null,
+				progress: 0.72,
+				expiresAt: Date.now() + 1_600,
+				priority: 100,
+				action: null,
+				style: "level",
+				expand: false,
+				source: "volume",
+				updatedAt: Date.now(),
+			},
+		]);
+	});
+	at(22_200, () => activities([]));
 }
