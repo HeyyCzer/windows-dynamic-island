@@ -1,111 +1,32 @@
-import { AnimatePresence, motion, type Transition } from "motion/react";
-import { useMemo, useRef, type CSSProperties, type ReactNode } from "react";
+import { motion } from "motion/react";
+import { useMemo } from "react";
 import { modules } from "../modules";
 import { useHitRects } from "../core/useHitRects";
-import { LAUNCHER, useIslandController, type ModuleEntry } from "../core/useIslandController";
+import { useIslandController } from "../core/useIslandController";
 import { useIslandDrag } from "../core/useIslandDrag";
-import { useFileDrop } from "../core/useFileDrop";
-import { draggingFiles, IslandContext, type IslandApi } from "../core/island";
-import { rimBackground, useAppearance, type Appearance } from "../core/appearance";
-import type { IslandMode } from "../core/types";
-import { command, useTauriEvent } from "../core/bridge";
-import { GearIcon, GridIcon } from "./icons";
-import { useSyncLocale, useT } from "../core/i18n";
-import { IdleClock } from "./IdleClock";
-import { attachFiles, requestAskFocus } from "../modules/ask/store";
+import { IslandContext, type IslandApi } from "../core/island";
+import { useAppearance } from "../core/appearance";
+import { useTauriEvent } from "../core/bridge";
+import { useSyncLocale } from "../core/i18n";
+import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
-import { addToShelf } from "../modules/shelf/actions";
-
-interface Geo {
-	width: number;
-	height: number;
-	radius: number;
-	ear: number;
-}
-
-/** Everything that differs between the two looks (see `IslandStyle`). */
-interface Variant {
-	idle: Geo;
-	compact: Geo;
-	expanded: Geo;
-	tabBar: number;
-	/** Gap between the top of the screen and the island. */
-	top: number;
-	tabsAtBottom: boolean;
-	shellSpring: Transition;
-	expandSpring: Transition;
-}
-
-/** Hangs from the top edge, notch-like, with concave ears. */
-const DYNAMIC: Variant = {
-	idle: { width: 150, height: 8, radius: 8, ear: 6 },
-	compact: { width: 265, height: 38, radius: 19, ear: 10 },
-	expanded: { width: 560, height: 190, radius: 32, ear: 14 },
-	tabBar: 46,
-	top: 0,
-	tabsAtBottom: false,
-	shellSpring: { type: "spring", stiffness: 420, damping: 34, mass: 0.9 },
-	expandSpring: { type: "spring", stiffness: 330, damping: 27, mass: 0.9 },
-};
-
-/** Windows Island: a floating pill with a livelier bounce, tabs at the bottom. */
-const WINDOWS: Variant = {
-	idle: { width: 140, height: 34, radius: 17, ear: 0 },
-	compact: { width: 265, height: 38, radius: 19, ear: 0 },
-	expanded: { width: 560, height: 190, radius: 34, ear: 0 },
-	tabBar: 44,
-	top: 8,
-	tabsAtBottom: true,
-	shellSpring: { type: "spring", stiffness: 380, damping: 29, mass: 0.9 },
-	expandSpring: { type: "spring", stiffness: 300, damping: 20, mass: 0.9 },
-};
-/** Windows Island at rest without the clock: a small, empty pill. */
-const WINDOWS_BARE_IDLE: Geo = { width: 110, height: 30, radius: 15, ear: 0 };
-
-const BUBBLE = 38;
-const BUBBLE_GAP = 10;
-
-/** Launcher grid: tiles per row, tile height and gap (px). */
-const LAUNCHER_COLS = 4;
-const TILE_H = 62;
-const TILE_GAP = 8;
-
-function launcherSize(count: number) {
-	const rows = Math.max(1, Math.ceil(count / LAUNCHER_COLS));
-	return { width: 560, height: 32 + rows * TILE_H + (rows - 1) * TILE_GAP };
-}
-
-function geometry(
-	v: Variant,
-	look: Appearance,
-	mode: IslandMode,
-	bigSize: { width: number; height: number } | undefined,
-	primary: ModuleEntry | undefined,
-) {
-	switch (mode) {
-		case "hidden":
-		case "swallowed":
-		case "idle":
-			return look.style === "windows" && !look.idleClock ? WINDOWS_BARE_IDLE : v.idle;
-		case "compact":
-			return { ...v.compact, width: primary?.view.compact?.width ?? v.compact.width };
-		case "peek":
-		case "expanded": {
-			const size = bigSize ?? v.expanded;
-			const extra = mode === "expanded" ? v.tabBar : 0;
-			return { ...v.expanded, width: size.width, height: size.height + extra };
-		}
-	}
-}
+import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
+import { islandContent } from "./island/content";
+import { ambientWidth, BUBBLE, BUBBLE_GAP, geometry, variantOf } from "./island/geometry";
+import { launcherSize } from "./island/Launcher";
+import { Rim } from "./island/Rim";
+import { Surface } from "./island/Surface";
+import { useIslandFileDrop } from "./island/useIslandFileDrop";
 
 export function Island() {
 	const ctl = useIslandController(modules);
 	const { mode, primary, secondary, focused } = ctl;
 	const look = useAppearance();
 	const windows = look.style === "windows";
-	const v = windows ? WINDOWS : DYNAMIC;
+	const v = variantOf(look);
 	useHitRects();
 	useSyncLocale();
+	useIslandFileDrop(ctl);
 
 	const bigSize = ctl.launcher ? launcherSize(ctl.entries.length) : focused?.view.expandedSize;
 	const g = geometry(v, look, mode, bigSize, primary);
@@ -113,48 +34,18 @@ export function Island() {
 	const hidden = mode === "hidden";
 	const swallowed = mode === "swallowed";
 	const resting = mode === "compact" || mode === "idle";
+	const showSecondary = mode === "compact" && secondary !== undefined;
+	const transition = big ? v.expandSpring : v.shellSpring;
 
-	const ambientCount = resting ? ctl.entries.filter((e) => e.view.ambient).length : 0;
 	const drag = useIslandDrag({
 		width: g.width,
-		leftExtra: g.ear + (ambientCount ? BUBBLE_GAP + ambientCount * BUBBLE + (ambientCount - 1) * 8 : 0),
-		rightExtra: g.ear + (mode === "compact" && secondary ? BUBBLE_GAP + BUBBLE : 0),
+		leftExtra: g.ear + (resting ? ambientWidth(ctl.entries.filter((e) => e.view.ambient).length) : 0),
+		rightExtra: g.ear + (showSecondary ? BUBBLE_GAP + BUBBLE : 0),
 		canReturn: !big,
 		onDragChange: ctl.lockHover,
 	});
 
-	// Files dragged over the island: the shelf opens to take them, unless
-	// "Ask Claude" is open (then they become attachments). The backend lets
-	// files in a little around the island too, so it stays open meanwhile.
-	const live = useRef({ mode, tab: ctl.tab });
-	live.current = { mode, tab: ctl.tab };
-	const asking = () => live.current.mode === "expanded" && live.current.tab === "ask";
-	useFileDrop({
-		onEnter: () => {
-			draggingFiles.set(true);
-			ctl.keepOpen(true, "files");
-			if (asking()) ctl.expand();
-			else ctl.expand("shelf");
-		},
-		onLeave: () => {
-			draggingFiles.set(false);
-			ctl.keepOpen(false, "files");
-		},
-		onDrop: (paths) => {
-			draggingFiles.set(false);
-			const toAsk = asking();
-			ctl.keepOpen(false, "files");
-			if (toAsk) {
-				attachFiles(paths);
-			} else {
-				addToShelf(paths);
-				// Pointer still over the island: it stays open; otherwise a peek.
-				ctl.peek("shelf");
-			}
-		},
-	});
-
-	// Global shortcut: the ask page opens (controller) and its input takes the keyboard.
+	// Global shortcut: the page opens (controller) and its input takes the keyboard.
 	useTauriEvent("island://ask", requestAskFocus);
 	useTauriEvent("island://find", requestFindFocus);
 
@@ -163,42 +54,9 @@ export function Island() {
 		[mode, ctl.tab, ctl.expand, ctl.collapse, ctl.keepOpen],
 	);
 
-	let contentKey: string;
-	let content: ReactNode = null;
-	if (mode === "compact" && primary?.view.compact) {
-		contentKey = `compact:${primary.module.id}`;
-		content = (
-			<div className="compact">
-				<div className="compact-slot">{primary.view.compact.left}</div>
-				<div className="compact-slot right">{primary.view.compact.right}</div>
-			</div>
-		);
-	} else if (big && (focused || ctl.launcher)) {
-		contentKey = ctl.launcher ? `big:${LAUNCHER}` : `big:${focused?.module.id}`;
-		const tabs = mode === "expanded" && (
-			<Tabs entries={ctl.tabs} current={ctl.tab} onSelect={ctl.setTab} iconsOnly={windows} transition={v.shellSpring} />
-		);
-		content = (
-			<div className={`expanded ${v.tabsAtBottom ? "tabs-bottom" : ""}`}>
-				{!v.tabsAtBottom && tabs}
-				<div className="expanded-body">
-					{ctl.launcher ? <Launcher entries={ctl.entries} onSelect={ctl.setTab} /> : focused?.view.expanded}
-				</div>
-				{v.tabsAtBottom && tabs}
-			</div>
-		);
-	} else if (windows && look.idleClock && (mode === "idle" || swallowed)) {
-		contentKey = "clock";
-		content = <IdleClock />;
-	} else {
-		contentKey = "idle";
-	}
-
-	const radius = windows
-		? { borderTopLeftRadius: g.radius, borderTopRightRadius: g.radius, borderBottomLeftRadius: g.radius, borderBottomRightRadius: g.radius }
-		: { borderTopLeftRadius: 0, borderTopRightRadius: 0, borderBottomLeftRadius: g.radius, borderBottomRightRadius: g.radius };
-	const transition = big ? v.expandSpring : v.shellSpring;
+	const content = islandContent(ctl, look, v);
 	const rim = windows ? <Rim look={look} /> : null;
+	const bubble = { transition: v.shellSpring, rim, onOpen: ctl.expand };
 
 	return (
 		<IslandContext.Provider value={api}>
@@ -236,196 +94,22 @@ export function Island() {
 						<motion.span className="ear left" initial={false} animate={{ width: g.ear, height: g.ear }} transition={v.shellSpring} />
 						<motion.span className="ear right" initial={false} animate={{ width: g.ear, height: g.ear }} transition={v.shellSpring} />
 
-						<motion.div
-							className={`surface ${big ? "is-big" : ""}`}
-							style={windows ? glowStyle(look) : undefined}
-							initial={false}
-							animate={radius}
+						<Surface
+							g={g}
+							big={big}
+							look={look}
 							transition={transition}
+							contentKey={content.key}
+							rim={rim}
 						>
-							<AnimatePresence mode="popLayout" initial={false}>
-								<motion.div
-									key={contentKey}
-									className="content"
-									style={{ width: g.width, height: g.height }}
-									initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
-									animate={{
-										opacity: 1,
-										scale: 1,
-										filter: "blur(0px)",
-										transition: { duration: 0.32, delay: 0.06, ease: [0.2, 0.9, 0.3, 1] },
-									}}
-									exit={{
-										opacity: 0,
-										scale: 0.94,
-										filter: "blur(8px)",
-										transition: { duration: 0.16, ease: "easeIn" },
-									}}
-								>
-									{content}
-								</motion.div>
-							</AnimatePresence>
-							{rim}
-						</motion.div>
+							{content.node}
+						</Surface>
 
-						<div className="ambient-bubbles">
-							<AnimatePresence>
-								{resting &&
-									ctl.entries
-										.filter((e) => e.view.ambient)
-										.map(({ module, view }) => (
-											<motion.button
-												key={module.id}
-												className="bubble ambient"
-												data-hit
-												layout
-												initial={{ opacity: 0, scale: 0.3, x: 40 }}
-												animate={{ opacity: 1, scale: mode === "idle" && !windows ? 0.84 : 1, x: 0 }}
-												exit={{ opacity: 0, scale: 0.3, x: 40 }}
-												transition={v.shellSpring}
-												onClick={(e) => {
-													e.stopPropagation();
-													ctl.expand(module.id);
-												}}
-											>
-												{view.ambient}
-												{rim}
-											</motion.button>
-										))}
-							</AnimatePresence>
-						</div>
-
-						<AnimatePresence>
-							{mode === "compact" && secondary && (
-								<motion.button
-									key={secondary.module.id}
-									className="bubble"
-									data-hit
-									initial={{ opacity: 0, scale: 0.3, x: -40 }}
-									animate={{ opacity: 1, scale: 1, x: 0 }}
-									exit={{ opacity: 0, scale: 0.3, x: -40 }}
-									transition={v.shellSpring}
-									onClick={(e) => {
-										e.stopPropagation();
-										ctl.expand(secondary.module.id);
-									}}
-								>
-									{secondary.view.icon}
-									{rim}
-								</motion.button>
-							)}
-						</AnimatePresence>
+						<AmbientBubbles entries={ctl.entries} visible={resting} shrunk={mode === "idle" && !windows} {...bubble} />
+						<SecondaryBubble entry={showSecondary ? secondary : undefined} {...bubble} />
 					</motion.div>
 				</motion.div>
 			</div>
 		</IslandContext.Provider>
-	);
-}
-
-/** The colored rim of the Windows Island style (a hairline when "classic"). */
-function Rim({ look }: { look: Appearance }) {
-	const background = rimBackground(look.rim);
-	return (
-		<span
-			className={`rim ${background ? "" : "is-classic"} ${background && look.animate ? "is-animated" : ""}`}
-			style={{ "--rim-bg": background, "--rim-w": `${background ? look.thickness : 1}px` } as CSSProperties}
-		/>
-	);
-}
-
-function glowStyle(look: Appearance): CSSProperties | undefined {
-	if (!look.glow || !look.rim.length) return undefined;
-	const color = look.rim[Math.floor(look.rim.length / 2)];
-	return { boxShadow: `0 0 20px -2px ${color}bb, 0 14px 34px -14px rgba(0, 0, 0, 0.7)` };
-}
-
-function Tabs({
-	entries,
-	current,
-	onSelect,
-	iconsOnly,
-	transition,
-}: {
-	entries: ModuleEntry[];
-	current: string | null;
-	onSelect: (id: string) => void;
-	iconsOnly: boolean;
-	transition: Transition;
-}) {
-	const t = useT();
-	return (
-		<div className={`tabs ${iconsOnly ? "icons-only" : ""}`}>
-			{entries.map(({ module, view }) => {
-				const selected = current === module.id;
-				return (
-					<button
-						key={module.id}
-						className={`tab ${selected ? "is-active" : ""}`}
-						title={t(module.title)}
-						style={{ "--tab-accent": view.accent ?? "#fff" } as CSSProperties}
-						onClick={() => onSelect(module.id)}
-					>
-						{selected && <motion.span layoutId="tab-pill" className="tab-pill" transition={transition} />}
-						<span className="tab-icon">{view.icon}</span>
-						{/* Many modules: only the open tab spells out its name. */}
-						{!iconsOnly && selected && <span className="tab-label">{t(module.title)}</span>}
-						{view.active && !selected && <span className="tab-dot" />}
-					</button>
-				);
-			})}
-			<button
-				className={`tab tab-launcher ${current === LAUNCHER ? "is-active" : ""}`}
-				title={t("layout.launcher")}
-				onClick={(e) => {
-					e.stopPropagation();
-					onSelect(LAUNCHER);
-				}}
-			>
-				{current === LAUNCHER && <motion.span layoutId="tab-pill" className="tab-pill" transition={transition} />}
-				<span className="tab-icon">
-					<GridIcon size={14} />
-				</span>
-			</button>
-			<motion.button
-				className="tab-gear"
-				title={t("island.settings")}
-				whileHover={{ rotate: 45 }}
-				whileTap={{ scale: 0.85 }}
-				transition={{ type: "spring", stiffness: 300, damping: 15 }}
-				onClick={(e) => {
-					e.stopPropagation();
-					command("open_settings");
-				}}
-			>
-				<GearIcon size={16} />
-			</motion.button>
-		</div>
-	);
-}
-
-/** Every enabled module as a grid of tiles, in the chosen order. */
-function Launcher({ entries, onSelect }: { entries: ModuleEntry[]; onSelect: (id: string) => void }) {
-	const t = useT();
-	return (
-		<div className="launcher" style={{ "--launcher-cols": LAUNCHER_COLS, "--tile-h": `${TILE_H}px`, "--tile-gap": `${TILE_GAP}px` } as CSSProperties}>
-			{entries.map(({ module, view }, i) => (
-				<motion.button
-					key={module.id}
-					className="launcher-tile"
-					style={{ "--tab-accent": view.accent ?? "#fff" } as CSSProperties}
-					initial={{ opacity: 0, scale: 0.92 }}
-					animate={{ opacity: 1, scale: 1 }}
-					transition={{ delay: 0.03 * i, type: "spring", stiffness: 420, damping: 28 }}
-					onClick={(e) => {
-						e.stopPropagation();
-						onSelect(module.id);
-					}}
-				>
-					<span className="launcher-icon">{view.icon}</span>
-					<span className="launcher-name">{t(module.title)}</span>
-					{view.active && <span className="tab-dot launcher-dot" />}
-				</motion.button>
-			))}
-		</div>
 	);
 }

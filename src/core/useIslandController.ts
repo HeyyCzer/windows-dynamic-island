@@ -23,6 +23,8 @@ const WHEEL_STEP_MS = 260;
 /** Pseudo tab: the grid with every module. */
 export const LAUNCHER = "launcher";
 
+export type IslandController = ReturnType<typeof useIslandController>;
+
 /**
  * Decides what the island shows: which modules are active, which one owns the
  * main slot, and whether the island is idle, compact, peeking or expanded.
