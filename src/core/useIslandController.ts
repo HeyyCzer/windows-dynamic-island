@@ -8,30 +8,20 @@ import {
   moduleEnabled,
   readSetting,
   useSettings,
+  type Values as Settings,
 } from "./settings";
-import type { IslandMode, IslandModule, ModuleView } from "./types";
+import type { IslandMode, IslandModule, ModuleEntry } from "./types";
+import { useIslandHover } from "./useIslandHover";
+import { usePeek } from "./usePeek";
+import { useTabMemory } from "./useTabMemory";
 
-const HOVER_IN_DELAY = 110;
-const HOVER_OUT_DELAY = 380;
-/**
- * Switching tabs can shrink the island out from under the pointer: for this
- * long after a switch, leaving waits {@link TAB_SWITCH_OUT_DELAY} instead.
- */
-const TAB_SWITCH_GRACE_MS = 2000;
-const TAB_SWITCH_OUT_DELAY = 1200;
-const PEEK_DURATION = 3800;
+export type { ModuleEntry } from "./types";
+
 /** Mouse wheel switches tabs at most this often. */
 const WHEEL_STEP_MS = 260;
-/** The island reopens on the last tab used if it closed less than this ago. */
-const REMEMBER_TAB_MS = 5 * 60_000;
 
 /** Pseudo tab: the grid with every module. */
 export const LAUNCHER = "launcher";
-
-export interface ModuleEntry {
-  module: IslandModule;
-  view: ModuleView;
-}
 
 /**
  * Decides what the island shows: which modules are active, which one owns the
@@ -39,216 +29,77 @@ export interface ModuleEntry {
  */
 export function useIslandController(modules: IslandModule[]) {
   const settings = useSettings();
-  // The registry is static, so calling each module's hook in order is stable.
-  // Disabled modules still run their hook (rules of hooks) but are dropped;
-  // the rest follow the order chosen in the settings.
-  const entries: ModuleEntry[] = inOrder(
-    modules
-      .map((module) => ({ module, view: module.useView() }))
-      .filter(({ module }) => readSetting(settings, moduleEnabled(module.id, module.title))),
-    (e) => e.module.id,
-    readSetting(settings, layoutSettings.order),
-  );
-  const pinned = readSetting(settings, layoutSettings.pinned);
-  const pinnedAlways = readSetting(settings, layoutSettings.pinnedAlways);
-  const hideInFullscreen = readSetting(settings, generalSettings.hideInFullscreen);
-  const expandOnHover = readSetting(settings, generalSettings.expandOnHover);
-  const swallowed = settings[ISLAND_HIDDEN_KEY] === true;
-  const expandOnHoverRef = useRef(expandOnHover);
-  expandOnHoverRef.current = expandOnHover;
+  const entries = useModuleEntries(modules, settings);
+  const fullscreen = useFullscreen();
 
-  const [hovered, setHovered] = useState(false);
-  const [fullscreen, setFullscreen] = useState(false);
-  const [peekId, setPeekId] = useState<string | null>(null);
-  const [tab, setTab] = useState<string | null>(null);
+  const attentionId = entries.find((e) => e.view.attention)?.module.id ?? null;
+  const tabMemory = useTabMemory(attentionId);
+  const { peekId, peek, endPeek } = usePeek(entries);
+  const hover = useIslandHover({
+    expandOnHover: readSetting(settings, generalSettings.expandOnHover),
+    onOpen: tabMemory.onIslandOpen,
+    onClose: tabMemory.onIslandClose,
+  });
 
-  // --- hover (driven by the Rust hit-test thread inside Tauri) -------------
-  const hoverTimer = useRef<number | undefined>(undefined);
-  // The open tab outlives the island closing for a while, then it's back to
-  // the default (the busiest module). A module waiting on the user wins.
-  const rememberTabUntil = useRef(0);
-  const attentionId = useRef<string | null>(null);
-  attentionId.current = entries.find((e) => e.view.attention)?.module.id ?? null;
-  const hoveredRef = useRef(false);
-  const tabSwitchedAt = useRef(0);
-  const setHover = useCallback((inside: boolean, immediate = false) => {
-    window.clearTimeout(hoverTimer.current);
-    // Back in before the island closed: nothing to redo.
-    if (inside && hoveredRef.current) return;
-    const apply = () => {
-      hoveredRef.current = inside;
-      setHovered(inside);
-      if (!inside) rememberTabUntil.current = Date.now() + REMEMBER_TAB_MS;
-      // `expand(tab)` (a click, a shortcut) marks its tab with Infinity: that one stays.
-      else if (attentionId.current && rememberTabUntil.current !== Infinity) setTab(attentionId.current);
-      else if (Date.now() > rememberTabUntil.current) setTab(null);
-    };
-    if (immediate) apply();
-    else {
-      const justSwitched = Date.now() - tabSwitchedAt.current < TAB_SWITCH_GRACE_MS;
-      const outDelay = justSwitched ? TAB_SWITCH_OUT_DELAY : HOVER_OUT_DELAY;
-      hoverTimer.current = window.setTimeout(apply, inside ? HOVER_IN_DELAY : outDelay);
-    }
-  }, []);
-  /** A tab picked by the user (click, launcher, wheel). */
-  const selectTab = useCallback((id: string | null) => {
-    tabSwitchedAt.current = Date.now();
-    setTab(id);
-  }, []);
-  // Leaving always collapses; entering only expands when hover-to-expand is on.
-  // Dragging the island keeps it as it is (the pointer may leave its shape).
-  const hoverLocked = useRef(false);
-  const lockHover = useCallback((locked: boolean) => {
-    hoverLocked.current = locked;
-    if (locked) window.clearTimeout(hoverTimer.current);
-  }, []);
-  // While typing a question (or dragging files in) the island stays open
-  // wherever the pointer goes; the pointer's last state applies once every
-  // reason to stay open has ended.
-  const holds = useRef(new Set<string>());
-  const keptOpen = useRef(false);
-  const pointerInside = useRef(false);
-  const onPointer = useCallback(
-    (inside: boolean) => {
-      pointerInside.current = inside;
-      if (hoverLocked.current || keptOpen.current) return;
-      if (!inside || expandOnHoverRef.current) setHover(inside);
-      else window.clearTimeout(hoverTimer.current);
-    },
-    [setHover],
-  );
-  useTauriEvent<boolean>("island://hover", onPointer);
-
-  const keepOpen = useCallback(
-    (on: boolean, reason = "default") => {
-      if (on) holds.current.add(reason);
-      else holds.current.delete(reason);
-      keptOpen.current = holds.current.size > 0;
-      if (keptOpen.current) window.clearTimeout(hoverTimer.current);
-      else if (!pointerInside.current) setHover(false);
-    },
-    [setHover],
-  );
-
-  // --- fullscreen apps hide the island --------------------------------------
-  useTauriEvent<boolean>("island://fullscreen", setFullscreen);
-  useEffect(() => {
-    command<boolean>("is_fullscreen_active").then((v) => setFullscreen(!!v));
-  }, []);
-
-  // --- peek when a module reports new activity ------------------------------
-  const lastKeys = useRef(new Map<string, string | undefined>());
-  const peekTimer = useRef<number | undefined>(undefined);
-  const keySignature = entries.map((e) => `${e.module.id}=${e.view.activityKey ?? ""}`).join("|");
-  useEffect(() => {
-    for (const { module, view } of entries) {
-      const seen = lastKeys.current.has(module.id);
-      const prev = lastKeys.current.get(module.id);
-      lastKeys.current.set(module.id, view.activityKey);
-      if (seen && view.activityKey && view.activityKey !== prev) {
-        setPeekId(module.id);
-        window.clearTimeout(peekTimer.current);
-        peekTimer.current = window.setTimeout(() => setPeekId(null), PEEK_DURATION);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keySignature]);
-
-  const active = useMemo(
-    () => entries.filter((e) => e.view.active).sort((a, b) => b.view.priority - a.view.priority),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [entries.map((e) => `${e.module.id}:${e.view.active}:${e.view.priority}`).join()],
-  );
-  const primary = active[0] ? entries.find((e) => e.module.id === active[0].module.id) : undefined;
-  const secondary = active[1] ? entries.find((e) => e.module.id === active[1].module.id) : undefined;
-
-  const mode: IslandMode = swallowed
-    ? "swallowed"
-    : fullscreen && hideInFullscreen
-      ? "hidden"
-      : hovered
-        ? "expanded"
-        : peekId
-          ? "peek"
-          : primary
-            ? "compact"
-            : "idle";
+  const { primary, secondary } = useBusiest(entries);
+  const mode = islandMode({
+    swallowed: settings[ISLAND_HIDDEN_KEY] === true,
+    hidden: fullscreen && readSetting(settings, generalSettings.hideInFullscreen),
+    expanded: hover.open,
+    peeking: peekId !== null,
+    busy: primary !== undefined,
+  });
 
   // A remembered tab whose module was turned off meanwhile doesn't count.
+  const { tab } = tabMemory;
   const openTab = tab === LAUNCHER || entries.some((e) => e.module.id === tab) ? tab : null;
   const focusedId =
     mode === "peek" ? peekId : (openTab ?? primary?.module.id ?? entries.find((e) => !e.view.hidden)?.module.id ?? null);
   const focused = entries.find((e) => e.module.id === focusedId);
-  const launcher = mode === "expanded" && focusedId === LAUNCHER;
-  /**
-   * Tab bar: the pinned modules that aren't hidden (empty), those pinned
-   * "even when empty", any busy one, and the focused one. Everything enabled
-   * is in the launcher.
-   */
-  const tabs = entries.filter(
-    (e) =>
-      pinnedAlways.includes(e.module.id) ||
-      (!e.view.hidden && (pinned.includes(e.module.id) || e.view.active)) ||
-      e.module.id === focusedId,
+  const tabs = tabBar(entries, settings, focusedId);
+
+  /** A tab picked by the user: the island may shrink away from the pointer. */
+  const selectTab = useCallback(
+    (id: string | null) => {
+      hover.expectResize();
+      tabMemory.setTab(id);
+    },
+    [hover.expectResize, tabMemory.setTab],
   );
 
   const expand = useCallback(
     (moduleId?: string) => {
-      if (moduleId) {
-        setTab(moduleId);
-        rememberTabUntil.current = Infinity;
-      }
-      setPeekId(null);
-      setHover(true, true);
+      if (moduleId) tabMemory.openOn(moduleId);
+      endPeek();
+      hover.expand();
     },
-    [setHover],
+    [tabMemory.openOn, endPeek, hover.expand],
   );
-  /** Briefly show a module, as if it had new activity. */
-  const peek = useCallback((moduleId: string) => {
-    setPeekId(moduleId);
-    window.clearTimeout(peekTimer.current);
-    peekTimer.current = window.setTimeout(() => setPeekId(null), PEEK_DURATION);
-  }, []);
-  // The pinned video went back to the island: show the player for a moment.
-  useTauriEvent("pip://return", () => peek("music"));
 
   const collapse = useCallback(() => {
-    holds.current.clear();
-    keptOpen.current = false;
-    setPeekId(null);
-    setHover(false, true);
-  }, [setHover]);
+    endPeek();
+    hover.collapse();
+  }, [endPeek, hover.collapse]);
 
-  // Global shortcut (Ctrl+Alt+Space): open "Ask Claude".
-  const askEnabled = entries.some((e) => e.module.id === "ask");
-  useTauriEvent("island://ask", () => askEnabled && expand("ask"));
-  // Ctrl+Alt+F: "Find on screen".
-  const findEnabled = entries.some((e) => e.module.id === "find");
-  useTauriEvent("island://find", () => findEnabled && expand("find"));
+  // The pinned video went back to the island: show the player for a moment.
+  useTauriEvent("pip://return", () => peek("music"));
+  // Global shortcuts: Ctrl+Alt+Space opens "Ask Claude", Ctrl+Alt+F "Find on screen".
+  const enabled = (id: string) => entries.some((e) => e.module.id === id);
+  useTauriEvent("island://ask", () => enabled("ask") && expand("ask"));
+  useTauriEvent("island://find", () => enabled("find") && expand("find"));
+  useTauriEvent<boolean>("island://hover", hover.onPointer);
 
-  // Mouse wheel over the open island flips through the tabs.
-  const lastWheel = useRef(0);
-  const tabIds = tabs.map((e) => e.module.id);
-  const onWheel = useCallback(
-    (e: WheelEvent) => {
-      if (mode !== "expanded" || Math.abs(e.deltaY) < 4) return;
-      // Scrollable content (chat, lists) keeps the wheel for itself.
-      if ((e.target as Element).closest("[data-scroll]")) return;
-      const now = performance.now();
-      if (now - lastWheel.current < WHEEL_STEP_MS) return;
-      lastWheel.current = now;
-      const i = tabIds.indexOf(focusedId ?? "");
-      const next = tabIds[Math.min(tabIds.length - 1, Math.max(0, i + Math.sign(e.deltaY)))];
-      if (next && next !== focusedId) selectTab(next);
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, focusedId, tabIds.join(), selectTab],
+  const onWheel = useWheelTabs(
+    mode === "expanded",
+    tabs.map((e) => e.module.id),
+    focusedId,
+    selectTab,
   );
 
   return {
     entries,
     tabs,
-    launcher,
+    launcher: mode === "expanded" && focusedId === LAUNCHER,
     mode,
     primary,
     secondary,
@@ -258,12 +109,105 @@ export function useIslandController(modules: IslandModule[]) {
     expand,
     peek,
     collapse,
-    keepOpen,
-    lockHover,
+    keepOpen: hover.keepOpen,
+    lockHover: hover.lockHover,
     onWheel,
     /** Browser-only hover handlers (Tauri uses the backend hit-test). */
     domHover: isTauri
       ? {}
-      : { onMouseEnter: () => onPointer(true), onMouseLeave: () => onPointer(false) },
+      : { onMouseEnter: () => hover.onPointer(true), onMouseLeave: () => hover.onPointer(false) },
   };
+}
+
+/**
+ * Every enabled module with its current view, in the order chosen in the
+ * settings. The registry is static, so calling each module's hook in order is
+ * stable; disabled modules still run their hook (rules of hooks) but are dropped.
+ */
+function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEntry[] {
+  return inOrder(
+    modules
+      .map((module) => ({ module, view: module.useView() }))
+      .filter(({ module }) => readSetting(settings, moduleEnabled(module.id, module.title))),
+    (e) => e.module.id,
+    readSetting(settings, layoutSettings.order),
+  );
+}
+
+/** The two active modules with the highest priority. */
+function useBusiest(entries: ModuleEntry[]) {
+  const active = useMemo(
+    () => entries.filter((e) => e.view.active).sort((a, b) => b.view.priority - a.view.priority),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [entries.map((e) => `${e.module.id}:${e.view.active}:${e.view.priority}`).join()],
+  );
+  // Looked up again so the views are this render's, not the memoized ones.
+  const fresh = (e?: ModuleEntry) => (e ? entries.find((x) => x.module.id === e.module.id) : undefined);
+  return { primary: fresh(active[0]), secondary: fresh(active[1]) };
+}
+
+/** Fullscreen apps hide the island. */
+function useFullscreen() {
+  const [fullscreen, setFullscreen] = useState(false);
+  useTauriEvent<boolean>("island://fullscreen", setFullscreen);
+  useEffect(() => {
+    command<boolean>("is_fullscreen_active").then((v) => setFullscreen(!!v));
+  }, []);
+  return fullscreen;
+}
+
+function islandMode(s: {
+  swallowed: boolean;
+  hidden: boolean;
+  expanded: boolean;
+  peeking: boolean;
+  busy: boolean;
+}): IslandMode {
+  if (s.swallowed) return "swallowed";
+  if (s.hidden) return "hidden";
+  if (s.expanded) return "expanded";
+  if (s.peeking) return "peek";
+  if (s.busy) return "compact";
+  return "idle";
+}
+
+/**
+ * Tab bar: the pinned modules that aren't hidden (empty), those pinned "even
+ * when empty", any busy one, and the focused one. Everything enabled is in the
+ * launcher.
+ */
+function tabBar(entries: ModuleEntry[], settings: Settings, focusedId: string | null) {
+  const pinned = readSetting(settings, layoutSettings.pinned);
+  const pinnedAlways = readSetting(settings, layoutSettings.pinnedAlways);
+  return entries.filter(
+    (e) =>
+      pinnedAlways.includes(e.module.id) ||
+      (!e.view.hidden && (pinned.includes(e.module.id) || e.view.active)) ||
+      e.module.id === focusedId,
+  );
+}
+
+/** Mouse wheel over the open island flips through the tabs. */
+function useWheelTabs(
+  enabled: boolean,
+  tabIds: string[],
+  current: string | null,
+  select: (id: string) => void,
+) {
+  const lastWheel = useRef(0);
+  return useCallback(
+    (e: WheelEvent) => {
+      if (!enabled || Math.abs(e.deltaY) < 4) return;
+      // Scrollable content (chat, lists) keeps the wheel for itself.
+      if ((e.target as Element).closest("[data-scroll]")) return;
+      const now = performance.now();
+      if (now - lastWheel.current < WHEEL_STEP_MS) return;
+      lastWheel.current = now;
+      const i = tabIds.indexOf(current ?? "");
+      const next = tabIds[Math.min(tabIds.length - 1, Math.max(0, i + Math.sign(e.deltaY)))];
+      if (next && next !== current) select(next);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [enabled, current, tabIds.join(), select],
+  );
 }

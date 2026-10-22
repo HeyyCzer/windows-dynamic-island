@@ -19,7 +19,7 @@ export interface SettingDef<T = boolean> {
   default: T;
 }
 
-type Values = Record<string, unknown>;
+export type Values = Record<string, unknown>;
 
 let values: Values = {};
 const listeners = new Set<() => void>();

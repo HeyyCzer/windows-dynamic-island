@@ -68,5 +68,11 @@ export interface IslandModule {
   SettingsSection?: ComponentType;
 }
 
+/** An enabled module together with its current view. */
+export interface ModuleEntry {
+  module: IslandModule;
+  view: ModuleView;
+}
+
 /** `hidden`: a fullscreen app is in front. `swallowed`: hidden in the tray's black hole. */
 export type IslandMode = "hidden" | "swallowed" | "idle" | "compact" | "peek" | "expanded";
