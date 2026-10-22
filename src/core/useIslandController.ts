@@ -13,6 +13,12 @@ import type { IslandMode, IslandModule, ModuleView } from "./types";
 
 const HOVER_IN_DELAY = 110;
 const HOVER_OUT_DELAY = 380;
+/**
+ * Switching tabs can shrink the island out from under the pointer: for this
+ * long after a switch, leaving waits {@link TAB_SWITCH_OUT_DELAY} instead.
+ */
+const TAB_SWITCH_GRACE_MS = 2000;
+const TAB_SWITCH_OUT_DELAY = 1200;
 const PEEK_DURATION = 3800;
 /** Mouse wheel switches tabs at most this often. */
 const WHEEL_STEP_MS = 260;
@@ -63,9 +69,14 @@ export function useIslandController(modules: IslandModule[]) {
   const rememberTabUntil = useRef(0);
   const attentionId = useRef<string | null>(null);
   attentionId.current = entries.find((e) => e.view.attention)?.module.id ?? null;
+  const hoveredRef = useRef(false);
+  const tabSwitchedAt = useRef(0);
   const setHover = useCallback((inside: boolean, immediate = false) => {
     window.clearTimeout(hoverTimer.current);
+    // Back in before the island closed: nothing to redo.
+    if (inside && hoveredRef.current) return;
     const apply = () => {
+      hoveredRef.current = inside;
       setHovered(inside);
       if (!inside) rememberTabUntil.current = Date.now() + REMEMBER_TAB_MS;
       // `expand(tab)` (a click, a shortcut) marks its tab with Infinity: that one stays.
@@ -73,7 +84,16 @@ export function useIslandController(modules: IslandModule[]) {
       else if (Date.now() > rememberTabUntil.current) setTab(null);
     };
     if (immediate) apply();
-    else hoverTimer.current = window.setTimeout(apply, inside ? HOVER_IN_DELAY : HOVER_OUT_DELAY);
+    else {
+      const justSwitched = Date.now() - tabSwitchedAt.current < TAB_SWITCH_GRACE_MS;
+      const outDelay = justSwitched ? TAB_SWITCH_OUT_DELAY : HOVER_OUT_DELAY;
+      hoverTimer.current = window.setTimeout(apply, inside ? HOVER_IN_DELAY : outDelay);
+    }
+  }, []);
+  /** A tab picked by the user (click, launcher, wheel). */
+  const selectTab = useCallback((id: string | null) => {
+    tabSwitchedAt.current = Date.now();
+    setTab(id);
   }, []);
   // Leaving always collapses; entering only expands when hover-to-expand is on.
   // Dragging the island keeps it as it is (the pointer may leave its shape).
@@ -219,10 +239,10 @@ export function useIslandController(modules: IslandModule[]) {
       lastWheel.current = now;
       const i = tabIds.indexOf(focusedId ?? "");
       const next = tabIds[Math.min(tabIds.length - 1, Math.max(0, i + Math.sign(e.deltaY)))];
-      if (next && next !== focusedId) setTab(next);
+      if (next && next !== focusedId) selectTab(next);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [mode, focusedId, tabIds.join()],
+    [mode, focusedId, tabIds.join(), selectTab],
   );
 
   return {
@@ -234,7 +254,7 @@ export function useIslandController(modules: IslandModule[]) {
     secondary,
     focused,
     tab: focusedId,
-    setTab,
+    setTab: selectTab,
     expand,
     peek,
     collapse,
