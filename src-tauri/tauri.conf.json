@@ -60,7 +60,7 @@
         "https://github.com/HeyyCzer/windows-dynamic-island/releases/latest/download/latest.json"
       ],
       "windows": {
-        "installMode": "passive"
+        "installMode": "quiet"
       }
     }
   }
