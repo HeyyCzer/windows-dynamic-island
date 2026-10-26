@@ -1,5 +1,5 @@
 import { motion, type Transition } from "motion/react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { command } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 import type { ModuleEntry } from "../../core/types";
@@ -12,12 +12,15 @@ export function Tabs({
 	onSelect,
 	iconsOnly,
 	transition,
+	extra,
 }: {
 	entries: ModuleEntry[];
 	current: string | null;
 	onSelect: (id: string) => void;
 	iconsOnly: boolean;
 	transition: Transition;
+	/** The open module's `tabBarExtra`, shown next to the gear. */
+	extra?: ReactNode;
 }) {
 	const t = useT();
 	const pill = <motion.span layoutId="tab-pill" className="tab-pill" transition={transition} />;
@@ -54,6 +57,12 @@ export function Tabs({
 					<GridIcon size={14} />
 				</span>
 			</button>
+			{/* Sliders inside: pressing them must not drag the island. */}
+			{extra && (
+				<div className="tab-extra" data-no-drag>
+					{extra}
+				</div>
+			)}
 			<motion.button
 				className="tab-gear"
 				title={t("island.settings")}

@@ -1,6 +1,6 @@
 # Privacy Policy — Dynamic Island for Windows
 
-*Last updated: October 15, 2026*
+*Last updated: October 26, 2026*
 
 Dynamic Island for Windows ("the app") is a free, open-source desktop app published at [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island). This policy explains what data the app touches, where it goes and how to remove it.
 
@@ -8,7 +8,7 @@ Dynamic Island for Windows ("the app") is a free, open-source desktop app publis
 
 - The app runs entirely on your computer. **There is no server of ours**: no account, no analytics, no telemetry, no ads, no crash reporting.
 - We (the developers) **never receive any of your data**.
-- When a feature needs an online service (Google Calendar, GitHub, Anthropic, YouTube, update checks), the app talks to that service directly from your computer, and only after you turn that feature on.
+- When a feature needs an online service (Google Calendar, Spotify, GitHub, Anthropic, YouTube, update checks), the app talks to that service directly from your computer, and only after you turn that feature on.
 - We do not sell, rent or share your data with anyone.
 
 ## What stays on your computer
@@ -16,7 +16,7 @@ Dynamic Island for Windows ("the app") is a free, open-source desktop app publis
 | Data | Where | Why |
 | --- | --- | --- |
 | Settings | `%APPDATA%\com.heyyczer.dynamicisland\settings.json` | Remember your preferences |
-| Tokens and private links (Google Calendar refresh token, GitHub token, private calendar feed URLs) | Windows Credential Manager | Keep secrets out of plain-text files |
+| Tokens and private links (Google Calendar and Spotify refresh tokens, GitHub token, private calendar feed URLs) | Windows Credential Manager | Keep secrets out of plain-text files |
 | Shelf items (paths to files you dropped, not the files) | `%APPDATA%\com.heyyczer.dynamicisland\shelf.json` | Keep the shelf between restarts |
 | Screenshots and attachments for Ask Claude, clipboard pictures | `%APPDATA%\com.heyyczer.dynamicisland\` and, when you choose to keep a picture, *Pictures\Screenshots* | Attach them to a question or let you drag them out |
 | Calendar events, clipboard text, mirrored notifications, now-playing info, system stats, the text read off the screen by Find on screen | Memory only | Show them in the island; gone when the app closes |
@@ -53,6 +53,16 @@ If you click **Connect Google Calendar**, you sign in on Google's own page and g
 
 The app's use and transfer of information received from Google APIs adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements. Google user data is not used for advertising, is not sold, is not transferred to third parties, is not used to train AI models, and is not read by humans.
 
+### Spotify
+
+If Spotify plays on another device (a phone, a speaker, another computer), you can connect your Spotify account in the Music settings so the island's volume slider controls that device. You create your own Spotify app, paste its Client ID, and sign in on Spotify's own page, granting the scopes `user-read-playback-state` and `user-modify-playback-state`.
+
+- **What is accessed:** the device your account is playing on (its name and volume), read every few seconds while the music panel shows Spotify playing elsewhere.
+- **How it is used:** only to show that volume next to the island's gear and to change it when you move the slider. Nothing else in your account is read or changed.
+- **Where it goes:** requests go directly from your computer to Spotify (`accounts.spotify.com`, `api.spotify.com`) over HTTPS. Sign-in uses OAuth with PKCE (S256) and a random `state`; the browser returns to `127.0.0.1:43821` (fixed, because Spotify requires a registered redirect), reachable only from your computer and closed when sign-in ends or after three minutes.
+- **Storage:** the Client ID and the refresh token are stored in the Windows Credential Manager. Access tokens are kept in memory only.
+- **Disconnecting:** **Disconnect** deletes the token from your computer (Spotify has no endpoint to revoke it). You can remove the app's access at any time at [spotify.com/account/apps](https://www.spotify.com/account/apps/).
+
 ### Calendar feeds (iCal)
 
 Calendar links you add are fetched directly from the server that hosts them. The links are stored in the Windows Credential Manager.
@@ -81,11 +91,11 @@ The app listens on `127.0.0.1:5199`, reachable only from your own computer, so y
 
 ## Third-party services
 
-When the app talks to Google, GitHub, Anthropic or YouTube, those companies process the request under their own privacy policies. We have no access to that data.
+When the app talks to Google, Spotify, GitHub, Anthropic or YouTube, those companies process the request under their own privacy policies. We have no access to that data.
 
 ## Deleting your data
 
-- Disconnect Google Calendar or remove GitHub tokens and feeds in **Settings**.
+- Disconnect Google Calendar or Spotify, or remove GitHub tokens and feeds, in **Settings**.
 - Uninstall the app and delete `%APPDATA%\com.heyyczer.dynamicisland`.
 - Disabling the Claude Code integration in **Settings** restores your previous `~/.claude/settings.json`.
 

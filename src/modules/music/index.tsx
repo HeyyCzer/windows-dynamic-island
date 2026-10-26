@@ -8,6 +8,8 @@ import type { IslandModule, ModuleView } from "../../core/types";
 import { Artwork } from "./components/Artwork";
 import { MusicCompactLeft, MusicCompactRight } from "./components/MusicCompact";
 import { MusicPanel } from "./components/MusicPanel";
+import { SpotifySettings } from "./components/SpotifySettings";
+import { VolumeSliders } from "./components/VolumeSliders";
 import { useAccentColor } from "./hooks/useAccentColor";
 import { useMusic } from "./hooks/useMusic";
 import { musicSettings } from "./settings";
@@ -19,6 +21,7 @@ export const musicModule: IslandModule = {
   title: "music.title",
   settingsIcon: <MusicIcon size={15} />,
   settings: Object.values(musicSettings),
+  SettingsSection: SpotifySettings,
   useView(): ModuleView {
     const { music, active } = useMusic();
     const accent = useAccentColor(music?.thumbnail);
@@ -36,6 +39,7 @@ export const musicModule: IslandModule = {
       },
       expanded: <MusicPanel music={music} accent={accent} showVisualizer={showVisualizer} />,
       expandedSize: { width: 560, height: 176 },
+      tabBarExtra: <VolumeSliders music={music} />,
       activityKey: autoExpand && music?.playing ? `${music.title}|${music.artist}` : undefined,
     };
   },

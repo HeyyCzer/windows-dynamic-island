@@ -299,6 +299,16 @@ body.preview {
   color: var(--text-faint);
   transition: color 0.2s, background 0.2s;
 }
+/* The open module's controls (e.g. volume) take the gear's push to the right. */
+.tab-extra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+.tab-extra + .tab-gear {
+  margin-left: 0;
+}
 .tab-gear:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.08);
@@ -390,7 +400,8 @@ body.preview {
   right: 3px;
   box-shadow: 0 0 0 1.5px #000;
 }
-.expanded.tabs-bottom .tab-gear {
+.expanded.tabs-bottom .tab-gear,
+.expanded.tabs-bottom .tab-extra {
   margin-left: 6px;
 }
 

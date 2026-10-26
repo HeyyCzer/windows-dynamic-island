@@ -72,6 +72,12 @@ export const MusicIcon = (p: P) => (
   </svg>
 );
 
+export const ComputerIcon = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M4.5 3.5h15A2.5 2.5 0 0 1 22 6v9a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 15V6a2.5 2.5 0 0 1 2.5-2.5ZM8 19.5h8a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2Z" />
+  </svg>
+);
+
 export const GearIcon = (p: P) => (
   <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />

@@ -37,6 +37,10 @@ export function startMock() {
 			canNext: true,
 			canPrevious: true,
 			youtubeId: null,
+			volume: { level: 0.42, muted: false },
+			appVolume: { level: 0.8, muted: false },
+			appIcon: null,
+			appDevice: null,
 		});
 
 	publish();
