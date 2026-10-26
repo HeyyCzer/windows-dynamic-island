@@ -72,6 +72,13 @@ export const MusicIcon = (p: P) => (
   </svg>
 );
 
+/** A font-independent water drop used by the hydration module. */
+export const WaterDropIcon = (p: P) => (
+  <svg {...base(p)} viewBox="0 0 24 24">
+    <path d="M12 2.8c-1.7 3-6.5 7.8-6.5 12.2a6.5 6.5 0 0 0 13 0c0-4.4-4.8-9.2-6.5-12.2Zm0 16.2a4 4 0 0 1-4-4c0-2.1 2-5.1 4-8.1 2 3 4 6 4 8.1a4 4 0 0 1-4 4Z" />
+  </svg>
+);
+
 export const GearIcon = (p: P) => (
   <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />

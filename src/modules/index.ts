@@ -6,6 +6,7 @@ import { clipboardModule } from "./clipboard";
 import { clockModule } from "./clock";
 import { findModule } from "./find";
 import { githubModule } from "./github";
+import { hydrationModule } from "./hydration";
 import { monitorModule } from "./monitor";
 import { musicModule } from "./music";
 import { notificationsModule } from "./notifications";
@@ -29,6 +30,7 @@ export const modules: IslandModule[] = [
   shelfModule,
   clipboardModule,
   githubModule,
+  hydrationModule,
   monitorModule,
   clockModule,
 ];

@@ -44,6 +44,8 @@ export interface ModuleView {
    * goes to this module's tab instead of the last one used.
    */
   attention?: boolean;
+  /** Keeps the island open until this module's required action is resolved. */
+  forceExpanded?: boolean;
 }
 
 export interface IslandModule {

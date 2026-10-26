@@ -130,6 +130,38 @@
     backToIsland: "Voltar para a ilha",
   },
 
+  // Módulo de lembrete de hidratação
+  hydration: {
+    title: "Alarme de hidratação",
+    reminder: "Hora de se hidratar",
+    titleDue: "Beba água",
+    message: "Uma pequena pausa agora ajuda você a se manter bem.",
+    next: "Próximo lembrete de hidratação",
+    status: "O próximo lembrete está em contagem regressiva.",
+    paused: "Lembrete pausado",
+    confirm: "Bebi água",
+    pause: "Pausar",
+    start: "Iniciar timer",
+    minutes: "{n} min",
+    autoStart: {
+      label: "Iniciar automaticamente",
+      desc: "Inicia um novo timer quando a ilha é aberta.",
+    },
+    showBubble: {
+      label: "Exibir bolha com tempo",
+      desc: "Mostra o tempo restante ao lado da ilha.",
+    },
+    interval: {
+      label: "Intervalo do lembrete",
+      desc: "Quanto tempo esperar entre os lembretes de hidratação.",
+    },
+    snooze: {
+      label: "Tempo para adiar",
+      desc: "Quanto tempo esperar após escolher Adiar.",
+      action: "Adiar",
+    },
+  },
+
   // Módulo AI Agents
   agents: {
     title: "AI Agents",
