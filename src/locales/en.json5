@@ -155,9 +155,12 @@
     next: "Next hydration reminder",
     status: "Your next reminder is counting down.",
     paused: "Reminder paused",
+    pausedStatus: "The remaining time is kept until you resume.",
     confirm: "I drank water",
     pause: "Pause",
     start: "Start timer",
+    resume: "Resume",
+    reset: "Restart",
     minutes: "{n} min",
     autoStart: {
       label: "Start automatically",

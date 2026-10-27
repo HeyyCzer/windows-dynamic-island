@@ -21,6 +21,7 @@ function useHydrationTimer(intervalMinutes: number, snoozeMinutes: number, autoS
   const intervalMs = intervalMinutes * MINUTE;
   const snoozeMs = snoozeMinutes * MINUTE;
   const [deadline, setDeadline] = useState<number | null>(() => (autoStart && enabled ? Date.now() + intervalMs : null));
+  const [pausedRemaining, setPausedRemaining] = useState<number | null>(null);
   const [due, setDue] = useState(false);
   // Each pause/restart invalidates any timeout created for an older deadline.
   const generation = useRef(0);
@@ -34,6 +35,7 @@ function useHydrationTimer(intervalMinutes: number, snoozeMinutes: number, autoS
     previousConfig.current = config;
     generation.current += 1;
     setDue(false);
+    setPausedRemaining(null);
     setDeadline(autoStart && enabled ? Date.now() + intervalMs : null);
   }, [autoStart, config, enabled, intervalMs]);
 
@@ -57,20 +59,24 @@ function useHydrationTimer(intervalMinutes: number, snoozeMinutes: number, autoS
   const begin = useCallback((duration = intervalMs) => {
     generation.current += 1;
     setDue(false);
+    setPausedRemaining(null);
     setDeadline(Date.now() + duration);
   }, [intervalMs]);
 
   return {
     deadline,
+    pausedRemaining,
     due,
     // `onClick` passes a MouseEvent as its first argument, so expose a
     // zero-argument action rather than handing `begin` to the button.
     start: () => begin(),
     confirm: () => begin(),
     snooze: () => begin(snoozeMs),
+    resume: () => begin(pausedRemaining ?? intervalMs),
     pause: () => {
       generation.current += 1;
       setDue(false);
+      setPausedRemaining(deadline ? Math.max(0, deadline - Date.now()) : null);
       setDeadline(null);
     },
   };
@@ -102,7 +108,7 @@ export const hydrationModule: IslandModule = {
         width: 265,
       } : undefined,
       ambient: showBubble && timer.deadline ? <HydrationBubble deadline={timer.deadline} due={timer.due} /> : undefined,
-      expanded: <HydrationPanel deadline={timer.deadline} due={timer.due} onConfirm={timer.confirm} onSnooze={timer.snooze} onStart={timer.start} onPause={timer.pause} />,
+      expanded: <HydrationPanel deadline={timer.deadline} pausedRemaining={timer.pausedRemaining} due={timer.due} onConfirm={timer.confirm} onSnooze={timer.snooze} onStart={timer.start} onResume={timer.resume} onPause={timer.pause} />,
       expandedSize: { width: 560, height: 128 },
       // This changes exactly once per reminder and lets the shared controller
       // expand the module without changing any other island interaction.

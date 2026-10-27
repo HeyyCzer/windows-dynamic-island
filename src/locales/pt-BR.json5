@@ -139,9 +139,12 @@
     next: "Próximo lembrete de hidratação",
     status: "O próximo lembrete está em contagem regressiva.",
     paused: "Lembrete pausado",
+    pausedStatus: "O tempo restante será mantido até você retomar.",
     confirm: "Bebi água",
     pause: "Pausar",
     start: "Iniciar timer",
+    resume: "Retomar",
+    reset: "Reiniciar",
     minutes: "{n} min",
     autoStart: {
       label: "Iniciar automaticamente",
