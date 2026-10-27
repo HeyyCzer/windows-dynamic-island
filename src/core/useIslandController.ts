@@ -34,7 +34,10 @@ export function useIslandController(modules: IslandModule[]) {
   const entries = useModuleEntries(modules, settings);
   const fullscreen = useFullscreen();
 
-  const attentionId = entries.find((e) => e.view.attention)?.module.id ?? null;
+  // Required actions (such as a hydration reminder at zero) take precedence
+  // over ordinary attention requests when deciding which tab opens.
+  const forcedId = entries.find((e) => e.view.forceExpanded)?.module.id ?? null;
+  const attentionId = forcedId ?? entries.find((e) => e.view.attention)?.module.id ?? null;
   const tabMemory = useTabMemory(attentionId);
   const { peekId, peek, endPeek } = usePeek(entries);
   const hover = useIslandHover({
@@ -44,10 +47,12 @@ export function useIslandController(modules: IslandModule[]) {
   });
 
   const { primary, secondary } = useBusiest(entries);
+  const forceExpanded = forcedId !== null;
   const mode = islandMode({
     swallowed: settings[ISLAND_HIDDEN_KEY] === true,
     hidden: fullscreen && readSetting(settings, generalSettings.hideInFullscreen),
     expanded: hover.open,
+    forceExpanded,
     peeking: peekId !== null,
     busy: primary !== undefined,
   });
@@ -56,7 +61,7 @@ export function useIslandController(modules: IslandModule[]) {
   const { tab } = tabMemory;
   const openTab = tab === LAUNCHER || entries.some((e) => e.module.id === tab) ? tab : null;
   const focusedId =
-    mode === "peek" ? peekId : (openTab ?? primary?.module.id ?? entries.find((e) => !e.view.hidden)?.module.id ?? null);
+    forcedId ?? (mode === "peek" ? peekId : (openTab ?? primary?.module.id ?? entries.find((e) => !e.view.hidden)?.module.id ?? null));
   const focused = entries.find((e) => e.module.id === focusedId);
   const tabs = tabBar(entries, settings, focusedId);
 
@@ -130,7 +135,7 @@ function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEn
   return inOrder(
     modules
       .map((module) => ({ module, view: module.useView() }))
-      .filter(({ module }) => readSetting(settings, moduleEnabled(module.id, module.title))),
+      .filter(({ module }) => readSetting(settings, moduleEnabled(module))),
     (e) => e.module.id,
     readSetting(settings, layoutSettings.order),
   );
@@ -162,12 +167,13 @@ function islandMode(s: {
   swallowed: boolean;
   hidden: boolean;
   expanded: boolean;
+  forceExpanded: boolean;
   peeking: boolean;
   busy: boolean;
 }): IslandMode {
   if (s.swallowed) return "swallowed";
   if (s.hidden) return "hidden";
-  if (s.expanded) return "expanded";
+  if (s.expanded || s.forceExpanded) return "expanded";
   if (s.peeking) return "peek";
   if (s.busy) return "compact";
   return "idle";

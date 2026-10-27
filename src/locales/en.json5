@@ -187,6 +187,42 @@
     },
   },
 
+  // Hydration reminder module
+  hydration: {
+    title: "Hydration reminder",
+    reminder: "Time to hydrate",
+    titleDue: "Have some water",
+    message: "A small break now helps you stay refreshed.",
+    next: "Next hydration reminder",
+    status: "Your next reminder is counting down.",
+    paused: "Reminder paused",
+    pausedStatus: "The remaining time is kept until you resume.",
+    confirm: "I drank water",
+    pause: "Pause",
+    start: "Start timer",
+    resume: "Resume",
+    reset: "Restart",
+    minutes: "{n} min",
+    custom: "Custom",
+    autoStart: {
+      label: "Start automatically",
+      desc: "Starts a new timer whenever the island opens.",
+    },
+    showBubble: {
+      label: "Show countdown bubble",
+      desc: "Shows the remaining time beside the island.",
+    },
+    interval: {
+      label: "Reminder interval",
+      desc: "How long to wait between hydration reminders.",
+    },
+    snooze: {
+      label: "Snooze time",
+      desc: "How long to wait after choosing Snooze.",
+      action: "Snooze",
+    },
+  },
+
   // AI Agents module (agent-agnostic UI)
   agents: {
     title: "AI Agents",

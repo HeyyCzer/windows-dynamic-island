@@ -45,7 +45,7 @@ export const activitiesModule: IslandModule = {
 
     const shown = (a: Activity) => {
       const owner = MODULE_SOURCES[a.source];
-      if (owner) return readSetting(settings, moduleEnabled(owner, "activities.title"));
+      if (owner) return readSetting(settings, moduleEnabled({ id: owner, title: "activities.title" }));
       return readSetting(settings, SOURCE_SETTING[a.source] ?? activitySettings.api);
     };
     const items = (state?.items ?? []).filter(shown);

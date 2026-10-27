@@ -22,7 +22,7 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
   const hidden = (module.useHiddenSettings ?? noHidden)();
   const settings = module.settings?.filter((def) => !hidden.includes(def.key)) ?? [];
 
-  const enabledDef = moduleEnabled(module.id, module.title);
+  const enabledDef = moduleEnabled(module);
   const enabled = readSetting(values, enabledDef);
   const Section = module.SettingsSection;
 

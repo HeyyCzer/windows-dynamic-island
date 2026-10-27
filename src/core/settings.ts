@@ -10,6 +10,7 @@ import { useSyncExternalStore } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { command, isTauri } from "./bridge";
 import type { MessageKey } from "./i18n";
+import type { IslandModule } from "./types";
 
 export interface SettingDef<T = boolean> {
   key: string;
@@ -81,10 +82,10 @@ export function setSetting<T>(def: SettingDef<T> | string, value: T) {
 }
 
 /** Every module gets an on/off switch. */
-export const moduleEnabled = (id: string, title: MessageKey): SettingDef => ({
+export const moduleEnabled = ({ id, title, enabledByDefault = true }: Pick<IslandModule, "id" | "title" | "enabledByDefault">): SettingDef => ({
   key: `module.${id}.enabled`,
   label: title,
-  default: true,
+  default: enabledByDefault,
 });
 
 export const generalSettings = {

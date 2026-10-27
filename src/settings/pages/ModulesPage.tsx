@@ -35,7 +35,7 @@ export function ModulesPage({ values }: { values: Record<string, unknown> }) {
             <ModuleRow
               key={m.id}
               module={m}
-              enabled={readSetting(values, moduleEnabled(m.id, m.title))}
+              enabled={readSetting(values, moduleEnabled(m))}
             />
           ))}
         </Reorder.Group>
@@ -72,7 +72,7 @@ function ModuleRow({
         <span className="layout-name">{t(module.title)}</span>
       </button>
       <PlacementSelect moduleId={module.id} disabled={!enabled} className="layout-place" />
-      <Toggle checked={enabled} onChange={(v) => setSetting(moduleEnabled(module.id, module.title), v)} />
+      <Toggle checked={enabled} onChange={(v) => setSetting(moduleEnabled(module), v)} />
       <button type="button" className="layout-chevron" title={t("modules.open")} onClick={open}>
         ›
       </button>
