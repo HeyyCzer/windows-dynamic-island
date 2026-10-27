@@ -1,6 +1,6 @@
 # Política de Privacidade — Dynamic Island para Windows
 
-*Última atualização: 15 de outubro de 2026*
+*Última atualização: 26 de outubro de 2026*
 
 Dynamic Island para Windows ("o app") é um app de desktop gratuito e de código aberto, publicado em [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island). Esta política explica quais dados o app acessa, para onde eles vão e como removê-los.
 
@@ -10,7 +10,7 @@ Esta é uma tradução da [versão em inglês](https://island.heyyczer.com/priva
 
 - O app roda inteiramente no seu computador. **Não existe servidor nosso**: sem conta, sem analytics, sem telemetria, sem anúncios, sem relatórios de falha.
 - Nós (os desenvolvedores) **nunca recebemos nenhum dado seu**.
-- Quando um recurso precisa de um serviço online (Google Agenda, GitHub, Anthropic, YouTube, verificação de atualizações), o app fala com esse serviço direto do seu computador, e só depois que você liga esse recurso.
+- Quando um recurso precisa de um serviço online (Google Agenda, Spotify, GitHub, Anthropic, YouTube, verificação de atualizações), o app fala com esse serviço direto do seu computador, e só depois que você liga esse recurso.
 - Não vendemos, alugamos nem compartilhamos seus dados com ninguém.
 
 ## O que fica no seu computador
@@ -18,7 +18,7 @@ Esta é uma tradução da [versão em inglês](https://island.heyyczer.com/priva
 | Dado | Onde | Por quê |
 | --- | --- | --- |
 | Configurações | `%APPDATA%\com.heyyczer.dynamicisland\settings.json` | Lembrar suas preferências |
-| Tokens e links privados (refresh token do Google Agenda, token do GitHub, URLs de feeds de agenda privados) | Gerenciador de Credenciais do Windows | Manter segredos fora de arquivos de texto |
+| Tokens e links privados (refresh tokens do Google Agenda e do Spotify, token do GitHub, URLs de feeds de agenda privados) | Gerenciador de Credenciais do Windows | Manter segredos fora de arquivos de texto |
 | Itens da prateleira (caminhos dos arquivos que você soltou, não os arquivos) | `%APPDATA%\com.heyyczer.dynamicisland\shelf.json` | Manter a prateleira entre reinícios |
 | Prints e anexos do Pergunte ao Claude, imagens da área de transferência | `%APPDATA%\com.heyyczer.dynamicisland\` e, quando você escolhe guardar uma imagem, *Imagens\Capturas de Tela* | Anexar a uma pergunta ou deixar você arrastar para fora |
 | Eventos da agenda, texto da área de transferência, notificações espelhadas, o que está tocando, estatísticas do sistema, o texto lido da tela pelo Procurar na tela | Só na memória | Mostrar na ilha; somem quando o app fecha |
@@ -55,6 +55,16 @@ Se você clica em **Conectar Google Agenda**, você entra na própria página do
 
 O uso e a transferência, pelo app, de informações recebidas das APIs do Google seguem a [Política de Dados do Usuário dos Serviços de API do Google](https://developers.google.com/terms/api-services-user-data-policy), incluindo os requisitos de Uso Limitado. Os dados de usuário do Google não são usados para publicidade, não são vendidos, não são transferidos a terceiros, não são usados para treinar modelos de IA e não são lidos por pessoas.
 
+### Spotify
+
+Se o Spotify toca em outro aparelho (celular, caixa de som, outro computador), você pode conectar sua conta do Spotify nas configurações de Música para que a barra de volume da ilha controle esse aparelho. Você cria o seu próprio app no Spotify, cola o Client ID dele e entra na própria página do Spotify, concedendo os escopos `user-read-playback-state` e `user-modify-playback-state`.
+
+- **O que é acessado:** o aparelho em que sua conta está tocando (nome e volume), lido a cada poucos segundos enquanto o painel de música mostra o Spotify tocando em outro lugar.
+- **Como é usado:** só para mostrar esse volume ao lado da engrenagem da ilha e mudá-lo quando você move a barra. Nada mais na sua conta é lido ou alterado.
+- **Para onde vai:** as requisições vão direto do seu computador para o Spotify (`accounts.spotify.com`, `api.spotify.com`) por HTTPS. O login usa OAuth com PKCE (S256) e um `state` aleatório; o navegador volta para `127.0.0.1:43821` (porta fixa, porque o Spotify exige um redirect registrado), acessível só do seu computador e fechado quando o login termina ou após três minutos.
+- **Armazenamento:** o Client ID e o refresh token ficam no Gerenciador de Credenciais do Windows. Os access tokens ficam só na memória.
+- **Desconectar:** **Desconectar** apaga o token do seu computador (o Spotify não tem como revogá-lo pela API). Você pode remover o acesso do app a qualquer momento em [spotify.com/account/apps](https://www.spotify.com/account/apps/).
+
 ### Feeds de agenda (iCal)
 
 Os links de agenda que você adiciona são baixados direto do servidor que os hospeda. Os links são guardados no Gerenciador de Credenciais do Windows.
@@ -83,11 +93,11 @@ O app escuta em `127.0.0.1:5199`, acessível só do seu próprio computador, par
 
 ## Serviços de terceiros
 
-Quando o app fala com Google, GitHub, Anthropic ou YouTube, essas empresas processam a requisição sob suas próprias políticas de privacidade. Nós não temos acesso a esses dados.
+Quando o app fala com Google, Spotify, GitHub, Anthropic ou YouTube, essas empresas processam a requisição sob suas próprias políticas de privacidade. Nós não temos acesso a esses dados.
 
 ## Apagando seus dados
 
-- Desconecte o Google Agenda ou remova tokens do GitHub e feeds em **Configurações**.
+- Desconecte o Google Agenda ou o Spotify, ou remova tokens do GitHub e feeds, em **Configurações**.
 - Desinstale o app e apague `%APPDATA%\com.heyyczer.dynamicisland`.
 - Desativar a integração com o Claude Code em **Configurações** restaura o seu `~/.claude/settings.json` anterior.
 

@@ -18,6 +18,19 @@ export interface MusicState {
   canPrevious: boolean;
   /** The YouTube video a browser is playing, once identified. */
   youtubeId: string | null;
+  /** The computer's volume (default output device). */
+  volume: Volume | null;
+  /** The player's own volume in the Windows mixer, and its icon. */
+  appVolume: Volume | null;
+  appIcon: string | null;
+  /** Spotify playing on another device: its name (the app volume is that device's). */
+  appDevice: string | null;
+}
+
+export interface Volume {
+  /** 0–1. */
+  level: number;
+  muted: boolean;
 }
 
 export const MUSIC_PROVIDER = "music";
@@ -29,6 +42,10 @@ const PAUSE_GRACE_MS = 15_000;
 /** `focus` brings the player's window to the front. */
 export const musicAction = (action: "toggle" | "next" | "previous" | "seek" | "focus", payload?: number) =>
   providerAction(MUSIC_PROVIDER, action, payload);
+
+export const setVolume = (
+  change: ({ target: "system" } | { target: "app"; appId: string }) & Partial<Volume>,
+) => providerAction(MUSIC_PROVIDER, "volume", change);
 
 export function useMusic() {
   const music = useProvider<MusicState>(MUSIC_PROVIDER);

@@ -27,6 +27,8 @@ export interface ModuleView {
   expanded: ReactNode;
   /** Panel size in px (default 560×190). */
   expandedSize?: { width: number; height: number };
+  /** Small controls in the tab bar, next to the gear, while this tab is open (e.g. volume). */
+  tabBarExtra?: ReactNode;
   /**
    * Changing this value makes the island briefly auto-expand ("peek") to show
    * this module, e.g. a new track started. `undefined` never peeks.

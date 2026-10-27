@@ -8,7 +8,7 @@
 //! password managers mark as private is never read, and nothing is read while
 //! the module is off.
 
-mod image;
+pub mod image;
 mod os;
 
 use std::path::PathBuf;

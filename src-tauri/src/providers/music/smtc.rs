@@ -14,14 +14,15 @@ use windows::Media::Control::{
 };
 use windows::Storage::Streams::DataReader;
 
+use super::spotify::{self, Spotify};
 use super::{MusicState, ID};
 use crate::hub::Hub;
-use crate::providers::now_ms;
+use crate::providers::{now_ms, process};
 
 /// 100ns ticks between 1601-01-01 and 1970-01-01.
 const EPOCH_DIFF_TICKS: i64 = 116_444_736_000_000_000;
 
-pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>) {
+pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>, spotify: Arc<Spotify>) {
     let mut manager: Option<SessionManager> = None;
     let mut track_key = String::new();
     let mut thumbnail: Option<String> = None;
@@ -47,9 +48,26 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>) {
                 }
                 state.thumbnail = thumbnail.clone();
                 state.youtube_id = youtube.video_id(&state);
+                state.volume = super::volume::system();
+                let local = super::volume::app(&state.app_id);
+                spotify.set_wanted(local.is_none() && spotify::is_spotify(&state.app_id));
+                if let Some((volume, exe)) = local {
+                    state.app_volume = Some(volume);
+                    state.app_icon = process::app_icon(&exe);
+                } else if spotify::is_spotify(&state.app_id)
+                    && let Some((volume, device)) = spotify.volume()
+                {
+                    state.app_volume = Some(volume);
+                    state.app_device = Some(device);
+                    // The desktop app still runs here, just silent: its icon.
+                    state.app_icon = process::find_exe("spotify").and_then(|exe| process::app_icon(&exe));
+                }
                 state
             }
-            Some(Ok(None)) => MusicState::default(),
+            Some(Ok(None)) => {
+                spotify.set_wanted(false);
+                MusicState::default()
+            }
             Some(Err(_)) | None => {
                 manager = None;
                 MusicState::default()
@@ -142,6 +160,10 @@ fn read_state(manager: &SessionManager) -> Result<Option<(MusicState, Session)>>
         can_next: controls.IsNextEnabled()?,
         can_previous: controls.IsPreviousEnabled()?,
         youtube_id: None,
+        volume: None,
+        app_volume: None,
+        app_icon: None,
+        app_device: None,
     };
     Ok(Some((state, session)))
 }
