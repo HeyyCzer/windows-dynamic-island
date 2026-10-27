@@ -2,7 +2,7 @@
  * Find on screen — what you type is looked for in everything on the screen,
  * text inside pictures included (Windows' OCR). Every match is highlighted
  * like a browser's find in page, and Enter takes the mouse to the next one.
- * Ctrl+Alt+F opens it from anywhere.
+ * A global shortcut (Ctrl+Alt+F by default) opens it from anywhere.
  * Backend: `src-tauri/src/providers/find/`.
  */
 import { Glyph } from "../../components/Glyph";
@@ -15,6 +15,7 @@ import "./find.css";
 
 export const findModule: IslandModule = {
   id: "find",
+  shortcut: "find",
   title: "find.title",
   settingsIcon: <Glyph name="search" size={14} />,
   settings: Object.values(findSettings),

@@ -23,6 +23,7 @@ pub mod music;
 pub mod notifications;
 pub mod process;
 pub mod shelf;
+pub mod shortcuts;
 
 use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -60,6 +61,7 @@ pub fn registry() -> Vec<Arc<dyn Provider>> {
         Arc::new(github::GithubProvider::default()),
         Arc::new(monitor::MonitorProvider::default()),
         Arc::new(calendar::CalendarProvider::default()),
+        Arc::new(shortcuts::ShortcutsProvider::default()),
     ]
 }
 

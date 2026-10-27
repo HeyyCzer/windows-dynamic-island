@@ -33,13 +33,6 @@ const MOVE_CURSOR_KEY: &str = "find.moveCursor";
 /// Time for the island to leave the picture before it's taken.
 const SETTLE: Duration = Duration::from_millis(80);
 
-static HOTKEY: Mutex<Option<String>> = Mutex::new(None);
-
-/// Called once the global shortcut is registered.
-pub fn set_hotkey(label: Option<String>) {
-    *HOTKEY.lock().unwrap() = label;
-}
-
 /// Mirrors `FindState` in `src/modules/find/store.ts`.
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -53,8 +46,6 @@ struct FindState {
     current: Option<usize>,
     /// `noOcr` (no OCR for the profile's languages) or `failed`.
     error: Option<&'static str>,
-    /// Global shortcut that opens the page ("Ctrl+Alt+F").
-    hotkey: Option<String>,
 }
 
 #[derive(Default)]
@@ -93,7 +84,6 @@ impl Session {
             count: self.matches.len(),
             current: (!self.matches.is_empty()).then_some(self.current),
             error: self.error,
-            hotkey: HOTKEY.lock().unwrap().clone(),
         }
     }
 

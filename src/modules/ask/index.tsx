@@ -1,7 +1,7 @@
 /**
  * Ask Claude — a conversation with Claude (through the Claude Code CLI and
- * the user's own login) right in the island. Ctrl+Alt+Space opens it from
- * anywhere; the camera button attaches a screenshot of the window you were in,
+ * the user's own login) right in the island. A global shortcut (Ctrl+Alt+Space
+ * by default) opens it from anywhere; the camera button attaches a screenshot of the window you were in,
  * and files dropped on it (or sent from the shelf) become attachments.
  * Backend: `src-tauri/src/providers/ask/`.
  */
@@ -16,6 +16,7 @@ import "./ask.css";
 
 export const askModule: IslandModule = {
   id: "ask",
+  shortcut: "ask",
   title: "ask.title",
   settingsIcon: (
     <span style={{ color: CLAUDE_ORANGE, display: "grid" }}>

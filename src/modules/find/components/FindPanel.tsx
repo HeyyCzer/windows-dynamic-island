@@ -3,11 +3,13 @@ import { Glyph } from "../../../components/Glyph";
 import { command, providerAction } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
+import { useShortcutKeys } from "../../../core/shortcuts";
 import { FIND_PROVIDER, FIND_YELLOW, focusRequest, type FindState } from "../store";
 
 /** Typing highlights the matches on the screen; Enter takes the mouse to the next one. */
 export function FindPanel({ state }: { state: FindState | undefined }) {
   const t = useT();
+  const hotkey = useShortcutKeys("find");
   const island = useIsland();
   const focusPending = focusRequest.use();
   const [query, setQuery] = useState("");
@@ -88,7 +90,7 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
   if (state?.error) hint = t(state.error === "noOcr" ? "find.noOcr" : "find.failed");
   else if (scanning) hint = t("find.reading");
   else if (noMatch) hint = t("find.none");
-  else hint = state?.hotkey ? `${t("find.hint")} · ${t("find.hotkey", { keys: state.hotkey })}` : t("find.hint");
+  else hint = hotkey ? `${t("find.hint")} · ${t("find.hotkey", { keys: hotkey })}` : t("find.hint");
 
   return (
     <div className="find-panel" onClick={(e) => e.stopPropagation()}>

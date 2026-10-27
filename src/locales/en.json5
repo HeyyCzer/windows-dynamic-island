@@ -527,6 +527,22 @@
     },
   },
 
+  // Global shortcuts (settings page of the module they open)
+  shortcuts: {
+    label: "Keyboard shortcut",
+    ask: "Open Ask Claude",
+    find: "Open Find on screen",
+    desc: "Works from anywhere. Click and press the new keys; Esc cancels.",
+    press: "Press the keys…",
+    off: "Off",
+    reset: "Default",
+    disable: "Turn off",
+    // {keys}: e.g. Ctrl+Alt+F
+    taken: "{keys} is taken by another app. Pick other keys.",
+    // {keys}: e.g. Ctrl+Alt+F; {action}: the other shortcut's name
+    duplicate: "{keys} already opens \"{action}\".",
+  },
+
   // Ask Claude module
   ask: {
     title: "Ask Claude",

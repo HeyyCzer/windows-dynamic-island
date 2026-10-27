@@ -24,7 +24,6 @@ export interface AskState {
   running: boolean;
   status: { kind: "thinking" | "writing" | "tool"; arg: string | null } | null;
   unread: boolean;
-  hotkey: string | null;
 }
 
 export const ASK_PROVIDER = "ask";

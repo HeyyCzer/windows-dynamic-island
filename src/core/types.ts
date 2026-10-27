@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import type { MessageKey } from "./i18n";
 import type { SettingDef } from "./settings";
+import type { ShortcutId } from "./shortcuts";
 
 /** What a module wants the island to render right now. */
 export interface ModuleView {
@@ -72,6 +73,8 @@ export interface IslandModule {
   useHiddenSettings?: () => string[];
   /** Extra custom UI for the settings window (e.g. integration status). */
   SettingsSection?: ComponentType;
+  /** Global shortcut that opens it, editable on its settings page. */
+  shortcut?: ShortcutId;
 }
 
 /** An enabled module together with its current view. */

@@ -489,6 +489,19 @@
     },
   },
 
+  shortcuts: {
+    label: "Atalho de teclado",
+    ask: "Abrir Pergunte ao Claude",
+    find: "Abrir Procurar na tela",
+    desc: "Funciona de qualquer lugar. Clique e pressione as novas teclas; Esc cancela.",
+    press: "Pressione as teclas…",
+    off: "Desligado",
+    reset: "Padrão",
+    disable: "Desligar",
+    taken: "{keys} está em uso por outro app. Escolha outras teclas.",
+    duplicate: "{keys} já abre \"{action}\".",
+  },
+
   ask: {
     title: "Pergunte ao Claude",
     hint: "Tire dúvidas ou peça uma ajuda rápida. O Claude responde aqui mesmo, com o seu login do Claude Code.",

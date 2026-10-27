@@ -5,6 +5,7 @@ import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
 import { PlacementSelect } from "../components/PlacementSelect";
+import { ShortcutRow } from "../components/ShortcutRow";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
 export function ModulePage({ values }: { values: Record<string, unknown> }) {
@@ -62,6 +63,11 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
             {settings.map((def) => (
               <ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
             ))}
+          </section>
+        )}
+        {module.shortcut && (
+          <section className="settings-card">
+            <ShortcutRow id={module.shortcut} values={values} />
           </section>
         )}
         {Section && (

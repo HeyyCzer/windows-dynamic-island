@@ -4,6 +4,7 @@ import { Glyph } from "../../../components/Glyph";
 import { command, providerAction } from "../../../core/bridge";
 import { useT, type Translate } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
+import { useShortcutKeys } from "../../../core/shortcuts";
 import { ClaudeIcon } from "../../ai-agents/claude/ClaudeIcon";
 import {
   addAttachments,
@@ -20,6 +21,7 @@ import { Formatted } from "./Formatted";
 /** "Ask Claude": a conversation with Claude Code (headless) inside the island. */
 export function AskPanel({ state }: { state: AskState | undefined }) {
   const t = useT();
+  const hotkey = useShortcutKeys("ask");
   const island = useIsland();
   const attachments = pendingAttachments.use();
   const focusPending = focusRequest.use();
@@ -141,7 +143,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 
       {messages.length === 0 ? (
         <p className="ask-hint">
-          {t("ask.hint")} {state?.hotkey && t("ask.hotkey", { keys: state.hotkey })}
+          {t("ask.hint")} {hotkey && t("ask.hotkey", { keys: hotkey })}
         </p>
       ) : (
         <div className="ask-messages" ref={scroller} data-scroll>

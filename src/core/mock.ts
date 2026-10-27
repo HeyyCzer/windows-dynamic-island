@@ -60,6 +60,10 @@ export function startMock() {
 		publishCalendar(start);
 	}
 	publishMonitor();
+	publishLocal("shortcuts", {
+		ask: { keys: "Ctrl+Alt+Space", taken: null },
+		find: { keys: "Ctrl+Alt+F", taken: null },
+	});
 	setInterval(() => {
 		if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
 	}, 33);
@@ -305,7 +309,6 @@ function publishWindowsIsland(now: number) {
 		running: false,
 		status: null,
 		unread: false,
-		hotkey: "Ctrl+Alt+Space",
 		messages: [
 			{ fromUser: true, text: "What does EADDRINUSE mean?", error: false, attachments: [] },
 			{
@@ -439,7 +442,7 @@ function startDemo(now: number, nextTrack: () => void) {
 	claude(editing, finished);
 	activities([]);
 	publishLocal("notifications", { access: "allowed", error: null, items: history });
-	publishLocal("ask", { available: true, running: false, status: null, unread: false, hotkey: "Ctrl+Alt+Space", messages: [] });
+	publishLocal("ask", { available: true, running: false, status: null, unread: false, messages: [] });
 	publishLocal("shelf", { items: [] });
 	publishLocal("clipboard", { items: [] });
 

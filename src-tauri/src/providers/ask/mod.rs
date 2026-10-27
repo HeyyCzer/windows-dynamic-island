@@ -80,8 +80,6 @@ struct State {
     status: Option<Status>,
     /// A finished answer the user hasn't looked at yet.
     unread: bool,
-    /// Global shortcut that opens the ask page ("Ctrl+Alt+Space").
-    hotkey: Option<String>,
 }
 
 struct Ctx {
@@ -110,13 +108,6 @@ pub struct AskProvider {
     ctx: Mutex<Option<Arc<Ctx>>>,
 }
 
-static HOTKEY: Mutex<Option<String>> = Mutex::new(None);
-
-/// Called once the global shortcut is registered.
-pub fn set_hotkey(label: Option<String>) {
-    *HOTKEY.lock().unwrap() = label;
-}
-
 #[derive(Deserialize)]
 struct SendRequest {
     text: String,
@@ -139,12 +130,6 @@ impl Provider for AskProvider {
         });
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         ctx.publish();
-        // The hotkey is registered during setup; pick its label up afterwards.
-        std::thread::spawn(move || {
-            std::thread::sleep(Duration::from_secs(2));
-            let hotkey = HOTKEY.lock().unwrap().clone();
-            ctx.update(|s| s.hotkey = hotkey);
-        });
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {

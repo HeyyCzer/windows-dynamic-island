@@ -90,7 +90,7 @@ export function useIslandController(modules: IslandModule[]) {
 
   // The pinned video went back to the island: show the player for a moment.
   useTauriEvent("pip://return", () => peek("music"));
-  // Global shortcuts: Ctrl+Alt+Space opens "Ask Claude", Ctrl+Alt+F "Find on screen".
+  // Global shortcuts (`core/shortcuts.ts`) open "Ask Claude" and "Find on screen".
   const enabled = (id: string) => entries.some((e) => e.module.id === id);
   useTauriEvent("island://ask", () => enabled("ask") && expand("ask"));
   useTauriEvent("island://find", () => enabled("find") && expand("find"));
