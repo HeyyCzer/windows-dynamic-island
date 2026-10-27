@@ -298,6 +298,35 @@
 .cal-item-meta.is-error {
   color: #ff6b63;
 }
+.cal-leads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cal-lead {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 26px;
+  padding: 0 4px 0 12px;
+  border-radius: 13px;
+  font-size: 12.5px;
+  font-weight: 550;
+  background: rgba(255, 255, 255, 0.06);
+}
+.cal-lead:not(:has(.cal-remove)) {
+  padding-right: 12px;
+}
+.cal-lead .cal-remove {
+  width: 20px;
+  height: 20px;
+}
+.settings-block.is-disabled > * {
+  opacity: 0.45;
+}
 .cal-remove {
   display: grid;
   place-items: center;

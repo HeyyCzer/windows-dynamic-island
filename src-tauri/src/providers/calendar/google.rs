@@ -15,7 +15,7 @@ use tauri::AppHandle;
 use tiny_http::{Header, Response, Server};
 use url::Url;
 
-use super::{CalEvent, Error, find_meeting_url, local_midnight_ms};
+use super::{CalEvent, Error, find_meeting_url, local_midnight_ms, sort_reminders};
 use crate::i18n;
 use crate::providers::now_ms;
 use crate::settings;
@@ -67,6 +67,8 @@ pub struct Calendar {
     /// Checked in Google Calendar's own sidebar.
     pub selected: bool,
     pub primary: bool,
+    /// Notifications of events that keep the calendar's defaults, in minutes.
+    pub default_reminders: Vec<u32>,
 }
 
 fn agent() -> ureq::Agent {
@@ -237,7 +239,7 @@ impl Session {
             &format!("{API}/users/me/calendarList"),
             &[
                 ("minAccessRole", "freeBusyReader"),
-                ("fields", "items(id,summary,summaryOverride,backgroundColor,selected,primary,hidden)"),
+                ("fields", "items(id,summary,summaryOverride,backgroundColor,selected,primary,hidden,                 defaultReminders(method,minutes))"),
             ],
         )
         .map_err(|_| Error::Invalid)?;
@@ -259,6 +261,7 @@ impl Session {
                     color: c["backgroundColor"].as_str().unwrap_or("#4285F4").to_string(),
                     selected: c["selected"] == true,
                     primary: c["primary"] == true,
+                    default_reminders: popups(&c["defaultReminders"]),
                 })
             })
             .collect();
@@ -268,7 +271,14 @@ impl Session {
 
     /// Events of `calendar_id` overlapping `[from, to)` (unix ms), recurring
     /// ones expanded into their instances.
-    pub fn events(&mut self, calendar_id: &str, key: &str, from: u64, to: u64) -> Result<Vec<CalEvent>, Error> {
+    pub fn events(
+        &mut self,
+        calendar_id: &str,
+        key: &str,
+        default_reminders: &[u32],
+        from: u64,
+        to: u64,
+    ) -> Result<Vec<CalEvent>, Error> {
         let mut url = Url::parse(API).map_err(|_| Error::Invalid)?;
         url.path_segments_mut()
             .map_err(|_| Error::Invalid)?
@@ -282,7 +292,7 @@ impl Session {
             .append_pair(
                 "fields",
                 "nextPageToken,items(id,status,summary,start,end,location,description,htmlLink,hangoutLink,\
-                 eventType,conferenceData/entryPoints(entryPointType,uri),attendees(self,responseStatus))",
+                 eventType,conferenceData/entryPoints(entryPointType,uri),attendees(self,responseStatus),                 reminders(useDefault,overrides(method,minutes)))",
             );
 
         let mut events = Vec::new();
@@ -294,7 +304,7 @@ impl Session {
             }
             let v = self.get(&page)?;
             let items = v["items"].as_array().map(Vec::as_slice).unwrap_or_default();
-            events.extend(items.iter().filter_map(|e| event(e, key)));
+            events.extend(items.iter().filter_map(|e| event(e, key, default_reminders)));
             page_token = v["nextPageToken"].as_str().map(str::to_string);
             if page_token.is_none() {
                 break;
@@ -320,7 +330,15 @@ fn when(v: &Value) -> Option<(u64, bool)> {
     Some((local_midnight_ms(date), true))
 }
 
-fn event(v: &Value, key: &str) -> Option<CalEvent> {
+/// Minutes of the on-screen notifications in a reminders list (e-mails left out).
+fn popups(list: &Value) -> Vec<u32> {
+    let minutes = list.as_array().map(Vec::as_slice).unwrap_or_default().iter().filter_map(|r| {
+        (r["method"] == "popup").then(|| r["minutes"].as_u64()).flatten()
+    });
+    sort_reminders(minutes.map(|m| m.min(u32::MAX as u64) as u32).collect())
+}
+
+fn event(v: &Value, key: &str, default_reminders: &[u32]) -> Option<CalEvent> {
     if v["status"] == "cancelled" || v["eventType"] == "workingLocation" {
         return None;
     }
@@ -354,5 +372,10 @@ fn event(v: &Value, key: &str) -> Option<CalEvent> {
         location,
         meeting_url,
         url: text("htmlLink"),
+        reminders: if v["reminders"]["useDefault"] == true {
+            default_reminders.to_vec()
+        } else {
+            popups(&v["reminders"]["overrides"])
+        },
     })
 }

@@ -626,10 +626,22 @@
       desc: "Mostra o próximo evento na ilha antes de começar, com um botão para entrar na chamada.",
     },
     remindMinutes: {
-      label: "Antecedência do aviso",
-      desc: "Quanto tempo antes o aviso aparece.",
+      label: "Horários do aviso",
+      desc: "Quanto tempo antes o aviso aparece. Cada horário chama a ilha de novo.",
       atStart: "Na hora",
       before: "{n} min antes",
+      hoursBefore: "{n} h antes",
+      daysBefore: "{n} d antes",
+      add: "Adicionar horário…",
+      remove: "Remover",
+    },
+    eventReminders: {
+      label: "Seguir as notificações do evento",
+      desc: "Usa as notificações configuradas em cada evento quando houver, no lugar dos horários acima.",
+    },
+    remindSound: {
+      label: "Tocar um som",
+      desc: "Toca o som de lembrete de calendário do Windows a cada aviso.",
     },
     google: {
       title: "Google Agenda",

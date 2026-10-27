@@ -3,6 +3,8 @@ import type { CalEvent, CalendarInfo } from "./types";
 export const DAY_MS = 86_400_000;
 /** A reminder stays up this long after its event started. */
 const GRACE_MS = 5 * 60_000;
+/** A reminder further ahead than this shows for this long only. */
+const HOLD_MS = 60 * 60_000;
 /** Most dots under a day of the month view. */
 const MAX_DOTS = 3;
 /** Multi-day events are marked on at most this many days. */
@@ -40,14 +42,44 @@ export function dayDots(events: CalEvent[], calendars: CalendarInfo[]): Map<stri
   return dots;
 }
 
-/** The timed event to remind about at `now`: from `leadMs` before it starts to a few minutes in. */
-export function dueEvent(events: CalEvent[], now: number, leadMs: number): CalEvent | undefined {
-  return events.find(
-    (e) => !e.allDay && e.start - leadMs <= now && now < Math.min(e.start + GRACE_MS, Math.max(e.end, e.start + 60_000)),
-  );
+/** Minutes before an event its reminders go off. */
+export type LeadsOf = (e: CalEvent) => number[];
+
+export interface DueReminder {
+  event: CalEvent;
+  /** Minutes before the start of the reminder that went off last. */
+  lead: number;
 }
 
-/** Next timed event starting within `withinMs`, to know when to start ticking. */
-export function nextStart(events: CalEvent[], now: number, withinMs: number): CalEvent | undefined {
-  return events.find((e) => !e.allDay && e.start > now && e.start - now <= withinMs);
+/** When the reminder pill goes away: a few minutes into the event, or when it ends. */
+const reminderEnd = (e: CalEvent) => Math.min(e.start + GRACE_MS, Math.max(e.end, e.start + 60_000));
+
+/**
+ * The timed event to remind about at `now`. A reminder stays up until the
+ * event is a few minutes in, except early ones (more than `HOLD_MS` ahead),
+ * which go away after `HOLD_MS` and leave the island free until the next one.
+ */
+export function dueReminder(events: CalEvent[], now: number, leadsOf: LeadsOf): DueReminder | undefined {
+  for (const event of events) {
+    if (event.allDay || now >= reminderEnd(event)) continue;
+    const fired = leadsOf(event).filter((m) => {
+      const at = event.start - m * 60_000;
+      return at <= now && (m * 60_000 <= HOLD_MS || now < at + HOLD_MS);
+    });
+    if (fired.length) return { event, lead: Math.min(...fired) };
+  }
+  return undefined;
+}
+
+/** A reminder of a timed event goes off within `withinMs`, to know when to start ticking. */
+export function reminderSoon(events: CalEvent[], now: number, withinMs: number, leadsOf: LeadsOf): boolean {
+  return events.some(
+    (e) =>
+      !e.allDay &&
+      e.start > now &&
+      [0, ...leadsOf(e)].some((m) => {
+        const at = e.start - m * 60_000;
+        return at > now && at - now <= withinMs;
+      }),
+  );
 }

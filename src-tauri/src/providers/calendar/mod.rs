@@ -103,6 +103,9 @@ pub struct CalEvent {
     pub meeting_url: Option<String>,
     /// The event in its calendar's web page.
     pub url: Option<String>,
+    /// Its own notifications, in minutes before the start, latest first.
+    /// Empty when the event sets none.
+    pub reminders: Vec<u32>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -275,6 +278,7 @@ impl Provider for CalendarProvider {
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
         match action {
             "refresh" => self.wake(Wake::Refresh),
+            "chime" => chime(),
             "connectGoogle" => return self.connect_google(),
             "cancelConnect" => self.cancel.store(true, Ordering::SeqCst),
             "disconnectGoogle" => {
@@ -314,6 +318,22 @@ impl Provider for CalendarProvider {
         }
         Ok(Value::Null)
     }
+}
+
+/// Windows' calendar reminder sound (Settings → Sound → Calendar Reminder).
+fn chime() {
+    #[cfg(windows)]
+    unsafe {
+        use windows::Win32::Media::Audio::{PlaySoundW, SND_ALIAS, SND_ASYNC, SND_NODEFAULT};
+        let _ = PlaySoundW(windows::core::w!("Notification.Reminder"), None, SND_ALIAS | SND_ASYNC | SND_NODEFAULT);
+    }
+}
+
+/// Minutes before the start, deduplicated, latest first.
+pub fn sort_reminders(mut minutes: Vec<u32>) -> Vec<u32> {
+    minutes.sort_unstable();
+    minutes.dedup();
+    minutes
 }
 
 /// The user's own client first, then the one built into this release.
@@ -446,7 +466,7 @@ impl Worker {
                             error: None,
                         };
                         if info.visible {
-                            match session.events(&c.id, &info.key, from, to) {
+                            match session.events(&c.id, &info.key, &c.default_reminders, from, to) {
                                 Ok(found) => events.extend(found),
                                 Err(e) => {
                                     info.error = Some(e.code());

@@ -688,11 +688,25 @@
       desc: "Shows the next event in the island before it starts, with a button to join the call.",
     },
     remindMinutes: {
-      label: "Alert time",
-      desc: "How early the alert shows up.",
+      label: "Alert times",
+      desc: "How early the alert shows up. Each time peeks the island again.",
       atStart: "When it starts",
       // {n}: minutes
       before: "{n} min before",
+      // {n}: hours
+      hoursBefore: "{n} h before",
+      // {n}: days
+      daysBefore: "{n} d before",
+      add: "Add time…",
+      remove: "Remove",
+    },
+    eventReminders: {
+      label: "Follow the event's notifications",
+      desc: "Uses the notifications set on each event when it has any, instead of the times above.",
+    },
+    remindSound: {
+      label: "Play a sound",
+      desc: "Plays Windows' calendar reminder sound with each alert.",
     },
     google: {
       title: "Google Calendar",

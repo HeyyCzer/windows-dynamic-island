@@ -240,6 +240,7 @@ function publishCalendar(now: number) {
 		location: null,
 		meetingUrl: null,
 		url: "https://calendar.google.com/",
+		reminders: [10],
 		...extra,
 	});
 	// Starts in 8 minutes: shows the reminder pill right away.

@@ -8,17 +8,18 @@
  * focused day lists its events, and the next event takes over the island a
  * few minutes before it starts.
  */
+import { useEffect, useMemo, useRef } from "react";
 import { Glyph } from "../../components/Glyph";
 import { Marquee } from "../../components/Marquee";
-import { useProvider } from "../../core/bridge";
+import { providerAction, useProvider } from "../../core/bridge";
 import { useLocale, useT } from "../../core/i18n";
 import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { useNow } from "../ai-agents/common/format";
 import { CalendarSettings } from "./components/CalendarSettings";
 import { ClockPanel } from "./components/ClockPanel";
-import { dueEvent, nextStart } from "./events";
-import { calendarSettings, remindMinutes } from "./settings";
+import { dueReminder, reminderSoon, type LeadsOf } from "./events";
+import { calendarSettings, eventReminders, leadList, remindMinutes, remindSound } from "./settings";
 import { CALENDAR_PROVIDER, CLOCK_RED, type CalEvent, type CalendarState } from "./types";
 import "./clock.css";
 
@@ -41,11 +42,16 @@ function ReminderRight({ event, now, color }: { event: CalEvent; now: number; co
   const t = useT();
   const locale = useLocale();
   const minutes = Math.ceil((event.start - now) / 60_000);
+  const format = new Intl.RelativeTimeFormat(locale, { style: "short" });
   return (
     <span className="clock-remind-when" style={{ color }}>
       {minutes <= 0
         ? t("calendar.now")
-        : new Intl.RelativeTimeFormat(locale, { style: "short" }).format(minutes, "minute")}
+        : minutes < 60
+          ? format.format(minutes, "minute")
+          : minutes < 1440
+            ? format.format(Math.round(minutes / 60), "hour")
+            : format.format(Math.round(minutes / 1440), "day")}
     </span>
   );
 }
@@ -59,17 +65,32 @@ export const clockModule: IslandModule = {
   useView(): ModuleView {
     const calendar = useProvider<CalendarState>(CALENDAR_PROVIDER);
     const remind = useSetting(calendarSettings.remind);
-    const lead = useSetting(remindMinutes) * 60_000;
+    const minutes = useSetting(remindMinutes);
+    const ownReminders = useSetting(eventReminders);
+    const sound = useSetting(remindSound);
+    const leadsOf = useMemo<LeadsOf>(() => {
+      const leads = leadList(minutes);
+      return (e) => (ownReminders && e.reminders?.length ? e.reminders : leads);
+    }, [minutes, ownReminders]);
     const events = calendar?.events ?? [];
 
-    // Tick only while an event is close; otherwise a slow clock notices the next one coming.
+    // Tick only while a reminder is close; otherwise a slow clock notices the next one coming.
     const coarse = useNow(30_000);
-    const close = remind && !!(dueEvent(events, coarse, lead) ?? nextStart(events, coarse, lead + 60_000));
+    const close = remind && !!(dueReminder(events, coarse, leadsOf) || reminderSoon(events, coarse, 60_000, leadsOf));
     const fine = useNow(5_000, close);
     const now = close ? Math.max(fine, coarse) : coarse;
-    const due = remind ? dueEvent(events, now, lead) : undefined;
+    const reminder = remind ? dueReminder(events, now, leadsOf) : undefined;
+    const due = reminder?.event;
     const color = (due && calendar?.calendars.find((c) => c.key === due.calendar)?.color) || CLOCK_RED;
     const started = !!due && now >= due.start;
+    const activityKey = reminder ? `${reminder.event.id}:${started ? "start" : reminder.lead}` : undefined;
+
+    // A chime each time the island peeks for a reminder.
+    const chimed = useRef<string | undefined>(undefined);
+    useEffect(() => {
+      if (activityKey && activityKey !== chimed.current && sound) providerAction(CALENDAR_PROVIDER, "chime");
+      chimed.current = activityKey;
+    }, [activityKey, sound]);
 
     return {
       active: !!due,
@@ -84,8 +105,8 @@ export const clockModule: IslandModule = {
       },
       expanded: <ClockPanel calendar={calendar} highlight={due?.id} />,
       expandedSize: { width: 560, height: calendar?.calendars.length ? HEIGHT_WITH_EVENTS : 214 },
-      // Peeks when the reminder shows up, and again when the event starts.
-      activityKey: due ? `${due.id}:${started ? "start" : "soon"}` : undefined,
+      // Peeks at each reminder, and again when the event starts.
+      activityKey,
     };
   },
 };

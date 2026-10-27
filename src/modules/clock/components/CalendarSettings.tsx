@@ -4,18 +4,25 @@ import { command, providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
 import { Toggle } from "../../../settings/components/Toggle";
-import { calendarSettings, calendarVisibility, remindMinutes } from "../settings";
+import {
+  calendarSettings,
+  calendarVisibility,
+  eventReminders,
+  leadList,
+  remindMinutes,
+  remindSound,
+} from "../settings";
 import { CALENDAR_PROVIDER, type CalendarState } from "../types";
 
 const CLOUD_CONSOLE_URL = "https://console.cloud.google.com/apis/credentials";
-const LEAD_OPTIONS = [0, 1, 5, 10, 15, 30];
+const LEAD_OPTIONS = [0, 1, 5, 10, 15, 30, 60, 120, 1440];
 
 const errorText = (t: ReturnType<typeof useT>, code: string) =>
   ["unauthorized", "notFound", "invalid", "network", "http", "noClient", "denied", "timeout", "duplicate", "tooMany"].includes(code)
     ? t(`calendar.error.${code}` as Parameters<typeof t>[0])
     : code;
 
-/** Reminder lead time, Google account, iCal links and which calendars show. */
+/** Reminder times, Google account, iCal links and which calendars show. */
 export function CalendarSettings() {
   return (
     <>
@@ -32,26 +39,72 @@ export function CalendarSettings() {
 function Reminder() {
   const t = useT();
   const remind = useSetting(calendarSettings.remind);
-  const minutes = useSetting(remindMinutes);
+  const leads = leadList(useSetting(remindMinutes));
+  const own = useSetting(eventReminders);
+  const sound = useSetting(remindSound);
+  const label = (n: number) =>
+    n === 0
+      ? t("calendar.remindMinutes.atStart")
+      : n < 60
+        ? t("calendar.remindMinutes.before", { n })
+        : n < 1440
+          ? t("calendar.remindMinutes.hoursBefore", { n: n / 60 })
+          : t("calendar.remindMinutes.daysBefore", { n: n / 1440 });
+  const free = LEAD_OPTIONS.filter((n) => !leads.includes(n));
+
   return (
-    <label className={`settings-row ${remind ? "" : "is-disabled"}`}>
-      <div className="settings-text">
-        <span className="settings-label">{t("calendar.remindMinutes.label")}</span>
-        <span className="settings-desc">{t("calendar.remindMinutes.desc")}</span>
-      </div>
-      <select
-        className="settings-select"
-        value={minutes}
-        disabled={!remind}
-        onChange={(e) => setSetting(remindMinutes, Number(e.target.value))}
-      >
-        {LEAD_OPTIONS.map((n) => (
-          <option key={n} value={n}>
-            {n === 0 ? t("calendar.remindMinutes.atStart") : t("calendar.remindMinutes.before", { n })}
+    <div className={`settings-block ${remind ? "" : "is-disabled"}`}>
+      <div className="settings-row">
+        <div className="settings-text">
+          <span className="settings-label">{t("calendar.remindMinutes.label")}</span>
+          <span className="settings-desc">{t("calendar.remindMinutes.desc")}</span>
+        </div>
+        <select
+          className="settings-select"
+          value=""
+          disabled={!remind || !free.length}
+          onChange={(e) => setSetting(remindMinutes, leadList([...leads, Number(e.target.value)]))}
+        >
+          <option value="" disabled>
+            {t("calendar.remindMinutes.add")}
           </option>
+          {free.map((n) => (
+            <option key={n} value={n}>
+              {label(n)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <ul className="cal-leads">
+        {leads.map((n) => (
+          <li key={n} className="cal-lead">
+            {label(n)}
+            {leads.length > 1 && (
+              <button
+                className="cal-remove"
+                title={t("calendar.remindMinutes.remove")}
+                disabled={!remind}
+                onClick={() => setSetting(remindMinutes, leads.filter((m) => m !== n))}
+              >
+                <CloseIcon size={10} />
+              </button>
+            )}
+          </li>
         ))}
-      </select>
-    </label>
+      </ul>
+      {[
+        { def: eventReminders, value: own },
+        { def: remindSound, value: sound },
+      ].map(({ def, value }) => (
+        <label key={def.key} className="settings-row">
+          <div className="settings-text">
+            <span className="settings-label">{t(def.label)}</span>
+            {def.description && <span className="settings-desc">{t(def.description)}</span>}
+          </div>
+          <Toggle checked={value} disabled={!remind} onChange={(v) => setSetting(def, v)} />
+        </label>
+      ))}
+    </div>
   );
 }
 

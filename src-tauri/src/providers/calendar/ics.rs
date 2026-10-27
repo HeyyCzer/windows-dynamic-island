@@ -9,7 +9,7 @@ use std::time::Duration;
 use chrono::{DateTime, Days, NaiveDate, NaiveDateTime, TimeZone};
 use rrule::{RRule, RRuleSet, Tz, Unvalidated};
 
-use super::{CalEvent, Error, find_meeting_url};
+use super::{CalEvent, Error, find_meeting_url, sort_reminders};
 
 const DAY_MS: i64 = 86_400_000;
 /// Instances kept per recurring event within the window.
@@ -151,6 +151,28 @@ struct VEvent {
     rdates: Vec<Prop>,
     exdates: Vec<Prop>,
     recurrence_id: Option<Prop>,
+    alarms: Vec<Alarm>,
+}
+
+#[derive(Default)]
+struct Alarm {
+    action: String,
+    trigger: Option<Prop>,
+}
+
+impl Alarm {
+    /// Minutes before the start, for on-screen alarms set relative to it.
+    fn minutes(&self) -> Option<u32> {
+        if self.action.eq_ignore_ascii_case("EMAIL") {
+            return None;
+        }
+        let trigger = self.trigger.as_ref()?;
+        if trigger.param("VALUE") == Some("DATE-TIME") || trigger.param("RELATED") == Some("END") {
+            return None;
+        }
+        let ms = duration_ms(&trigger.value)?;
+        (ms <= 0).then(|| (-ms / 60_000) as u32)
+    }
 }
 
 fn parse(text: &str, key: &str, from: i64, to: i64) -> Feed {
@@ -170,6 +192,12 @@ fn parse(text: &str, key: &str, from: i64, to: i64) -> Feed {
                 let component = p.value.trim().to_ascii_uppercase();
                 if component == "VEVENT" && stack.len() == 1 {
                     vevents.push(VEvent::default());
+                }
+                if component == "VALARM"
+                    && stack.len() == 2
+                    && let Some(e) = vevents.last_mut()
+                {
+                    e.alarms.push(Alarm::default());
                 }
                 stack.push(component);
                 continue;
@@ -210,6 +238,14 @@ fn parse(text: &str, key: &str, from: i64, to: i64) -> Feed {
                     "RDATE" => e.rdates.push(p),
                     "EXDATE" => e.exdates.push(p),
                     "RECURRENCE-ID" => e.recurrence_id = Some(p),
+                    _ => {}
+                }
+            }
+            [_, ev, alarm] if ev == "VEVENT" && alarm == "VALARM" => {
+                let Some(a) = vevents.last_mut().and_then(|e| e.alarms.last_mut()) else { continue };
+                match p.name.as_str() {
+                    "ACTION" => a.action = p.value.trim().to_string(),
+                    "TRIGGER" => a.trigger = Some(p),
                     _ => {}
                 }
             }
@@ -381,6 +417,7 @@ fn expand(e: &VEvent, key: &str, from: i64, to: i64, skip: Option<&HashSet<i64>>
     let conference = e.conference.clone().or_else(|| {
         find_meeting_url(e.location.as_deref().unwrap_or_default()).or_else(|| find_meeting_url(&e.description))
     });
+    let reminders = sort_reminders(e.alarms.iter().filter_map(Alarm::minutes).collect());
     for occurrence in starts {
         let begin = occurrence.timestamp_millis();
         if skip.is_some_and(|s| s.contains(&begin)) {
@@ -410,6 +447,7 @@ fn expand(e: &VEvent, key: &str, from: i64, to: i64, skip: Option<&HashSet<i64>>
             location: e.location.clone(),
             meeting_url: conference.clone(),
             url: e.url.clone(),
+            reminders: reminders.clone(),
         });
     }
 }
@@ -437,7 +475,17 @@ RRULE:FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20261031\r\n\
 EXDATE;TZID=America/Sao_Paulo:20261007T090000\r\n\
 DESCRIPTION:Join: https://meet.google.com/abc-defg-hij\\nThanks\r\n\
 BEGIN:VALARM\r\n\
+ACTION:DISPLAY\r\n\
+TRIGGER:-PT15M\r\n\
 DESCRIPTION:alarm\r\n\
+END:VALARM\r\n\
+BEGIN:VALARM\r\n\
+ACTION:DISPLAY\r\n\
+TRIGGER;RELATED=START:-P1D\r\n\
+END:VALARM\r\n\
+BEGIN:VALARM\r\n\
+ACTION:EMAIL\r\n\
+TRIGGER:-PT30M\r\n\
 END:VALARM\r\n\
 END:VEVENT\r\n\
 BEGIN:VEVENT\r\n\
@@ -479,6 +527,7 @@ END:VCALENDAR\r\n";
         );
         assert_eq!(stand_ups[0].end - stand_ups[0].start, 15 * 60_000);
         assert_eq!(stand_ups[0].meeting_url.as_deref(), Some("https://meet.google.com/abc-defg-hij"));
+        assert_eq!(stand_ups[0].reminders, [15, 1440]);
 
         let moved = feed.events.iter().find(|e| e.title == "Stand up (moved)").unwrap();
         assert_eq!(moved.start as i64, ms("2026-10-12T10:00:00-03:00"));

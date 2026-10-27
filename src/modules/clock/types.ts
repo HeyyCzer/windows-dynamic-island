@@ -14,6 +14,8 @@ export interface CalEvent {
   meetingUrl: string | null;
   /** The event in its calendar's web page. */
   url: string | null;
+  /** Its own notifications, in minutes before the start, latest first; empty when it sets none. */
+  reminders: number[];
 }
 
 export type CalendarErrorCode =
