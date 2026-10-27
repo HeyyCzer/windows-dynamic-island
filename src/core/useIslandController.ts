@@ -135,7 +135,7 @@ function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEn
   return inOrder(
     modules
       .map((module) => ({ module, view: module.useView() }))
-      .filter(({ module }) => readSetting(settings, moduleEnabled(module.id, module.title))),
+      .filter(({ module }) => readSetting(settings, moduleEnabled(module))),
     (e) => e.module.id,
     readSetting(settings, layoutSettings.order),
   );

@@ -132,7 +132,7 @@
 
   // Módulo de lembrete de hidratação
   hydration: {
-    title: "Alarme de hidratação",
+    title: "Lembrete de hidratação",
     reminder: "Hora de se hidratar",
     titleDue: "Beba água",
     message: "Uma pequena pausa agora ajuda você a se manter bem.",
@@ -146,6 +146,7 @@
     resume: "Retomar",
     reset: "Reiniciar",
     minutes: "{n} min",
+    custom: "Personalizado",
     autoStart: {
       label: "Iniciar automaticamente",
       desc: "Inicia um novo timer quando a ilha é aberta.",

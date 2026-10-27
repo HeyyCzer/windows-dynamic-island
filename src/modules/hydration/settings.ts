@@ -12,7 +12,7 @@ export const hydrationSettings = {
     key: "hydration.showBubble",
     label: "hydration.showBubble.label",
     description: "hydration.showBubble.desc",
-    default: true,
+    default: false,
   },
 } satisfies Record<string, SettingDef>;
 

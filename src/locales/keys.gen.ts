@@ -89,6 +89,8 @@ export type MessageKey =
   | "hydration.resume"
   | "hydration.reset"
   | "hydration.minutes"
+  | "hydration.custom"
+  | "hydration.custom"
   | "hydration.autoStart.label"
   | "hydration.autoStart.desc"
   | "hydration.showBubble.label"

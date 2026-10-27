@@ -92,3 +92,4 @@
 }
 .hydration-compact-action { color: #82ddf3; font-size: 12px; font-weight: 700; }
 .hydration-settings-divider { height: 1px; background: var(--hairline); }
+.hydration-duration { flex: none; display: flex; align-items: center; gap: 8px; }

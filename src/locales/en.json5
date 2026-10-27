@@ -162,6 +162,7 @@
     resume: "Resume",
     reset: "Restart",
     minutes: "{n} min",
+    custom: "Custom",
     autoStart: {
       label: "Start automatically",
       desc: "Starts a new timer whenever the island opens.",

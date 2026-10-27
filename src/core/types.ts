@@ -54,6 +54,8 @@ export interface IslandModule {
   title: MessageKey;
   /** Static glyph for the settings sidebar. */
   settingsIcon?: ReactNode;
+  /** Whether the module starts on before the user toggles it. Defaults to true. */
+  enabledByDefault?: boolean;
   /**
    * React hook returning the module's current view. Called on every render of
    * the island, in registry order, so it must follow the rules of hooks.

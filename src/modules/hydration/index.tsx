@@ -86,11 +86,12 @@ export const hydrationModule: IslandModule = {
   id: "hydration",
   title: "hydration.title",
   settingsIcon: <WaterDropIcon size={15} />,
+  enabledByDefault: false,
   settings: Object.values(hydrationSettings),
   SettingsSection: HydrationSettings,
   useView(): ModuleView {
     const t = useT();
-    const enabled = useSetting(moduleEnabled("hydration", "hydration.title"));
+    const enabled = useSetting(moduleEnabled(hydrationModule));
     const autoStart = useSetting(hydrationSettings.autoStart);
     const showBubble = useSetting(hydrationSettings.showBubble);
     const interval = useSetting(hydrationInterval);

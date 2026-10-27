@@ -30,7 +30,7 @@ export interface AskState {
 export const ASK_PROVIDER = "ask";
 
 /** "Ask Claude" is turned on: other modules offer to send it things. */
-export const useAskEnabled = () => useSetting(moduleEnabled(ASK_PROVIDER, "ask.title"));
+export const useAskEnabled = () => useSetting(moduleEnabled({ id: ASK_PROVIDER, title: "ask.title" }));
 export const CLAUDE_ORANGE = "#D97757";
 
 /** Goes with the next question (screenshots, dropped files, shelf items). */
