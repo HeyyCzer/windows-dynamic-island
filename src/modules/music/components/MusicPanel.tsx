@@ -7,6 +7,7 @@ import { Controls } from "./Controls";
 import { Visualizer } from "./Visualizer";
 import { useT } from "../../../core/i18n";
 import { closePip, openPip, usePipOpen } from "../hooks/usePip";
+import { VolumeSliders } from "./VolumeSliders";
 import { useMirrorVideo, YouTubeMirror } from "./YouTubeMirror";
 
 /** Expanded now-playing panel. */
@@ -61,6 +62,11 @@ export function MusicPanel({
       ) : (
         <button className="music-open" title={music.appName} onClick={openPlayer}>
           <Artwork src={music.thumbnail} size={112} radius={20} trackKey={music.title} glow={accent} />
+          {music.appIcon && !pinned && (
+            <span className="music-app-badge">
+              <img src={music.appIcon} alt="" draggable={false} />
+            </span>
+          )}
           {pinned && (
             <span
               className="music-glass music-unpin"
@@ -110,11 +116,11 @@ export function MusicPanel({
         </div>
 
         <div className="music-footer">
-          <button className="music-app music-open" onClick={openPlayer}>
-            {music.appName}
-          </button>
           <Controls music={music} />
-          <span className="music-app ghost">{music.appName}</span>
+          {/* Dragging a slider must not drag the island. */}
+          <div className="music-volume" data-no-drag>
+            <VolumeSliders music={music} />
+          </div>
         </div>
       </div>
     </div>

@@ -103,20 +103,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  /* The play button lines up with the title. */
+  margin-left: -6px;
 }
-.music-app {
-  width: 90px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--text-faint);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.music-app.ghost {
-  visibility: hidden;
+.music-volume {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
 }
 .music-buttons {
   display: flex;
@@ -202,10 +198,6 @@
   width: 100%;
   min-width: 0;
 }
-.music-app.music-open:hover {
-  color: var(--text-dim);
-  opacity: 1;
-}
 
 /* YouTube in a browser: the video takes the artwork's place */
 .music-video {
@@ -249,6 +241,23 @@
 .music-glass:hover {
   background: rgba(28, 28, 30, 0.92);
 }
+.music-app-badge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 9px;
+  background: #1c1c1f;
+  box-shadow: 0 0 0 2.5px #000;
+  pointer-events: none;
+}
+.music-app-badge img {
+  width: 16px;
+  height: 16px;
+}
 .music-unpin {
   top: auto;
   bottom: 6px;
@@ -259,8 +268,10 @@
   cursor: pointer;
 }
 
-/* --- volume (tab bar, next to the gear) ------------------------------------ */
+/* --- volume (panel footer) ------------------------------------------------- */
 .volume-chip {
+  flex: 0 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -290,7 +301,9 @@
 .volume-chip-track {
   display: flex;
   align-items: center;
-  width: 54px;
+  width: 64px;
+  min-width: 28px;
+  flex: 0 1 auto;
   height: 100%;
   cursor: pointer;
   touch-action: none;

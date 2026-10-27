@@ -8,7 +8,7 @@ import { setVolume, type MusicState, type Volume } from "../hooks/useMusic";
 const HOLD_MS = 1500;
 const KEY_STEP = 0.05;
 
-/** Two small sliders for the tab bar: the player's, then the computer's. */
+/** Two small sliders for the panel's footer: the player's, then the computer's. */
 export function VolumeSliders({ music }: { music: MusicState | undefined }) {
   const t = useT();
   if (!music?.available) return null;
