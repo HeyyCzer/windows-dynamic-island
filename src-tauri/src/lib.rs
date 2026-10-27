@@ -7,6 +7,7 @@ mod portable;
 mod providers;
 mod screen;
 mod settings;
+mod sound;
 mod tray;
 mod updater;
 mod window;

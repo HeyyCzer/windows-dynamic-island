@@ -16,6 +16,7 @@ pub mod activity;
 mod hooks;
 pub mod integration;
 mod permissions;
+mod sounds;
 pub mod statusline;
 mod transcripts;
 mod usage;
@@ -359,6 +360,13 @@ impl Provider for ClaudeProvider {
                 permissions::decide(&ctx, id, decision)?;
                 return Ok(Value::Null);
             }
+            "testSound" => {
+                let alert = payload.as_str().and_then(sounds::Alert::parse).ok_or("bad sound")?;
+                sounds::play(ctx.hub.app(), alert, true);
+                return Ok(Value::Null);
+            }
+            // Windows' "Open" dialog; the frontend saves the path.
+            "pickSound" => return Ok(crate::sound::pick().map_or(Value::Null, Value::String)),
             "install" => integration::install()?,
             "uninstall" => integration::uninstall()?,
             "refresh" => {}

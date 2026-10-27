@@ -11,7 +11,7 @@ use serde_json::Value;
 use tiny_http::{Header, Method, Response, Server};
 
 use super::activity::{self, Activity};
-use super::{now_ms, permissions, statusline, transcripts, usage, Ctx, Source, Status, HOOK_PORT};
+use super::{now_ms, permissions, sounds, statusline, transcripts, usage, Ctx, Source, Status, HOOK_PORT};
 
 pub const HOOK_PATH: &str = "/claude/hook";
 pub const STATUSLINE_PATH: &str = "/claude/statusline";
@@ -81,6 +81,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
         .flatten()
         .map(|text| preview(&text));
 
+    let mut alert = None;
     {
         let mut store = ctx.store.lock().unwrap();
         if event == "SessionEnd" {
@@ -115,6 +116,7 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
                     s.activity = Some(Activity::thinking());
                 }
                 "PermissionRequest" => {
+                    alert = Some(sounds::Alert::Permission);
                     s.status = Status::Waiting;
                     s.tool = Some(tool.to_string());
                     s.activity = Some(activity::describe(tool, &v["tool_input"]).needs_permission());
@@ -125,11 +127,13 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
                     let asks_permission =
                         kind == "permission_prompt" || message.to_lowercase().contains("permission");
                     if asks_permission && s.status != Status::Waiting {
+                        alert = Some(sounds::Alert::Permission);
                         s.status = Status::Waiting;
                         s.activity = Some(Activity::message(message));
                     }
                 }
                 "Stop" | "StopFailure" => {
+                    alert = Some(sounds::Alert::Done);
                     s.status = Status::Done;
                     s.finished_at = Some(now);
                     s.tool = None;
@@ -145,6 +149,9 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
         }
     }
     ctx.publish();
+    if let Some(alert) = alert {
+        sounds::play(ctx.hub.app(), alert, false);
+    }
 
     // A session starting or a turn ending is when the plan usage moves.
     if matches!(event, "SessionStart" | "Stop") {

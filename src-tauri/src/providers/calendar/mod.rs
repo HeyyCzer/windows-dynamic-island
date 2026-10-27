@@ -278,7 +278,8 @@ impl Provider for CalendarProvider {
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
         match action {
             "refresh" => self.wake(Wake::Refresh),
-            "chime" => chime(),
+            // Windows' calendar reminder sound (Settings → Sound → Calendar Reminder).
+            "chime" => crate::sound::system("Notification.Reminder"),
             "connectGoogle" => return self.connect_google(),
             "cancelConnect" => self.cancel.store(true, Ordering::SeqCst),
             "disconnectGoogle" => {
@@ -317,15 +318,6 @@ impl Provider for CalendarProvider {
             _ => return Err(format!("calendar: unknown action '{action}'")),
         }
         Ok(Value::Null)
-    }
-}
-
-/// Windows' calendar reminder sound (Settings → Sound → Calendar Reminder).
-fn chime() {
-    #[cfg(windows)]
-    unsafe {
-        use windows::Win32::Media::Audio::{PlaySoundW, SND_ALIAS, SND_ASYNC, SND_NODEFAULT};
-        let _ = PlaySoundW(windows::core::w!("Notification.Reminder"), None, SND_ALIAS | SND_ASYNC | SND_NODEFAULT);
     }
 }
 

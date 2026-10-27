@@ -1,13 +1,26 @@
 import { useState } from "react";
 import { providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
+import { setSetting, useSetting } from "../../../core/settings";
+import { Toggle } from "../../../settings/components/Toggle";
+import { claudeSounds } from "../settings";
 
 interface IntegrationState {
   integration: { hooks: boolean; statusline: boolean; serverOk: boolean; permissions: boolean };
 }
 
-/** Claude Code integration status + install/remove, for the settings window. */
+/** Claude Code integration status + install/remove, and the alert sounds, for the settings window. */
 export function ClaudeSettings() {
+  return (
+    <>
+      <Integration />
+      <SoundRow kind="done" />
+      <SoundRow kind="permission" />
+    </>
+  );
+}
+
+function Integration() {
   const state = useProvider<IntegrationState>("claude");
   const t = useT();
   const [busy, setBusy] = useState(false);
@@ -61,6 +74,48 @@ export function ClaudeSettings() {
         </span>
       )}
       {error && <span className="settings-error">{error}</span>}
+    </div>
+  );
+}
+
+/** A sound on/off, the file it plays, a picker and a preview. */
+function SoundRow({ kind }: { kind: keyof typeof claudeSounds }) {
+  const t = useT();
+  const defs = claudeSounds[kind];
+  const enabled = useSetting(defs.enabled);
+  const file = useSetting(defs.file);
+  const name = file ? file.split(/[\\/]/).pop() : t("claude.sound.default");
+
+  const pick = async () => {
+    const path = await providerAction<string | null>("claude", "pickSound");
+    if (path) setSetting(defs.file, path);
+  };
+
+  return (
+    <div className="settings-row is-static">
+      <div className="settings-text">
+        <span className="settings-label">{t(defs.enabled.label)}</span>
+        <span className="settings-desc" title={file ?? undefined}>
+          {name}
+          {" · "}
+          <button className="claude-sound-link" onClick={() => providerAction("claude", "testSound", kind)}>
+            {t("claude.sound.test")}
+          </button>
+          {" · "}
+          <button className="claude-sound-link" onClick={pick}>
+            {t("claude.sound.choose")}
+          </button>
+          {file && (
+            <>
+              {" · "}
+              <button className="claude-sound-link" onClick={() => setSetting(defs.file, null)}>
+                {t("claude.sound.reset")}
+              </button>
+            </>
+          )}
+        </span>
+      </div>
+      <Toggle checked={enabled} onChange={(v) => setSetting(defs.enabled, v)} />
     </div>
   );
 }

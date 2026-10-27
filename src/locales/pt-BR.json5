@@ -331,6 +331,14 @@
 
   // Claude Code
   claude: {
+    sound: {
+      done: "Som quando o Claude terminar",
+      permission: "Som quando o Claude pedir permissão",
+      default: "Som padrão",
+      test: "Tocar",
+      choose: "Escolher arquivo…",
+      reset: "Usar o padrão",
+    },
     limitsHint: {
       loading: "Carregando limites do plano…",
     },

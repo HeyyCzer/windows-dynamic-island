@@ -359,6 +359,14 @@
 
   // Claude Code agent
   claude: {
+    sound: {
+      done: "Sound when Claude finishes",
+      permission: "Sound when Claude asks for permission",
+      default: "Default sound",
+      test: "Play",
+      choose: "Choose file…",
+      reset: "Use default",
+    },
     limitsHint: {
       loading: "Loading plan limits…",
     },

@@ -191,7 +191,8 @@ body:has(.settings) {
   padding: 12px 0;
   cursor: pointer;
 }
-.settings-card > .settings-row + .settings-row {
+.settings-card > .settings-row + .settings-row,
+.settings-card > .settings-block + .settings-row {
   border-top: 1px solid var(--hairline);
 }
 .settings-text {
@@ -776,4 +777,14 @@ body:has(.settings) {
 .shortcut-clear:hover {
   color: #ff6b63;
   background: rgba(255, 95, 87, 0.12);
+}
+
+/* inline actions in a row's description (Claude alert sounds) */
+.claude-sound-link {
+  font-size: inherit;
+  font-weight: 600;
+  color: var(--text);
+}
+.claude-sound-link:hover {
+  text-decoration: underline;
 }
