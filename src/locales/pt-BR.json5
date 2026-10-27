@@ -124,6 +124,10 @@
       label: "Visualizador de áudio",
       desc: "Barras animadas no ritmo da música.",
     },
+    video: {
+      label: "Vídeo do YouTube na ilha",
+      desc: "Toca sem som o vídeo do YouTube do navegador no lugar da capa. Pesquisa cada faixa no youtube.com.",
+    },
     pin: "Fixar",
     pinned: "Vídeo fixado · trazer de volta",
     unpin: "Trazer o vídeo de volta para a ilha",

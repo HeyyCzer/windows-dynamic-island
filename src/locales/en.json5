@@ -139,6 +139,10 @@
       label: "Audio visualizer",
       desc: "Animated bars that follow the music.",
     },
+    video: {
+      label: "YouTube video in the island",
+      desc: "Plays the browser's YouTube video muted in place of the artwork. Searches youtube.com for each track.",
+    },
     // YouTube video mirrored in the island / pinned to its own window
     pin: "Pin",
     pinned: "Video pinned · bring back",

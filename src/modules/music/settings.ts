@@ -13,4 +13,11 @@ export const musicSettings = {
     description: "music.visualizer.desc",
     default: true,
   },
+  // Read by the backend too (`smtc.rs`): off means no YouTube lookups at all.
+  video: {
+    key: "music.video.label",
+    label: "music.video.label",
+    description: "music.video.desc",
+    default: false,
+  },
 } satisfies Record<string, SettingDef>;

@@ -14,40 +14,46 @@ const FATAL_ERRORS = new Set([2, 5, 100, 101, 150, 153]);
  * kept in sync with the browser tab's position and play/pause (the sound
  * keeps coming from the browser). Talks to the embed through its postMessage
  * API, so no script has to be loaded into the page.
+ *
+ * Live streams have no duration (and no meaningful position) in the media
+ * controls: the embed stays at the live edge and only follows play/pause.
  */
 export function YouTubeMirror({
   videoId,
   positionMs,
   playing,
+  live,
   className,
 }: {
   videoId: string;
   positionMs: number;
   playing: boolean;
+  live: boolean;
   className?: string;
 }) {
   const frame = useRef<HTMLIFrameElement>(null);
   const time = useRef(-1);
   const state = useRef(-1);
-  const live = useRef({ positionMs, playing });
-  live.current = { positionMs, playing };
+  const latest = useRef({ positionMs, playing, live });
+  latest.current = { positionMs, playing, live };
 
   // The start position only matters when a new video loads.
   const src = useMemo(() => {
-    const start = Math.max(0, Math.floor(live.current.positionMs / 1000));
+    const start = Math.max(0, Math.floor(latest.current.positionMs / 1000));
     const params = new URLSearchParams({
       enablejsapi: "1",
       mute: "1",
-      autoplay: live.current.playing ? "1" : "0",
+      autoplay: latest.current.playing ? "1" : "0",
       controls: "0",
       disablekb: "1",
       fs: "0",
       playsinline: "1",
       rel: "0",
       iv_load_policy: "3",
-      start: String(start),
       origin: window.location.origin,
     });
+    // A start time on a live stream rewinds it to the beginning of the broadcast.
+    if (!latest.current.live) params.set("start", String(start));
     return `https://www.youtube-nocookie.com/embed/${videoId}?${params}`;
   }, [videoId]);
 
@@ -81,8 +87,8 @@ export function YouTubeMirror({
     // Ask for state updates; then follow the browser about once a second.
     const tick = window.setInterval(() => {
       post({ event: "listening", id: 1, channel: "widget" });
-      const { positionMs, playing } = live.current;
-      if (time.current >= 0 && Math.abs(time.current - positionMs / 1000) > MAX_DRIFT) {
+      const { positionMs, playing, live } = latest.current;
+      if (!live && time.current >= 0 && Math.abs(time.current - positionMs / 1000) > MAX_DRIFT) {
         command("seekTo", [positionMs / 1000, true]);
       }
       // YT.PlayerState: 1 = playing.

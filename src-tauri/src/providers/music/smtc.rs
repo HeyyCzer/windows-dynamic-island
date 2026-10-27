@@ -6,6 +6,7 @@ use std::time::Duration;
 
 use base64::Engine;
 use serde_json::Value;
+use tauri::Manager;
 use windows::core::Result;
 use windows::Media::Control::{
     GlobalSystemMediaTransportControlsSession as Session,
@@ -18,6 +19,10 @@ use super::spotify::{self, Spotify};
 use super::{MusicState, ID};
 use crate::hub::Hub;
 use crate::providers::{now_ms, process};
+use crate::settings::Settings;
+
+/// Off by default: the YouTube lookup is a search request per browser track.
+const VIDEO_KEY: &str = "music.video.label";
 
 /// 100ns ticks between 1601-01-01 and 1970-01-01.
 const EPOCH_DIFF_TICKS: i64 = 116_444_736_000_000_000;
@@ -47,7 +52,10 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>, spotify: Arc<Spot
                     thumbnail = read_thumbnail(&session).ok().flatten();
                 }
                 state.thumbnail = thumbnail.clone();
-                state.youtube_id = youtube.video_id(&state);
+                let video = hub.app().state::<Settings>().get(VIDEO_KEY).and_then(|v| v.as_bool()).unwrap_or(false);
+                if video {
+                    state.youtube_id = youtube.video_id(&state);
+                }
                 state.volume = super::volume::system();
                 let local = super::volume::app(&state.app_id);
                 spotify.set_wanted(local.is_none() && spotify::is_spotify(&state.app_id));

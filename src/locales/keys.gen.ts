@@ -71,6 +71,8 @@ export type MessageKey =
   | "music.autoExpand.desc"
   | "music.visualizer.label"
   | "music.visualizer.desc"
+  | "music.video.label"
+  | "music.video.desc"
   | "music.pin"
   | "music.pinned"
   | "music.unpin"

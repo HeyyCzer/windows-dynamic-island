@@ -6,10 +6,12 @@ import { Marquee } from "../components/Marquee";
 import { command, isTauri } from "../core/bridge";
 import { useT } from "../core/i18n";
 import { useSyncLocale } from "../core/i18n";
+import { useSetting } from "../core/settings";
 import { Artwork } from "../modules/music/components/Artwork";
 import { useMirrorVideo, YouTubeMirror } from "../modules/music/components/YouTubeMirror";
 import { formatTime, musicAction, useLivePosition, useMusic } from "../modules/music/hooks/useMusic";
 import { closePip, PIP_RETURN_EVENT } from "../modules/music/hooks/usePip";
+import { musicSettings } from "../modules/music/settings";
 import { isBrowserApp } from "./browsers";
 import "./pip.css";
 
@@ -30,6 +32,12 @@ export function PipApp() {
   const position = useLivePosition(music);
   const video = useMirrorVideo(music?.youtubeId);
   const browser = !!music?.available && isBrowserApp(music.appName);
+  const videoEnabled = useSetting(musicSettings.video);
+
+  // The video was turned off in the settings: nothing left to pin.
+  useEffect(() => {
+    if (!videoEnabled) closePip();
+  }, [videoEnabled]);
 
   // Close a few seconds after the browser tab (or the browser) went away.
   useEffect(() => {
@@ -63,7 +71,7 @@ export function PipApp() {
   return (
     <div className="pip" onMouseDown={startDrag} onWheel={onWheel}>
       {video ? (
-        <YouTubeMirror videoId={video} positionMs={position} playing={!!music?.playing} className="pip-video" />
+        <YouTubeMirror videoId={video} positionMs={position} playing={!!music?.playing} live={!music?.durationMs} className="pip-video" />
       ) : (
         // Ads and videos that refuse embedding: the artwork until a video is back.
         <div className="pip-art">

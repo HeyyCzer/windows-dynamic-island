@@ -6,7 +6,9 @@ import { Artwork } from "./Artwork";
 import { Controls } from "./Controls";
 import { Visualizer } from "./Visualizer";
 import { useT } from "../../../core/i18n";
+import { useSetting } from "../../../core/settings";
 import { closePip, openPip, usePipOpen } from "../hooks/usePip";
+import { musicSettings } from "../settings";
 import { VolumeSliders } from "./VolumeSliders";
 import { useMirrorVideo, YouTubeMirror } from "./YouTubeMirror";
 
@@ -23,9 +25,10 @@ export function MusicPanel({
   const position = useLivePosition(music);
   const t = useT();
   const pinned = usePipOpen();
+  const videoEnabled = useSetting(musicSettings.video);
   const mirror = useMirrorVideo(music?.youtubeId);
   // While pinned, only the pinned window plays the video.
-  const video = pinned ? null : mirror;
+  const video = videoEnabled && !pinned ? mirror : null;
 
   if (!music?.available) {
     return (
@@ -48,7 +51,7 @@ export function MusicPanel({
       {video ? (
         // YouTube in a browser: the video itself plays here (muted, in sync with the tab).
         <div className="music-video">
-          <YouTubeMirror videoId={video} positionMs={position} playing={music.playing} />
+          <YouTubeMirror videoId={video} positionMs={position} playing={music.playing} live={!music.durationMs} />
           <button
             className="music-glass"
             onClick={(e) => {
