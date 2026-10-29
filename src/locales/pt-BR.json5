@@ -708,6 +708,23 @@
     },
   },
 
+  toolbox: {
+    title: "ToolBox",
+    empty: "Ative uma ferramenta nas configurações do ToolBox.",
+    order: {
+      label: "Ordem das ferramentas",
+      desc: "Escolha quais ferramentas aparecem no ToolBox e arraste para reordená-las.",
+    },
+    settings: { desc: "Ative ou desative cada ferramenta e arraste para deixar na ordem que preferir." },
+    calculator: { title: "Calculadora", clear: "Limpar", error: "Erro" },
+    timer: { title: "Temporizador" },
+    stopwatch: { title: "Cronômetro" },
+    focus: { title: "Foco", desc: "Uma sessão de foco de 25 minutos" },
+    start: "Iniciar",
+    pause: "Pausar",
+    reset: "Reiniciar",
+  },
+
   system: {
     volume: {
       title: "Volume",

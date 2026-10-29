@@ -777,6 +777,23 @@
     },
   },
 
+  toolbox: {
+    title: "ToolBox",
+    empty: "Enable a tool in ToolBox settings.",
+    order: {
+      label: "Tool order",
+      desc: "Choose which tools appear in ToolBox and drag to reorder them.",
+    },
+    settings: { desc: "Turn individual tools on or off, then drag them into your preferred order." },
+    calculator: { title: "Calculator", clear: "Clear", error: "Error" },
+    timer: { title: "Timer" },
+    stopwatch: { title: "Stopwatch" },
+    focus: { title: "Focus", desc: "A 25-minute focus session" },
+    start: "Start",
+    pause: "Pause",
+    reset: "Reset",
+  },
+
   // Alerts raised by the backend (src-tauri/src/providers/activities)
   system: {
     volume: {

@@ -11,6 +11,7 @@ import { monitorModule } from "./monitor";
 import { musicModule } from "./music";
 import { notificationsModule } from "./notifications";
 import { shelfModule } from "./shelf";
+import { toolboxModule } from "./toolbox";
 
 /**
  * Every module the island knows about, in tab order.
@@ -32,5 +33,6 @@ export const modules: IslandModule[] = [
   githubModule,
   hydrationModule,
   monitorModule,
+  toolboxModule,
   clockModule,
 ];
