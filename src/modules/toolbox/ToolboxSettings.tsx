@@ -1,8 +1,10 @@
 import { Reorder, useDragControls } from "motion/react";
+import { useEffect, useState } from "react";
 import { Glyph } from "../../components/Glyph";
 import { GripIcon } from "../../components/icons";
 import { useT } from "../../core/i18n";
 import { inOrder, readSetting, setSetting, useSetting, useSettings } from "../../core/settings";
+import { ShortcutRow } from "../../settings/components/ShortcutRow";
 import { Toggle } from "../../settings/components/Toggle";
 import { TOOLBOX_TOOLS, toolboxSettings, toolboxToolSettings, toolboxToolTitleKeys, type ToolboxToolId } from "./settings";
 
@@ -20,8 +22,18 @@ export function ToolboxSettings() {
         {ordered.map((id) => <ToolRow key={id} id={id} enabled={readSetting(values, toolboxToolSettings[id])} />)}
       </Reorder.Group>
       <ToolboxPreferences />
+      <CalculatorShortcut values={values} />
     </div>
   );
+}
+
+/** The shortcut belongs to the calculator, rather than to the ToolBox shell. */
+function CalculatorShortcut({ values }: { values: Record<string, unknown> }) {
+  const t = useT();
+  return <div className="toolbox-preferences">
+    <strong className="toolbox-settings-heading">{t("toolbox.calculator.title")}</strong>
+    <ShortcutRow id="toolboxCalculator" values={values} />
+  </div>;
 }
 
 function ToolboxPreferences() {
@@ -39,7 +51,7 @@ function ToolboxPreferences() {
     <strong className="toolbox-settings-heading">{t("toolbox.focus.title")}</strong>
     <NumberRow label={t("toolbox.focus.duration")} value={focus} onChange={(v) => setSetting(toolboxSettings.focusMinutes, v)} />
     <NumberRow label={t("toolbox.focus.break")} value={pause} onChange={(v) => setSetting(toolboxSettings.focusBreakMinutes, v)} />
-    <NumberRow label={t("toolbox.focus.sessions")} value={sessions} max={12} onChange={(v) => setSetting(toolboxSettings.focusSessions, v)} />
+    <NumberRow label={t("toolbox.focus.sessions")} value={sessions} max={12} unit="" onChange={(v) => setSetting(toolboxSettings.focusSessions, v)} />
     <label className="toolbox-settings-row"><span className="toolbox-settings-name">{t("toolbox.focus.autoNext")}</span><Toggle checked={autoNext} onChange={(v) => setSetting(toolboxSettings.focusAutoNext, v)} /></label>
     <label className="toolbox-settings-row"><span className="toolbox-settings-name">{t("toolbox.focus.autoBreak")}</span><Toggle checked={autoBreak} onChange={(v) => setSetting(toolboxSettings.focusAutoBreak, v)} /></label>
     <strong className="toolbox-settings-heading">{t("toolbox.notes.title")}</strong>
@@ -47,8 +59,11 @@ function ToolboxPreferences() {
   </div>;
 }
 
-function NumberRow({ label, value, max = 180, onChange }: { label: string; value: number; max?: number; onChange: (value: number) => void }) {
-  return <label className="toolbox-settings-row"><span className="toolbox-settings-name">{label}</span><span className="settings-number"><input type="number" min={1} max={max} value={value} onChange={(e) => { const next = Math.round(Number(e.target.value)); if (Number.isFinite(next)) onChange(Math.max(1, Math.min(max, next))); }} /><span className="settings-unit">min</span></span></label>;
+function NumberRow({ label, value, max = 180, unit = "min", onChange }: { label: string; value: number; max?: number; unit?: string; onChange: (value: number) => void }) {
+  const [draft, setDraft] = useState(String(value));
+  useEffect(() => setDraft(String(value)), [value]);
+  const commit = () => { const next = Math.round(Number(draft)); onChange(Number.isFinite(next) ? Math.max(1, Math.min(max, next)) : 1); };
+  return <label className="toolbox-settings-row"><span className="toolbox-settings-name">{label}</span><span className="settings-number"><input type="number" min={1} max={max} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()} />{unit && <span className="settings-unit">{unit}</span>}</span></label>;
 }
 
 function ToolRow({ id, enabled }: { id: ToolboxToolId; enabled: boolean }) {

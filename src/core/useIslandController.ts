@@ -7,9 +7,11 @@ import {
   layoutSettings,
   moduleEnabled,
   readSetting,
+  setSetting,
   useSettings,
   type Values as Settings,
 } from "./settings";
+import { toolboxSettings } from "../modules/toolbox/settings";
 import type { IslandMode, IslandModule, ModuleEntry } from "./types";
 import { useIslandHover } from "./useIslandHover";
 import { usePeek } from "./usePeek";
@@ -90,10 +92,15 @@ export function useIslandController(modules: IslandModule[]) {
 
   // The pinned video went back to the island: show the player for a moment.
   useTauriEvent("pip://return", () => peek("music"));
-  // Global shortcuts (`core/shortcuts.ts`) open "Ask Claude" and "Find on screen".
+  // Global shortcuts (`core/shortcuts.ts`) open their target modules.
   const enabled = (id: string) => entries.some((e) => e.module.id === id);
   useTauriEvent("island://ask", () => enabled("ask") && expand("ask"));
   useTauriEvent("island://find", () => enabled("find") && expand("find"));
+  useTauriEvent("island://toolbox-calculator", () => {
+    if (!enabled("toolbox")) return;
+    setSetting(toolboxSettings.lastTool, "calculator");
+    expand("toolbox");
+  });
   useTauriEvent<boolean>("island://hover", hover.onPointer);
 
   const onWheel = useWheelTabs(

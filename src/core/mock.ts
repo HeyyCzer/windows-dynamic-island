@@ -63,6 +63,7 @@ export function startMock() {
 	publishLocal("shortcuts", {
 		ask: { keys: "Ctrl+Alt+Space", taken: null },
 		find: { keys: "Ctrl+Alt+F", taken: null },
+		toolboxCalculator: { keys: "Ctrl+Alt+C", taken: null },
 	});
 	setInterval(() => {
 		if (playing) emitLocal("music://level", 0.25 + Math.random() * 0.6);
