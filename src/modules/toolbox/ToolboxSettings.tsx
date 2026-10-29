@@ -2,11 +2,11 @@ import { Reorder, useDragControls } from "motion/react";
 import { Glyph } from "../../components/Glyph";
 import { GripIcon } from "../../components/icons";
 import { useT } from "../../core/i18n";
-import { inOrder, readSetting, setSetting, useSettings } from "../../core/settings";
+import { inOrder, readSetting, setSetting, useSetting, useSettings } from "../../core/settings";
 import { Toggle } from "../../settings/components/Toggle";
 import { TOOLBOX_TOOLS, toolboxSettings, toolboxToolSettings, toolboxToolTitleKeys, type ToolboxToolId } from "./settings";
 
-const ICONS: Record<ToolboxToolId, string> = { calculator: "code", timer: "timer", stopwatch: "clock", focus: "heart" };
+const ICONS: Record<ToolboxToolId, string> = { calculator: "code", timer: "timer", stopwatch: "clock", focus: "heart", notes: "text" };
 
 /** Per-tool availability and order, persisted alongside the normal module settings. */
 export function ToolboxSettings() {
@@ -19,8 +19,36 @@ export function ToolboxSettings() {
       <Reorder.Group as="ul" axis="y" className="toolbox-settings-list" values={ordered} onReorder={(ids: ToolboxToolId[]) => setSetting(toolboxSettings.toolOrder, ids)}>
         {ordered.map((id) => <ToolRow key={id} id={id} enabled={readSetting(values, toolboxToolSettings[id])} />)}
       </Reorder.Group>
+      <ToolboxPreferences />
     </div>
   );
+}
+
+function ToolboxPreferences() {
+  const t = useT();
+  const timer = useSetting(toolboxSettings.timerMinutes);
+  const focus = useSetting(toolboxSettings.focusMinutes);
+  const pause = useSetting(toolboxSettings.focusBreakMinutes);
+  const sessions = useSetting(toolboxSettings.focusSessions);
+  const autoNext = useSetting(toolboxSettings.focusAutoNext);
+  const autoBreak = useSetting(toolboxSettings.focusAutoBreak);
+  const lineNumbers = useSetting(toolboxSettings.notesLineNumbers);
+  return <div className="toolbox-preferences">
+    <strong className="toolbox-settings-heading">{t("toolbox.timer.title")}</strong>
+    <NumberRow label={t("toolbox.timer.default")} value={timer} onChange={(v) => setSetting(toolboxSettings.timerMinutes, v)} />
+    <strong className="toolbox-settings-heading">{t("toolbox.focus.title")}</strong>
+    <NumberRow label={t("toolbox.focus.duration")} value={focus} onChange={(v) => setSetting(toolboxSettings.focusMinutes, v)} />
+    <NumberRow label={t("toolbox.focus.break")} value={pause} onChange={(v) => setSetting(toolboxSettings.focusBreakMinutes, v)} />
+    <NumberRow label={t("toolbox.focus.sessions")} value={sessions} max={12} onChange={(v) => setSetting(toolboxSettings.focusSessions, v)} />
+    <label className="toolbox-settings-row"><span className="toolbox-settings-name">{t("toolbox.focus.autoNext")}</span><Toggle checked={autoNext} onChange={(v) => setSetting(toolboxSettings.focusAutoNext, v)} /></label>
+    <label className="toolbox-settings-row"><span className="toolbox-settings-name">{t("toolbox.focus.autoBreak")}</span><Toggle checked={autoBreak} onChange={(v) => setSetting(toolboxSettings.focusAutoBreak, v)} /></label>
+    <strong className="toolbox-settings-heading">{t("toolbox.notes.title")}</strong>
+    <label className="toolbox-settings-row"><span className="toolbox-settings-name">{t("toolbox.notes.lineNumbers")}</span><Toggle checked={lineNumbers} onChange={(v) => setSetting(toolboxSettings.notesLineNumbers, v)} /></label>
+  </div>;
+}
+
+function NumberRow({ label, value, max = 180, onChange }: { label: string; value: number; max?: number; onChange: (value: number) => void }) {
+  return <label className="toolbox-settings-row"><span className="toolbox-settings-name">{label}</span><span className="settings-number"><input type="number" min={1} max={max} value={value} onChange={(e) => { const next = Math.round(Number(e.target.value)); if (Number.isFinite(next)) onChange(Math.max(1, Math.min(max, next))); }} /><span className="settings-unit">min</span></span></label>;
 }
 
 function ToolRow({ id, enabled }: { id: ToolboxToolId; enabled: boolean }) {

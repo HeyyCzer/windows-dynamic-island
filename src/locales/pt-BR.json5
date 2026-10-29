@@ -709,7 +709,7 @@
   },
 
   toolbox: {
-    title: "ToolBox",
+    title: "Caixa de ferramentas",
     empty: "Ative uma ferramenta nas configurações do ToolBox.",
     order: {
       label: "Ordem das ferramentas",
@@ -717,12 +717,16 @@
     },
     settings: { desc: "Ative ou desative cada ferramenta e arraste para deixar na ordem que preferir." },
     calculator: { title: "Calculadora", clear: "Limpar", error: "Erro" },
-    timer: { title: "Temporizador" },
+    timer: { title: "Temporizador", default: "Tempo padrão do temporizador (minutos)" },
     stopwatch: { title: "Cronômetro" },
-    focus: { title: "Foco", desc: "Uma sessão de foco de 25 minutos" },
+    focus: { title: "Foco", desc: "Uma sessão de foco de 25 minutos", duration: "Duração do foco (minutos)", break: "Tempo de intervalo (minutos)", sessions: "Sessões de foco", autoNext: "Iniciar outra sessão de foco automaticamente", autoBreak: "Iniciar o intervalo automaticamente" },
+    notes: { title: "Notas", placeholder: "Anote algo rapidamente…", lineNumbers: "Exibir números de linha", copy: "Copiar", export: "Exportar", filename: "notas.txt" },
     start: "Iniciar",
     pause: "Pausar",
     reset: "Reiniciar",
+    time: "Tempo (minutos:segundos)",
+    finished: "Tempo encerrado",
+    confirm: "Confirmar",
   },
 
   system: {

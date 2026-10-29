@@ -1,103 +1,41 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Glyph } from "../../components/Glyph";
+import { command } from "../../core/bridge";
 import { useT } from "../../core/i18n";
-import { inOrder, readSetting, useSettings } from "../../core/settings";
+import { inOrder, readSetting, setSetting, useSetting, useSettings } from "../../core/settings";
 import { TOOLBOX_TOOLS, toolboxSettings, toolboxToolSettings, toolboxToolTitleKeys, type ToolboxToolId } from "./settings";
 
-const TOOL_ICONS: Record<ToolboxToolId, string> = { calculator: "code", timer: "timer", stopwatch: "clock", focus: "heart" };
-const KEYS = ["7", "8", "9", "÷", "4", "5", "6", "×", "1", "2", "3", "−", "0", ".", "=", "+"];
-
-export function ToolboxPanel() {
-  const t = useT();
-  const values = useSettings();
-  const tools = useMemo(() => inOrder(TOOLBOX_TOOLS.filter((id) => readSetting(values, toolboxToolSettings[id])), (id) => id, readSetting(values, toolboxSettings.toolOrder)), [values]);
-  const [selected, setSelected] = useState<ToolboxToolId | null>(() => tools[0] ?? null);
-  const active = selected && tools.includes(selected) ? selected : (tools[0] ?? null);
-  useEffect(() => { if (active !== selected) setSelected(active); }, [active, selected]);
+const ICONS: Record<ToolboxToolId, string> = { calculator: "code", timer: "timer", stopwatch: "clock", focus: "heart", notes: "text" };
+type TimerApi = { seconds: number; running: boolean; complete: boolean; toggle: () => void; reset: () => void; setSeconds: (v: number) => void; acknowledge: () => void };
+type StopwatchApi = { elapsed: number; running: boolean; toggle: () => void; reset: () => void };
+export function ToolboxPanel({ timer, focus, stopwatch }: { timer: TimerApi; focus: TimerApi; stopwatch: StopwatchApi }) {
+  const t = useT(), values = useSettings(), saved = useSetting(toolboxSettings.lastTool); useEffect(() => { command("focus_island"); }, []);
+  const tools = useMemo(() => inOrder(TOOLBOX_TOOLS.filter((id) => readSetting(values, toolboxToolSettings[id])), (id) => id, readSetting(values, toolboxSettings.toolOrder)), [values]); const active = tools.includes(saved) ? saved : tools[0];
+  useEffect(() => { if (active && active !== saved) setSetting(toolboxSettings.lastTool, active); }, [active, saved]);
   if (!active) return <div className="toolbox-empty">{t("toolbox.empty")}</div>;
-  return (
-    <div className="toolbox-panel" onClick={(e) => e.stopPropagation()}>
-      <nav className="toolbox-nav" aria-label={t("toolbox.title")}>
-        {tools.map((id) => <button key={id} className={`toolbox-nav-button ${id === active ? "is-active" : ""}`} title={t(toolboxToolTitleKeys[id])} onClick={() => setSelected(id)}><Glyph name={TOOL_ICONS[id]} size={15} /></button>)}
-      </nav>
-      <div className="toolbox-content">
-        {active === "calculator" && <Calculator />}
-        {active === "timer" && <Countdown />}
-        {active === "stopwatch" && <Stopwatch />}
-        {active === "focus" && <FocusTimer />}
-      </div>
-    </div>
-  );
+  return <div className={`toolbox-panel ${active === "focus" ? "is-focus" : ""}`} onPointerDown={() => command("focus_island")} onClick={(e) => e.stopPropagation()}><nav className="toolbox-nav">{tools.map((id) => <button key={id} className={`toolbox-nav-button ${id === active ? "is-active" : ""}`} title={t(toolboxToolTitleKeys[id])} onClick={() => setSetting(toolboxSettings.lastTool, id)}><Glyph name={ICONS[id]} size={15} />{((id === "timer" && timer.complete) || (id === "focus" && focus.complete)) && <i className="toolbox-tool-alert" />}</button>)}</nav><div className="toolbox-content">{active === "calculator" && <Calculator />}{active === "timer" && <Timer title={t("toolbox.timer.title")} api={timer} />}{active === "stopwatch" && <Stopwatch api={stopwatch} />}{active === "focus" && <Timer title={t("toolbox.focus.title")} subtitle={t("toolbox.focus.desc")} api={focus} />}{active === "notes" && <Notes />}</div></div>;
 }
-
 function Calculator() {
-  const t = useT();
-  const [expression, setExpression] = useState("0");
-  const [result, setResult] = useState<string | null>(null);
-  const press = (key: string) => {
-    if (key === "=") {
-      const value = evaluate(expression);
-      setResult(value ?? t("toolbox.calculator.error"));
-      if (value !== null) setExpression(value);
-      return;
-    }
-    setResult(null);
-    const mapped = key.replace("×", "*").replace("÷", "/").replace("−", "-");
-    setExpression((current) => current === "0" && !/[+*/-]/.test(mapped) ? mapped : current + mapped);
-  };
-  return <section className="toolbox-calculator"><div className="toolbox-heading"><Glyph name="code" size={17} /><span>{t("toolbox.calculator.title")}</span></div><output className="toolbox-display" aria-live="polite">{result ?? expression}</output><div className="toolbox-keypad"><button className="toolbox-key clear" onClick={() => { setExpression("0"); setResult(null); }}>{t("toolbox.calculator.clear")}</button><button className="toolbox-key clear" onClick={() => { setExpression((value) => value.length > 1 ? value.slice(0, -1) : "0"); setResult(null); }}>⌫</button>{KEYS.map((key) => <button key={key} className={`toolbox-key ${/[÷×−+=]/.test(key) ? "operator" : ""}`} onClick={() => press(key)}>{key}</button>)}</div></section>;
+  const t = useT(); const [value, setValue] = useState("0"), [bad, setBad] = useState(false);
+  const press = (key: string) => { if (key === "Enter" || key === "=") { const result = evaluate(value); setBad(!result); if (result) setValue(result); return; } if (key === "Escape") { setValue("0"); setBad(false); return; } if (key === "Backspace") { setValue((v) => v.length > 1 ? v.slice(0, -1) : "0"); return; } const char = key.replace(/[xX×]/, "*").replace("÷", "/").replace("−", "-").replace(",", "."); if (/^[0-9+*/().-]$/.test(char)) { setValue((v) => { const number = v.split(/[+\-*/()]/).at(-1) ?? ""; if (char === "." && number.includes(".")) return v; return v === "0" && !/[+*/-]/.test(char) ? char : v + char; }); setBad(false); } };
+  useEffect(() => { const keydown = (e: KeyboardEvent) => { if (e.ctrlKey || e.metaKey || e.altKey || !(/^[0-9+*/().,xX]$/.test(e.key) || ["Enter", "=", "Backspace", "Escape"].includes(e.key))) return; e.preventDefault(); press(e.key); }; window.addEventListener("keydown", keydown); return () => window.removeEventListener("keydown", keydown); });
+  const keys = ["C", "Backspace", "7", "8", "9", "÷", "4", "5", "6", "×", "1", "2", "3", "−", "0", ".", "=", "+"];
+  return <section className="toolbox-calculator"><div className="toolbox-heading"><Glyph name="code" size={17} /><span>{t("toolbox.calculator.title")}</span></div><output className={`toolbox-display ${bad ? "is-invalid" : ""}`}>{bad ? t("toolbox.calculator.error") : value}</output><div className="toolbox-keypad">{keys.map((key) => <button key={key} className={`toolbox-key ${/[÷×−+=]/.test(key) ? "operator" : ""} ${key === "C" || key === "Backspace" ? "clear" : ""}`} onClick={() => press(key)}>{key === "Backspace" ? "⌫" : key === "C" ? t("toolbox.calculator.clear") : key}</button>)}</div></section>;
 }
-
-function Countdown() {
-  const t = useT();
-  const [seconds, setSeconds] = useState(300);
-  const [running, setRunning] = useState(false);
-  useEffect(() => { if (!running || seconds === 0) return; const id = window.setInterval(() => setSeconds((n) => n - 1), 1000); return () => window.clearInterval(id); }, [running, seconds]);
-  useEffect(() => { if (seconds === 0) setRunning(false); }, [seconds]);
-  return <TimerTool icon="timer" title={t("toolbox.timer.title")} seconds={seconds} running={running} onStart={() => setRunning((v) => !v)} onReset={() => { setRunning(false); setSeconds(300); }} onAdjust={(delta) => { setRunning(false); setSeconds((v) => Math.max(0, Math.min(59_940, v + delta))); }} />;
+function Timer({ title, subtitle, api }: { title: string; subtitle?: string; api: TimerApi }) { const t = useT(); if (api.complete) return <section className="toolbox-timer toolbox-finished"><div className="toolbox-heading"><Glyph name="timer" size={17} /><span>{title}</span></div><strong className="toolbox-time">00:00</strong><span className="toolbox-finished-message">{t("toolbox.finished")}</span><button className="toolbox-action primary" onClick={api.acknowledge}>{t("toolbox.confirm")}</button></section>; return <section className="toolbox-timer"><div className="toolbox-heading"><Glyph name="timer" size={17} /><span>{title}</span></div>{subtitle && <span className="toolbox-subtitle">{subtitle}</span>}<TimeInput value={api.seconds} disabled={api.running} label={t("toolbox.time")} onCommit={api.setSeconds} onEnter={api.toggle} /><div className="toolbox-actions"><button className="toolbox-action secondary" onClick={api.reset}>{t("toolbox.reset")}</button><button className="toolbox-action primary" onClick={api.toggle}>{t(api.running ? "toolbox.pause" : "toolbox.start")}</button></div></section>; }
+function Stopwatch({ api }: { api: StopwatchApi }) { const t = useT(); return <section className="toolbox-timer"><div className="toolbox-heading"><Glyph name="clock" size={17} /><span>{t("toolbox.stopwatch.title")}</span></div><output className="toolbox-time toolbox-stopwatch-time">{format(api.elapsed, true)}</output><div className="toolbox-actions"><button className="toolbox-action secondary" onClick={api.reset}>{t("toolbox.reset")}</button><button className="toolbox-action primary" onClick={api.toggle}>{t(api.running ? "toolbox.pause" : "toolbox.start")}</button></div></section>; }
+function Notes() {
+  const t = useT(); const text = useSetting(toolboxSettings.notesText); const lineNumbers = useSetting(toolboxSettings.notesLineNumbers); const input = useRef<HTMLTextAreaElement>(null); const [scroll, setScroll] = useState(0);
+  const update = (value: string) => setSetting(toolboxSettings.notesText, value);
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => { if (e.key !== "Enter") return; const el = e.currentTarget, at = el.selectionStart, line = text.slice(0, at).split("\n").at(-1) ?? ""; const ordered = line.match(/^(\s*)(\d+)([.)-])\s+(.+)$/); const bullet = line.match(/^(\s*)([-*])\s+(.+)$/); const prefix = ordered ? `${ordered[1]}${Number(ordered[2]) + 1}${ordered[3]} ` : bullet ? `${bullet[1]}${bullet[2]} ` : null; if (!prefix) return; e.preventDefault(); const next = `${text.slice(0, at)}\n${prefix}${text.slice(el.selectionEnd)}`; update(next); window.setTimeout(() => { el.selectionStart = el.selectionEnd = at + prefix.length + 1; }); };
+  const copy = async () => { try { await navigator.clipboard.writeText(text); } catch { input.current?.select(); document.execCommand("copy"); } };
+  const exportNotes = async () => { const name = window.prompt(t("toolbox.notes.export"), t("toolbox.notes.filename")); if (!name) return; const blob = new Blob([text], { type: "text/plain;charset=utf-8" }); const picker = (window as Window & { showSaveFilePicker?: (options: unknown) => Promise<{ createWritable: () => Promise<{ write: (data: Blob) => Promise<void>; close: () => Promise<void> }> }> }).showSaveFilePicker; try { if (picker) { const handle = await picker({ suggestedName: name }); const file = await handle.createWritable(); await file.write(blob); await file.close(); return; } } catch { return; } const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = name; link.click(); URL.revokeObjectURL(link.href); };
+  const lines = Math.max(1, text.split("\n").length);
+  return <section className="toolbox-notes"><div className="toolbox-notes-head"><div className="toolbox-heading"><Glyph name="text" size={17} /><span>{t("toolbox.notes.title")}</span></div><span><button onClick={copy}>{t("toolbox.notes.copy")}</button><button onClick={exportNotes}>{t("toolbox.notes.export")}</button></span></div><div className="toolbox-notes-editor">{lineNumbers && <pre aria-hidden style={{ transform: `translateY(${-scroll}px)` }}>{Array.from({ length: lines }, (_, i) => i + 1).join("\n")}</pre>}<textarea ref={input} autoFocus value={text} placeholder={t("toolbox.notes.placeholder")} onFocus={() => command("focus_island")} onScroll={(e) => setScroll(e.currentTarget.scrollTop)} onKeyDown={onKeyDown} onChange={(e) => update(e.target.value)} /></div></section>;
 }
-
-function Stopwatch() {
-  const t = useT();
-  const [elapsed, setElapsed] = useState(0);
-  const [running, setRunning] = useState(false);
-  useEffect(() => {
-    if (!running) return;
-    const startedAt = performance.now() - elapsed;
-    const id = window.setInterval(() => setElapsed(performance.now() - startedAt), 43);
-    return () => window.clearInterval(id);
-    // The elapsed value is intentionally captured only when starting/resuming.
-    // Updating it every tick must not recreate the interval.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [running]);
-  return <section className="toolbox-timer"><div className="toolbox-heading"><Glyph name="clock" size={17} /><span>{t("toolbox.stopwatch.title")}</span></div><strong className="toolbox-time">{formatElapsed(elapsed)}</strong><div className="toolbox-actions"><button className="toolbox-action secondary" onClick={() => { setRunning(false); setElapsed(0); }}>{t("toolbox.reset")}</button><button className="toolbox-action primary" onClick={() => setRunning((v) => !v)}>{t(running ? "toolbox.pause" : "toolbox.start")}</button></div></section>;
-}
-
-function FocusTimer() {
-  const t = useT();
-  const [seconds, setSeconds] = useState(25 * 60);
-  const [running, setRunning] = useState(false);
-  useEffect(() => { if (!running || seconds === 0) return; const id = window.setInterval(() => setSeconds((n) => n - 1), 1000); return () => window.clearInterval(id); }, [running, seconds]);
-  useEffect(() => { if (seconds === 0) setRunning(false); }, [seconds]);
-  return <TimerTool icon="heart" title={t("toolbox.focus.title")} subtitle={t("toolbox.focus.desc")} seconds={seconds} running={running} onStart={() => setRunning((v) => !v)} onReset={() => { setRunning(false); setSeconds(25 * 60); }} onAdjust={(delta) => { setRunning(false); setSeconds((v) => Math.max(60, Math.min(59_940, v + delta))); }} />;
-}
-
-function TimerTool({ icon, title, subtitle, seconds, running, onStart, onReset, onAdjust }: { icon: string; title: string; subtitle?: string; seconds: number; running: boolean; onStart: () => void; onReset: () => void; onAdjust: (seconds: number) => void }) {
-  const t = useT();
-  return <section className="toolbox-timer"><div className="toolbox-heading"><Glyph name={icon} size={17} /><span>{title}</span></div>{subtitle && <span className="toolbox-subtitle">{subtitle}</span>}<strong className="toolbox-time">{formatSeconds(seconds)}</strong><div className="toolbox-adjust"><button onClick={() => onAdjust(-60)}>− 1 min</button><button onClick={() => onAdjust(60)}>+ 1 min</button></div><div className="toolbox-actions"><button className="toolbox-action secondary" onClick={onReset}>{t("toolbox.reset")}</button><button className="toolbox-action primary" onClick={onStart}>{t(running ? "toolbox.pause" : "toolbox.start")}</button></div></section>;
-}
-
-function formatSeconds(seconds: number) { const minutes = Math.floor(seconds / 60); return `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`; }
-function formatElapsed(milliseconds: number) { const total = Math.floor(milliseconds / 1000); return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}.${String(Math.floor((milliseconds % 1000) / 10)).padStart(2, "0")}`; }
-
-/** A tiny arithmetic parser: accepts only numbers, parentheses and four operators. */
-function evaluate(input: string): string | null {
-  try {
-    const tokens = input.match(/\d*\.?\d+|[()+\-*/]/g);
-    if (!tokens || tokens.join("") !== input) throw new Error();
-    const values: number[] = []; const operators: string[] = []; const precedence: Record<string, number> = { "+": 1, "-": 1, "*": 2, "/": 2 };
-    const apply = () => { const op = operators.pop(); const right = values.pop(); const left = values.pop(); if (op == null || left == null || right == null || (op === "/" && right === 0)) throw new Error(); values.push(op === "+" ? left + right : op === "-" ? left - right : op === "*" ? left * right : left / right); };
-    for (const token of tokens) { if (/^\d/.test(token)) values.push(Number(token)); else if (token === "(") operators.push(token); else if (token === ")") { while (operators.at(-1) && operators.at(-1) !== "(") apply(); if (operators.pop() !== "(") throw new Error(); } else { while (operators.at(-1) && operators.at(-1) !== "(" && precedence[operators.at(-1)!] >= precedence[token]) apply(); operators.push(token); } }
-    while (operators.length) apply(); if (values.length !== 1 || !Number.isFinite(values[0])) throw new Error(); return String(Number(values[0].toFixed(10)));
-  } catch { return null; }
-}
+function TimeInput({ value, disabled, label, onCommit, onEnter }: { value: number; disabled: boolean; label: string; onCommit: (v: number) => void; onEnter: () => void }) { const input = useRef<HTMLInputElement>(null), [draft, setDraft] = useState(formatSeconds(value)); useEffect(() => setDraft(formatSeconds(value)), [value]); const takeKeyboard = () => { command("focus_island"); window.setTimeout(() => input.current?.focus(), 30); }; const commit = () => { const n = parseDuration(draft); if (n === null) return false; onCommit(n); return true; }; return <input ref={input} autoFocus disabled={disabled} className="toolbox-time" value={draft} inputMode="numeric" aria-label={label} onPointerDown={takeKeyboard} onFocus={(e) => e.currentTarget.select()} onChange={(e) => setDraft(formatDuration(e.target.value))} onBlur={commit} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); if (commit()) onEnter(); } }} />; }
+export function formatSeconds(seconds: number) { const hours = Math.floor(seconds / 3600); const minutes = Math.floor((seconds % 3600) / 60); const value = `${String(minutes).padStart(2, "0")}:${String(seconds % 60).padStart(2, "0")}`; return hours ? `${String(hours).padStart(2, "0")}:${value}` : value; }
+function format(v: number, ms: boolean) { return ms ? `${formatSeconds(Math.floor(v / 1000))}.${String(Math.floor((v % 1000) / 10)).padStart(2, "0")}` : formatSeconds(v); }
+function formatDuration(value: string) { const digits = value.replace(/\D/g, "").slice(0, 6); if (digits.length <= 2) return digits; if (digits.length <= 4) return `${digits.slice(0, -2)}:${digits.slice(-2)}`; return `${digits.slice(0, -4)}:${digits.slice(-4, -2)}:${digits.slice(-2)}`; }
+function parseDuration(value: string) { const parts = value.split(":").map(Number); if (!parts.length || parts.some((part) => !Number.isInteger(part))) return null; const [hours, minutes, seconds] = parts.length === 3 ? parts : parts.length === 2 ? [0, parts[0], parts[1]] : [0, 0, parts[0]]; if (minutes > 59 || seconds > 59) return null; return Math.min(59_940, hours * 3600 + minutes * 60 + seconds); }
+function evaluate(input: string): string | null { try { const ts = input.match(/\d*\.?\d+|[()+\-*/]/g); if (!ts || ts.join("") !== input) throw 0; const vs: number[] = [], os: string[] = [], p: Record<string, number> = { "+": 1, "-": 1, "*": 2, "/": 2 }; const apply = () => { const o = os.pop(), b = vs.pop(), a = vs.pop(); if (!o || a == null || b == null || (o === "/" && !b)) throw 0; vs.push(o === "+" ? a + b : o === "-" ? a - b : o === "*" ? a * b : a / b); }; for (const t of ts) if (/^\d/.test(t)) vs.push(Number(t)); else if (t === "(") os.push(t); else if (t === ")") { while (os.at(-1) && os.at(-1) !== "(") apply(); if (os.pop() !== "(") throw 0; } else { while (os.at(-1) && os.at(-1) !== "(" && p[os.at(-1)!] >= p[t]) apply(); os.push(t); } while (os.length) apply(); return vs.length === 1 && Number.isFinite(vs[0]) ? String(Number(vs[0].toFixed(10))) : null; } catch { return null; } }

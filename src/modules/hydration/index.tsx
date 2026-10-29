@@ -85,7 +85,9 @@ function useHydrationTimer(intervalMinutes: number, snoozeMinutes: number, autoS
 export const hydrationModule: IslandModule = {
   id: "hydration",
   title: "hydration.title",
-  settingsIcon: <WaterDropIcon size={15} />,
+  // The drop's artwork has more internal padding than the Fluent glyphs.
+  // Scale it slightly so its visible weight matches the other module icons.
+  settingsIcon: <WaterDropIcon size={16} style={{ transform: "scale(1.12)" }} />,
   enabledByDefault: false,
   settings: Object.values(hydrationSettings),
   SettingsSection: HydrationSettings,
@@ -102,7 +104,7 @@ export const hydrationModule: IslandModule = {
       active: timer.due,
       priority: 65,
       accent: "#45c4e6",
-      icon: <WaterDropIcon size={15} color="#45c4e6" />,
+      icon: <WaterDropIcon size={16} color="#45c4e6" style={{ transform: "scale(1.12)" }} />,
       compact: timer.due ? {
         left: <span className="hydration-compact"><WaterDropIcon size={15} color="#45c4e6" />{t("hydration.titleDue")}</span>,
         right: <span className="hydration-compact-action">{t("hydration.reminder")}</span>,

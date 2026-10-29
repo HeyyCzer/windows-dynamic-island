@@ -786,12 +786,16 @@
     },
     settings: { desc: "Turn individual tools on or off, then drag them into your preferred order." },
     calculator: { title: "Calculator", clear: "Clear", error: "Error" },
-    timer: { title: "Timer" },
     stopwatch: { title: "Stopwatch" },
-    focus: { title: "Focus", desc: "A 25-minute focus session" },
+    timer: { title: "Timer", default: "Default timer (minutes)" },
+    focus: { title: "Focus", desc: "A 25-minute focus session", duration: "Focus duration (minutes)", break: "Break duration (minutes)", sessions: "Focus sessions", autoNext: "Start another focus session automatically", autoBreak: "Start the break automatically" },
+    notes: { title: "Notes", placeholder: "Write something quick…", lineNumbers: "Show line numbers", copy: "Copy", export: "Export", filename: "notes.txt" },
     start: "Start",
     pause: "Pause",
     reset: "Reset",
+    time: "Time (minutes:seconds)",
+    finished: "Time is up",
+    confirm: "Confirm",
   },
 
   // Alerts raised by the backend (src-tauri/src/providers/activities)
