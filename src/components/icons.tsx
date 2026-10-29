@@ -143,3 +143,19 @@ export const PaletteIcon = (p: P) => (
 		<circle cx="15" cy="7.5" r="1" fill="currentColor" stroke="none" />
 	</svg>
 );
+
+/** Simple package box, for compact storage / utility surfaces. */
+export const BoxIcon = (p: P) => (
+  <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 8.2 12 4l8 4.2v8.4L12 21l-8-4.4V8.2Z" />
+    <path d="M4 8.2 12 13l8-4.8M12 13v8" />
+  </svg>
+);
+
+/** A compact toolbox silhouette, used as the ToolBox module mark. */
+export const ToolboxIcon = (p: P) => (
+  <svg {...base(p)} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 9.5h16v9.2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V9.5Z" />
+    <path d="M9 9.5V7.4A1.8 1.8 0 0 1 10.8 5.6h2.4A1.8 1.8 0 0 1 15 7.4v2.1M4 14h16M10 14h4" />
+  </svg>
+);

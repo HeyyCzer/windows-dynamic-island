@@ -8,7 +8,7 @@ import type { SettingDef } from "./settings";
 
 export const SHORTCUTS_PROVIDER = "shortcuts";
 
-export type ShortcutId = "ask" | "find";
+export type ShortcutId = "ask" | "find" | "toolboxCalculator";
 
 /** Mirrors `Status` in `shortcuts.rs`. */
 export interface ShortcutStatus {
@@ -23,6 +23,14 @@ export type ShortcutsState = Partial<Record<ShortcutId, ShortcutStatus>>;
 export const shortcutSettings: Record<ShortcutId, SettingDef<string | null> & { fallback: string }> = {
   ask: { key: "shortcut.ask", label: "shortcuts.ask", default: null, fallback: "Ctrl+Alt+Space" },
   find: { key: "shortcut.find", label: "shortcuts.find", default: null, fallback: "Ctrl+Alt+F" },
+  // The physical Calculator key is also registered when Windows exposes it as
+  // LaunchApp2. This is the editable fallback for keyboards that do not.
+  toolboxCalculator: {
+    key: "shortcut.toolboxCalculator",
+    label: "shortcuts.toolboxCalculator",
+    default: null,
+    fallback: "Ctrl+Alt+C",
+  },
 };
 
 /** How a combination reads: Windows calls Super "Win". */

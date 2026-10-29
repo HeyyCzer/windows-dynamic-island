@@ -41,6 +41,7 @@ const GLYPHS: Record<string, number> = {
   previous: 0xe892,
   clipboard: 0xe77f,
   copy: 0xe8c8,
+  delete: 0xe74d,
   pulse: 0xe9d9,
   text: 0xe8d2,
   open: 0xe8a7,

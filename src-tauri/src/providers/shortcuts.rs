@@ -1,4 +1,5 @@
-//! Global shortcuts: "Ask Claude" and "Find on screen" open from anywhere.
+//! Global shortcuts open their pages from anywhere. The hardware Calculator
+//! key is additionally registered when Windows exposes it as `LaunchApp2`.
 //!
 //! Each one is a setting (`shortcut.<id>`) holding a combination such as
 //! "Ctrl+Alt+Space"; an empty string turns it off. They're registered again
@@ -31,7 +32,7 @@ struct Action {
     event: &'static str,
 }
 
-const ACTIONS: [Action; 2] = [
+const ACTIONS: [Action; 3] = [
     Action {
         id: "ask",
         default: "Ctrl+Alt+Space",
@@ -43,6 +44,12 @@ const ACTIONS: [Action; 2] = [
         default: "Ctrl+Alt+F",
         fallback: None,
         event: "island://find",
+    },
+    Action {
+        id: "toolboxCalculator",
+        default: "Ctrl+Alt+C",
+        fallback: None,
+        event: "island://toolbox-calculator",
     },
 ];
 
@@ -57,10 +64,18 @@ struct Status {
 }
 
 /// Registered combination per action, by `ACTIONS` index.
-static REGISTERED: Mutex<[Option<(String, Shortcut)>; 2]> = Mutex::new([None, None]);
+static REGISTERED: Mutex<[Option<(String, Shortcut)>; 3]> = Mutex::new([None, None, None]);
+
+/// Dedicated calculator key (`VK_LAUNCH_APP2`). It is separate from the
+/// editable fallback action, so changing that shortcut never disables a
+/// physical Calculator key supplied directly by Windows.
+static CALCULATOR_KEY: Mutex<Option<Shortcut>> = Mutex::new(None);
 
 /// The island event for a shortcut that fired.
 pub fn event_for(shortcut: &Shortcut) -> Option<&'static str> {
+    if CALCULATOR_KEY.lock().unwrap().as_ref() == Some(shortcut) {
+        return Some("island://toolbox-calculator");
+    }
     let registered = REGISTERED.lock().unwrap();
     registered
         .iter()
@@ -125,6 +140,21 @@ fn sync(hub: &Hub, paused: bool) {
     // A copy: registering waits on the main thread, where `event_for` runs.
     let mut registered = REGISTERED.lock().unwrap().clone();
     let mut state = Map::new();
+
+    // Some keyboard drivers consume this key before Windows sees it. Failure
+    // to register is therefore expected and the editable fallback remains
+    // available in the ToolBox settings.
+    let mut calculator_key = CALCULATOR_KEY.lock().unwrap();
+    if paused {
+        if let Some(shortcut) = calculator_key.take() {
+            let _ = global.unregister(shortcut);
+        }
+    } else if calculator_key.is_none() {
+        match "Calculator".parse::<Shortcut>().ok().filter(|s| global.register(*s).is_ok()) {
+            Some(shortcut) => *calculator_key = Some(shortcut),
+            None => log::debug!("hardware Calculator key unavailable"),
+        }
+    }
 
     for (action, slot) in ACTIONS.iter().zip(registered.iter_mut()) {
         let chosen = settings.get(&format!("shortcut.{}", action.id)).and_then(|v| v.as_str().map(str::to_string));

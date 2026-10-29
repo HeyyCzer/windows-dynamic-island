@@ -501,6 +501,7 @@
     label: "Atalho de teclado",
     ask: "Abrir Pergunte ao Claude",
     find: "Abrir Procurar na tela",
+    toolboxCalculator: "Abrir Calculadora da Caixa de ferramentas",
     desc: "Funciona de qualquer lugar. Clique e pressione as novas teclas; Esc cancela.",
     press: "Pressione as teclas…",
     off: "Desligado",
@@ -706,6 +707,27 @@
       duplicate: "Já adicionado",
       tooMany: "Links demais",
     },
+  },
+
+  toolbox: {
+    title: "Caixa de ferramentas",
+    empty: "Ative uma ferramenta nas configurações do ToolBox.",
+    order: {
+      label: "Ordem das ferramentas",
+      desc: "Escolha quais ferramentas aparecem no ToolBox e arraste para reordená-las.",
+    },
+    settings: { desc: "Ative ou desative cada ferramenta e arraste para deixar na ordem que preferir." },
+    calculator: { title: "Calculadora", clear: "Limpar", error: "Erro" },
+    timer: { title: "Temporizador", default: "Tempo padrão do temporizador (minutos)" },
+    stopwatch: { title: "Cronômetro" },
+    focus: { title: "Foco", desc: "Uma sessão de foco de {n} minutos", duration: "Duração do foco (minutos)", break: "Tempo de intervalo (minutos)", sessions: "Sessões de foco", autoNext: "Iniciar outra sessão de foco automaticamente", autoBreak: "Iniciar o intervalo automaticamente" },
+    notes: { title: "Notas", placeholder: "Anote algo rapidamente…", lineNumbers: "Exibir números de linha", copy: "Copiar", export: "Exportar", clear: "Limpar", filename: "notas.txt" },
+    start: "Iniciar",
+    pause: "Pausar",
+    reset: "Reiniciar",
+    time: "Tempo (minutos:segundos)",
+    finished: "Tempo encerrado",
+    confirm: "Confirmar",
   },
 
   system: {
