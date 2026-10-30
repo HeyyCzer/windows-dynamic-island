@@ -20,7 +20,6 @@ import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
 import { agentSettings } from "./settings";
-import "./ai-agents.css";
 
 const agents: AgentDefinition[] = [claudeAgent, codexAgent];
 

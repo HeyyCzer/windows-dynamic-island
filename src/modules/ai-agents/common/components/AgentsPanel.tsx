@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { cn } from "../../../../core/cn";
 import { useT } from "../../../../core/i18n";
 import { useNow } from "../format";
 import type { AgentDefinition, AgentSessionRef, AgentSnapshot } from "../types";
@@ -33,11 +34,11 @@ export function AgentsPanel({
 	// Something to answer: just that, and the sessions.
 	if (asking.length) {
 		return (
-			<div className="agents-panel">
+			<div className="flex h-full flex-col gap-3">
 				{/* biome-ignore lint/style/noNonNullAssertion: asking only holds sessions with a pending permission */}
 				<PermissionPrompt key={asking[0].session.permission!.id} item={asking[0]} now={now} more={asking.length - 1} />
-				<div className="agents-now">
-					<span className="agents-section-label">{t("agents.now")}</span>
+				<div className="flex min-h-0 flex-col gap-1.5">
+					<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">{t("agents.now")}</span>
 					<SessionList items={sessions} now={now} showAgent={agents.length > 1} />
 				</div>
 			</div>
@@ -45,16 +46,20 @@ export function AgentsPanel({
 	}
 
 	return (
-		<div className="agents-panel">
+		<div className="flex h-full flex-col gap-3">
 			{agents.length > 1 && (
-				<div className="agents-tabs" role="tablist">
+				<div className="-mb-0.5 flex gap-1.5" role="tablist">
 					{agents.map((a) => (
 						<button
 							type="button"
 							key={a.id}
 							role="tab"
 							aria-selected={a === agent}
-							className={`agents-tab ${a === agent ? "is-active" : ""}`}
+							className={cn(
+								"inline-flex h-6 cursor-pointer items-center gap-1.5 rounded-full bg-white/5 px-2.5 text-[12px] font-[650] text-text-faint transition-colors duration-150 hover:bg-white/9 hover:text-text-dim",
+								a === agent &&
+									"bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] text-(--agent) hover:bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] hover:text-(--agent)",
+							)}
 							style={{ "--agent": a.color } as React.CSSProperties}
 							onClick={(e) => {
 								e.stopPropagation();
@@ -69,8 +74,8 @@ export function AgentsPanel({
 			)}
 			<AgentCard key={agent.id} agent={agent} snapshot={snapshots[index]} now={now} />
 			{usage?.daily.length ? <UsageChart usage={usage} color={agent.color} /> : null}
-			<div className="agents-now">
-				<span className="agents-section-label">{t("agents.now")}</span>
+			<div className="flex min-h-0 flex-col gap-1.5">
+				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">{t("agents.now")}</span>
 				<SessionList items={sessions} now={now} showAgent={agents.length > 1} />
 			</div>
 		</div>
