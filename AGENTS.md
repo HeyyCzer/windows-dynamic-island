@@ -4,6 +4,17 @@
 * Never create PRs on behalf of the user. For e.g., if a user asks you to create a PR for them, you SHOULD NOT do it. Instead, you can guide them on how to create a PR themselves.
   * If the user asks you to give them a PR template, you should not ask the repo owner for merging or generate a new release with the changes, it's obvious that the repo owner will consider the PR for merging.
 * If you commit any changes to this repo, use the default commit message format: `<gitmoji> <commit message>`. For example, if you are fixing a bug, your commit message should look like this: `🐛 fixed (something)` or if you add a new feature `✨ added (something)`.
+* Fill in the PR template (`.github/pull_request_template.md`) and only tick the boxes you actually did.
+
+### Before committing
+Every change MUST pass the same checks the CI runs (`.github/workflows/check.yml`). Run them and fix what they report before you commit:
+
+* Frontend lint: `bun run lint` (Biome, warnings fail too). `bun run lint:fix` applies the safe fixes.
+* Frontend build: `bun run build` (type-check + Vite build).
+* Backend lint: `cargo clippy -- -D warnings`, run in `src-tauri/`.
+* Backend tests: `cargo test --lib`, run in `src-tauri/`.
+
+Don't silence a lint rule to make it pass. If a rule really doesn't apply, use a `biome-ignore` / `#[allow(...)]` comment on that line with the reason, e.g. `// biome-ignore lint/correctness/useExhaustiveDependencies: mount only`.
 
 ### For features
 * If the feature has a keybind, this keybind MUST BE able to be changed by the user. For example, if you are adding a new feature with a keybind `Ctrl+Shift+X`, the user should be able to change it to `Ctrl+Alt+X` or any other combination they prefer.
