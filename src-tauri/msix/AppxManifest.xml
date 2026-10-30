@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  MSIX manifest for the Microsoft Store edition, filled in and packed by
+  scripts/package-msix.ps1. {name}, {publisher} and {publisherDisplayName}
+  are the package identity Partner Center gives the reserved app name.
+  The StartupTask TaskId must match src/autostart.rs and the alias
+  src/store.rs.
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 desktop rescap">
+  <Identity Name="{name}" Publisher="{publisher}" Version="{version}" ProcessorArchitecture="x64" />
+  <Properties>
+    <DisplayName>Island for Windows</DisplayName>
+    <PublisherDisplayName>{publisherDisplayName}</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+  <Resources>
+    <Resource Language="en-US" />
+    <Resource Language="pt-BR" />
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+    <uap3:Capability Name="userNotificationListener" />
+  </Capabilities>
+  <Applications>
+    <Application Id="App" Executable="island-for-windows.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Island for Windows"
+                          Description="An island at the top of your Windows desktop: music, Claude Code sessions, notifications and more."
+                          BackgroundColor="transparent"
+                          Square150x150Logo="Assets\Square150x150Logo.png"
+                          Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Square71x71Logo="Assets\Square71x71Logo.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <desktop:Extension Category="windows.startupTask" Executable="island-for-windows.exe" EntryPoint="Windows.FullTrustApplication">
+          <desktop:StartupTask TaskId="IslandStartup" Enabled="false" DisplayName="Island for Windows" />
+        </desktop:Extension>
+        <uap3:Extension Category="windows.appExecutionAlias" Executable="island-for-windows.exe" EntryPoint="Windows.FullTrustApplication">
+          <uap3:AppExecutionAlias>
+            <desktop:ExecutionAlias Alias="island-for-windows.exe" />
+          </uap3:AppExecutionAlias>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>

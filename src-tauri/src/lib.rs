@@ -1,3 +1,4 @@
+mod autostart;
 mod display;
 mod file_drop;
 mod hub;
@@ -8,6 +9,7 @@ mod providers;
 mod screen;
 mod settings;
 mod sound;
+mod store;
 mod tray;
 mod updater;
 mod window;

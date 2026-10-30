@@ -22,6 +22,7 @@
     autostart: {
       label: "Iniciar com o Windows",
       appOnly: "Disponível só no app.",
+      disabledByUser: "Desativado no Gerenciador de Tarefas. Ative de novo por lá, em Aplicativos de inicialização.",
     },
     language: {
       label: "Idioma",
@@ -69,6 +70,7 @@
         ready: "Versão {version} pronta para instalar.",
         dev: "Builds de desenvolvimento não atualizam.",
         portable: "A versão portátil não se atualiza sozinha. Baixe a nova no GitHub.",
+        store: "As atualizações vêm da Microsoft Store.",
         error: "Não foi possível verificar.",
         check: "Verificar",
         install: "Reiniciar e atualizar",

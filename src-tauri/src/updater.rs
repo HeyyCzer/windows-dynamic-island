@@ -27,6 +27,9 @@ pub fn spawn(app: AppHandle) {
     if crate::portable::is_portable() {
         return; // the installer would land elsewhere; portable users re-download
     }
+    if crate::store::IS_STORE {
+        return; // the Microsoft Store updates it
+    }
     app.manage(Pending::default());
     std::thread::spawn(move || {
         std::thread::sleep(FIRST_CHECK);
@@ -61,11 +64,15 @@ async fn check(app: &AppHandle) -> tauri_plugin_updater::Result<Option<String>> 
 }
 
 /// Manual check from the About page. Errors with `"portable"` on portable
-/// builds and `"dev"` on dev builds, which never self-update.
+/// builds, `"store"` on the Microsoft Store edition and `"dev"` on dev builds,
+/// which never self-update.
 #[tauri::command]
 pub async fn check_update(app: AppHandle) -> Result<Option<String>, String> {
     if crate::portable::is_portable() {
         return Err("portable".into());
+    }
+    if crate::store::IS_STORE {
+        return Err("store".into());
     }
     if app.try_state::<Pending>().is_none() {
         return Err("dev".into());

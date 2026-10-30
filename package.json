@@ -13,6 +13,7 @@
 		"app:dev": "tauri dev",
 		"app:build": "tauri build",
 		"app:build:local": "tauri build --config src-tauri/tauri.nosign.conf.json",
+		"package:store": "pwsh -NoProfile -File scripts/package-msix.ps1",
 		"v": "bun pm version",
 		"version": "bun scripts/sync-cargo-version.ts"
 	},

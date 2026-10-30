@@ -99,19 +99,28 @@ function MonitorRow({ value }: { value: string }) {
 function AutostartRow() {
 	const t = useT();
 	const [on, setOn] = useState<boolean | null>(null);
+	// Store edition: turned off in Task Manager, which only lets it back on there.
+	const [blocked, setBlocked] = useState(false);
 	useEffect(() => {
 		command<boolean>("get_autostart").then((v) => setOn(!!v));
 	}, []);
 
+	const desc = !isTauri ? t("settings.autostart.appOnly") : blocked && t("settings.autostart.disabledByUser");
 	return (
-		<Row as="label" label={t("settings.autostart.label")} desc={!isTauri && t("settings.autostart.appOnly")}>
+		<Row as="label" label={t("settings.autostart.label")} desc={desc}>
 			<Toggle
 				checked={!!on}
 				disabled={on === null}
 				onChange={async (v) => {
 					setOn(v);
-					const result = await command<boolean>("set_autostart", { enabled: v });
-					if (typeof result === "boolean") setOn(result);
+					try {
+						const result = await command<boolean>("set_autostart", { enabled: v });
+						if (typeof result === "boolean") setOn(result);
+						setBlocked(false);
+					} catch (e) {
+						setOn(false);
+						setBlocked(e === "disabledByUser");
+					}
 				}}
 			/>
 		</Row>

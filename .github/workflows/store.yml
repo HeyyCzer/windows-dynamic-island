@@ -1,0 +1,47 @@
+name: Microsoft Store
+
+# Builds the Microsoft Store edition (scripts/package-msix.ps1) and keeps the
+# MSIX as a workflow artifact, to upload to Partner Center by hand. Run it
+# from the Actions tab. The package identity comes from the repository
+# variables MSIX_IDENTITY_NAME, MSIX_PUBLISHER and MSIX_PUBLISHER_DISPLAY_NAME
+# (Partner Center, Product identity).
+on:
+  workflow_dispatch:
+
+jobs:
+  msix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Installs the toolchain pinned in src-tauri/rust-toolchain.toml.
+      - name: Install Rust
+        working-directory: src-tauri
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri -> target/store
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build and pack
+        shell: pwsh
+        env:
+          # OAuth client ("Desktop app") built in for Google Calendar sign-in.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: >
+          ./scripts/package-msix.ps1
+          -IdentityName "${{ vars.MSIX_IDENTITY_NAME }}"
+          -Publisher "${{ vars.MSIX_PUBLISHER }}"
+          -PublisherDisplayName "${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msix
+          path: src-tauri/target/store/*.msix
+          if-no-files-found: error

@@ -12,6 +12,11 @@ name = "dynamic_island_lib"
 # made every dev rebuild also write a ~900 MB static lib.
 crate-type = ["rlib"]
 
+[features]
+# Microsoft Store edition (MSIX): no self-update, startup via the package's
+# StartupTask, package identity from the MSIX itself. See `src/store.rs`.
+store = []
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 json5 = "1"

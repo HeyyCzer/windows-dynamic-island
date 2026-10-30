@@ -81,7 +81,7 @@ fn is_our_statusline(v: &Value) -> bool {
 }
 
 fn bridge_command() -> Result<String, String> {
-    let exe = std::env::current_exe().map_err(|e| e.to_string())?;
+    let exe = crate::store::launch_path().map_err(|e| e.to_string())?;
     let exe = exe.to_string_lossy().replace('\\', "/");
     Ok(format!("\"{exe}\" {BRIDGE_FLAG}"))
 }

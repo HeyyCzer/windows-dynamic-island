@@ -9,7 +9,6 @@ use std::sync::Mutex;
 
 use serde_json::{Map, Value};
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
-use tauri_plugin_autostart::ManagerExt;
 
 pub const CHANGED_EVENT: &str = "settings://changed";
 pub const SETTINGS_LABEL: &str = "settings";
@@ -152,13 +151,10 @@ pub fn open_url(url: &str) {
 
 #[tauri::command]
 pub fn get_autostart(app: AppHandle) -> bool {
-    app.autolaunch().is_enabled().unwrap_or(false)
+    crate::autostart::is_enabled(&app)
 }
 
 #[tauri::command]
 pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<bool, String> {
-    let launcher = app.autolaunch();
-    let result = if enabled { launcher.enable() } else { launcher.disable() };
-    result.map_err(|e| e.to_string())?;
-    Ok(launcher.is_enabled().unwrap_or(false))
+    crate::autostart::set(&app, enabled)
 }

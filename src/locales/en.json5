@@ -28,6 +28,7 @@
     autostart: {
       label: "Start with Windows",
       appOnly: "Only available in the app.",
+      disabledByUser: "Turned off in Task Manager. Turn it back on there, under Startup apps.",
     },
     language: {
       label: "Language",
@@ -80,6 +81,7 @@
         ready: "Version {version} is ready to install.",
         dev: "Development builds don't update.",
         portable: "The portable version doesn't update itself. Download the new one from GitHub.",
+        store: "Updates come from the Microsoft Store.",
         error: "Couldn't check for updates.",
         check: "Check",
         install: "Restart and update",

@@ -52,6 +52,9 @@ pub fn has_identity() -> bool {
 }
 
 pub fn register(app: &AppHandle) -> Result<(), String> {
+    if crate::store::IS_STORE {
+        return Err("the Store package already provides the identity".into());
+    }
     deploy(app, false)
 }
 
@@ -65,6 +68,9 @@ pub fn register(app: &AppHandle) -> Result<(), String> {
 pub fn refresh_registration(app: &AppHandle) {
     if cfg!(debug_assertions) {
         return; // re-registering from `tauri dev` breaks the next dev launch
+    }
+    if crate::store::IS_STORE {
+        return; // `Package::Current` is the Store's MSIX, not ours to touch
     }
     let Ok(package) = Package::Current() else {
         return;
@@ -148,6 +154,9 @@ fn write_assets(dir: &std::path::Path) -> Result<(), String> {
 /// Packages registered by older versions lack the taskbar logos; the package
 /// folder is plain files, so adding them is enough (no re-registration).
 pub fn refresh_assets() {
+    if crate::store::IS_STORE {
+        return; // the MSIX ships its logos (and its folder is read-only)
+    }
     let Ok(dir) = Package::Current().and_then(|p| p.InstalledPath()) else {
         return;
     };

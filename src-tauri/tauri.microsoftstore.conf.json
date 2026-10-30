@@ -1,0 +1,7 @@
+{
+	"productName": "Island for Windows",
+	"identifier": "com.heyyczer.windowsisland",
+	"bundle": {
+		"createUpdaterArtifacts": false
+	}
+}

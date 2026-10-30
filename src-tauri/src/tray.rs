@@ -4,7 +4,6 @@ use tauri::image::Image;
 use tauri::menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager, Wry};
-use tauri_plugin_autostart::ManagerExt;
 
 use crate::i18n;
 use crate::window::{ISLAND_LABEL, RECENTER_EVENT};
@@ -27,7 +26,7 @@ struct TrayItems {
 
 pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     let t = |key| i18n::t(app, key);
-    let autostart_on = app.autolaunch().is_enabled().unwrap_or(false);
+    let autostart_on = crate::autostart::is_enabled(app);
     let autostart = CheckMenuItem::with_id(
         app,
         "autostart",
@@ -74,14 +73,9 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(move |app, event| match event.id().as_ref() {
             "toggle" => toggle_hidden(app),
             "autostart" => {
-                let launcher = app.autolaunch();
-                let enabled = launcher.is_enabled().unwrap_or(false);
-                let _ = if enabled {
-                    launcher.disable()
-                } else {
-                    launcher.enable()
-                };
-                let _ = autostart.set_checked(launcher.is_enabled().unwrap_or(false));
+                let enabled = crate::autostart::is_enabled(app);
+                let now = crate::autostart::set(app, !enabled).unwrap_or(enabled);
+                let _ = autostart.set_checked(now);
             }
             "settings" => {
                 let _ = crate::settings::open(app);
@@ -202,7 +196,7 @@ pub fn enable_autostart_on_first_run(app: &AppHandle) {
         return;
     }
     let _ = std::fs::create_dir_all(&dir);
-    if app.autolaunch().enable().is_ok() {
+    if crate::autostart::set(app, true).is_ok() {
         let _ = std::fs::write(marker, b"1");
     }
 }
