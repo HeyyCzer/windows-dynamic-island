@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { Badge } from "../../../components/Glyph";
 import { providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useIsland } from "../../../core/island";
 import { ACTIVITIES_PROVIDER, type Activity } from "../types";
 
@@ -20,7 +21,11 @@ export function ActivityCard({ activity: a, compact = false }: { activity: Activ
 	const clickable = !!a.action || a.source === "ask";
 	return (
 		<div
-			className={`activity-card ${compact ? "is-row" : ""} ${clickable ? "is-clickable" : ""}`}
+			className={cn(
+				"relative flex items-start gap-3.5 rounded-[14px] px-1 py-1.5",
+				compact && "items-center gap-3 px-2",
+				clickable && "cursor-pointer hover:bg-white/5",
+			)}
 			onClick={(e) => {
 				if (!clickable) return;
 				e.stopPropagation();
@@ -28,29 +33,35 @@ export function ActivityCard({ activity: a, compact = false }: { activity: Activ
 			}}
 		>
 			<Badge icon={a.icon} image={a.image} color={color} size={compact ? 34 : 46} />
-			<div className="activity-texts">
-				{a.caption && <span className="activity-caption">{a.caption}</span>}
-				<span className="activity-title">{a.title || " "}</span>
-				{a.subtitle && <span className="activity-subtitle">{a.subtitle}</span>}
+			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
+				{a.caption && <span className="text-[11.5px] font-semibold text-text-faint">{a.caption}</span>}
+				<span className={cn("truncate text-[15px] font-[650]", compact && "text-[13.5px]")}>{a.title || " "}</span>
+				{a.subtitle && (
+					<span className={cn("line-clamp-2 text-[13px]/[1.35] text-text-dim", compact && "line-clamp-1 text-[12px]")}>
+						{a.subtitle}
+					</span>
+				)}
 				{a.progress != null && (
-					<div className="activity-progress">
-						<div className="activity-track">
+					<div className="mt-2 flex items-center gap-2.5">
+						<div className="relative h-1.25 flex-1 overflow-hidden rounded-full bg-white/14">
 							<motion.div
-								className="activity-fill"
+								className="absolute inset-0 origin-left rounded-[inherit]"
 								style={{ background: color }}
 								initial={false}
 								animate={{ scaleX: Math.min(1, Math.max(0, a.progress)) }}
 								transition={{ type: "spring", stiffness: 260, damping: 30 }}
 							/>
 						</div>
-						<span className="activity-pct">{Math.round(a.progress * 100)}%</span>
+						<span className="text-[12px] font-semibold text-text-dim tabular-nums">
+							{Math.round(a.progress * 100)}%
+						</span>
 					</div>
 				)}
 			</div>
 			{!compact && a.expiresAt == null && (
 				<button
 					type="button"
-					className="activity-dismiss"
+					className="size-5.5 flex-none rounded-full text-[15px] leading-none text-text-faint hover:bg-white/8 hover:text-text"
 					title="×"
 					onClick={(e) => {
 						e.stopPropagation();
