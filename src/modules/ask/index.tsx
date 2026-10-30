@@ -12,7 +12,6 @@ import type { IslandModule, ModuleView } from "../../core/types";
 import { ClaudeIcon } from "../ai-agents/claude/ClaudeIcon";
 import { AskPanel, statusText } from "./components/AskPanel";
 import { ASK_PROVIDER, type AskState, CLAUDE_ORANGE, pendingAttachments } from "./store";
-import "./ask.css";
 
 export const askModule: IslandModule = {
 	id: "ask",
@@ -51,10 +50,14 @@ export const askModule: IslandModule = {
 						left: (
 							<>
 								{glyph(18)}
-								<span className="ask-compact-title">Claude</span>
+								<span className="text-[13px] font-[650]">Claude</span>
 							</>
 						),
-						right: <span className="ask-compact-status">{state?.status ? statusText(t, state.status) : ""}</span>,
+						right: (
+							<span className="max-w-37.5 truncate text-[12px] text-text-dim">
+								{state?.status ? statusText(t, state.status) : ""}
+							</span>
+						),
 						width: 320,
 					}
 				: undefined,

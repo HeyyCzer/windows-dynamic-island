@@ -22,7 +22,7 @@ function writeKeys() {
 	const keys = Object.keys(flatten(JSON5.parse(readFileSync(REFERENCE, "utf8"))));
 	const text =
 		"// Generated from en.json5 by vite-plugin-locales.ts — do not edit.\n" +
-		`export type MessageKey =\n${keys.map((k) => `  | ${JSON.stringify(k)}`).join("\n")};\n`;
+		`export type MessageKey =\n${keys.map((k) => `\t| ${JSON.stringify(k)}`).join("\n")};\n`;
 	let current = "";
 	try {
 		current = readFileSync(KEYS_FILE, "utf8");

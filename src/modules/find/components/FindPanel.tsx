@@ -1,6 +1,8 @@
+import { ChevronDownIcon, ChevronUpIcon, RotateCwIcon, SearchIcon } from "lucide-react";
 import { type KeyboardEvent, type MouseEvent, useEffect, useRef, useState } from "react";
-import { Glyph } from "../../../components/Glyph";
+import { IconButton } from "../../../components/ui/button";
 import { command, providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
 import { useShortcutKeys } from "../../../core/shortcuts";
@@ -93,11 +95,12 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
 	else hint = hotkey ? `${t("find.hint")} · ${t("find.hotkey", { keys: hotkey })}` : t("find.hint");
 
 	return (
-		<div className="find-panel" onClick={(e) => e.stopPropagation()}>
-			<div className="find-field" data-no-drag>
-				<Glyph name="search" size={14} color={FIND_YELLOW} />
+		<div className="flex flex-col gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
+			<div className="flex h-9.5 items-center gap-1.5 rounded-[19px] bg-white/7 pr-1.5 pl-3.5" data-no-drag>
+				<SearchIcon size={14} color={FIND_YELLOW} />
 				<input
 					ref={input}
+					className="h-full min-w-0 flex-1 bg-transparent px-1 text-[14px] text-text outline-none select-text placeholder:text-text-faint"
 					value={query}
 					placeholder={t("find.placeholder")}
 					spellCheck={false}
@@ -107,39 +110,25 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
 					onFocus={onFocus}
 					onBlur={() => island.keepOpen(false, "find")}
 				/>
-				<span className={`find-count ${noMatch ? "is-none" : ""}`}>{counter}</span>
-				<button
-					type="button"
-					className="find-btn"
-					title={t("find.prev")}
-					disabled={!count}
-					onMouseDown={keepFocus}
-					onClick={() => step("prev")}
+				<span
+					className={cn(
+						"min-w-11 flex-none text-right text-[12px] font-semibold tabular-nums text-text-dim",
+						noMatch && "text-danger",
+					)}
 				>
-					<Glyph name="chevron-up" size={12} />
-				</button>
-				<button
-					type="button"
-					className="find-btn"
-					title={t("find.next")}
-					disabled={!count}
-					onMouseDown={keepFocus}
-					onClick={() => step("next")}
-				>
-					<Glyph name="chevron-down" size={12} />
-				</button>
-				<button
-					type="button"
-					className="find-btn"
-					title={t("find.rescan")}
-					disabled={scanning}
-					onMouseDown={keepFocus}
-					onClick={scan}
-				>
-					<Glyph name="refresh" size={12} />
-				</button>
+					{counter}
+				</span>
+				<IconButton title={t("find.prev")} disabled={!count} onMouseDown={keepFocus} onClick={() => step("prev")}>
+					<ChevronUpIcon size={12} />
+				</IconButton>
+				<IconButton title={t("find.next")} disabled={!count} onMouseDown={keepFocus} onClick={() => step("next")}>
+					<ChevronDownIcon size={12} />
+				</IconButton>
+				<IconButton title={t("find.rescan")} disabled={scanning} onMouseDown={keepFocus} onClick={scan}>
+					<RotateCwIcon size={12} />
+				</IconButton>
 			</div>
-			<div className={`find-hint ${state?.error ? "is-error" : ""}`}>{hint}</div>
+			<div className={cn("truncate px-3.5 text-[11.5px] text-text-faint", state?.error && "text-danger")}>{hint}</div>
 		</div>
 	);
 }

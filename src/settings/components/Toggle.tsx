@@ -1,6 +1,20 @@
 import { motion } from "motion/react";
+import { tv } from "tailwind-variants";
+import { Row } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
 import { type SettingDef, setSetting } from "../../core/settings";
+
+const toggle = tv({
+	slots: {
+		base: "relative flex h-6.25 w-10.5 flex-none items-center rounded-full bg-white/14 p-0.75 transition-[background] duration-250 ease-[ease] disabled:opacity-40",
+		knob: "size-4.75 rounded-full bg-white shadow-[0_2px_6px_rgba(0,0,0,0.35)]",
+	},
+	variants: {
+		checked: {
+			true: { base: "justify-end bg-ok" },
+		},
+	},
+});
 
 export function Toggle({
 	checked,
@@ -11,19 +25,20 @@ export function Toggle({
 	onChange: (v: boolean) => void;
 	disabled?: boolean;
 }) {
+	const s = toggle({ checked });
 	return (
 		<button
 			type="button"
 			role="switch"
 			aria-checked={checked}
 			disabled={disabled}
-			className={`toggle ${checked ? "on" : ""}`}
+			className={s.base()}
 			onClick={(e) => {
 				e.preventDefault();
 				onChange(!checked);
 			}}
 		>
-			<motion.span className="toggle-knob" layout transition={{ type: "spring", stiffness: 600, damping: 32 }} />
+			<motion.span className={s.knob()} layout transition={{ type: "spring", stiffness: 600, damping: 32 }} />
 		</button>
 	);
 }
@@ -32,12 +47,8 @@ export function Toggle({
 export function ToggleRow({ def, value }: { def: SettingDef; value: boolean }) {
 	const t = useT();
 	return (
-		<label className="settings-row">
-			<div className="settings-text">
-				<span className="settings-label">{t(def.label)}</span>
-				{def.description && <span className="settings-desc">{t(def.description)}</span>}
-			</div>
+		<Row as="label" label={t(def.label)} desc={def.description && t(def.description)}>
 			<Toggle checked={value} onChange={(v) => setSetting(def, v)} />
-		</label>
+		</Row>
 	);
 }

@@ -1,5 +1,7 @@
 import { motion } from "motion/react";
-import type { CSSProperties } from "react";
+import { RimRing } from "../../components/island/Rim";
+import { Block, Card, card, Desc, Row } from "../../components/ui/card";
+import { Segmented } from "../../components/ui/form";
 import {
 	BORDER_PRESETS,
 	borderColors,
@@ -8,8 +10,10 @@ import {
 	swatchBackground,
 	THICKNESSES,
 } from "../../core/appearance";
+import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
 import { appearanceSettings, ISLAND_HIDDEN_KEY, type IslandStyle, readSetting, setSetting } from "../../core/settings";
+import { Title } from "../components/Heading";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
 const STYLES: {
@@ -34,54 +38,49 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 
 	return (
 		<>
-			<h1 className="settings-title">{t("appearance.title")}</h1>
+			<Title>{t("appearance.title")}</Title>
 
-			<section className="settings-card">
-				<div className="settings-block">
-					<div className="settings-row">
-						<div className="settings-text">
-							<span className="settings-label">{t("appearance.style.label")}</span>
-							<span className="settings-desc">{t("appearance.style.desc")}</span>
-						</div>
-					</div>
-					<div className="style-picker">
+			<Card>
+				<Block>
+					<Row label={t("appearance.style.label")} desc={t("appearance.style.desc")} />
+					<div className="grid grid-cols-2 gap-2.5">
 						{STYLES.map((s) => (
 							<button
 								type="button"
 								key={s.id}
-								className={`style-option ${style === s.id ? "is-active" : ""}`}
+								className={cn(
+									"flex flex-col gap-1 rounded-xl bg-white/3 px-2.5 pt-2.5 pb-3 text-left shadow-[inset_0_0_0_1px_var(--hairline)] transition-[box-shadow,background] duration-200 hover:bg-white/5",
+									style === s.id && "shadow-[inset_0_0_0_2px_var(--accent)]",
+								)}
 								onClick={() => setSetting(appearanceSettings.style, s.id)}
 							>
 								<StylePreview style={s.id} rim={s.id === "windows" ? rim : []} />
-								<span className="style-name">{t(s.name)}</span>
-								<span className="settings-desc">{t(s.desc)}</span>
+								<span className="mt-1.5 text-[13.5px] font-[650]">{t(s.name)}</span>
+								<Desc>{t(s.desc)}</Desc>
 							</button>
 						))}
 					</div>
-				</div>
-			</section>
+				</Block>
+			</Card>
 
 			<motion.section
-				className="settings-card"
+				className={card()}
 				initial={false}
 				animate={{ opacity: windows ? 1 : 0.4 }}
 				style={{ pointerEvents: windows ? "auto" : "none" }}
 			>
-				<div className="settings-block">
-					<div className="settings-row">
-						<div className="settings-text">
-							<span className="settings-label">{t("appearance.border.label")}</span>
-							<span className="settings-desc">
-								{windows ? t("appearance.border.desc") : t("appearance.windowsOnly")}
-							</span>
-						</div>
-						<span className="settings-unit">
+				<Block>
+					<Row
+						label={t("appearance.border.label")}
+						desc={windows ? t("appearance.border.desc") : t("appearance.windowsOnly")}
+					>
+						<span className="text-[13px] text-text-dim">
 							{border === "custom"
 								? t("appearance.preset.custom")
 								: t(BORDER_PRESETS.find((p) => p.id === border)?.name ?? "appearance.preset.none")}
 						</span>
-					</div>
-					<div className="swatches">
+					</Row>
+					<div className="flex flex-wrap gap-1.5">
 						{BORDER_PRESETS.map((p) => (
 							<Swatch
 								key={p.id}
@@ -102,9 +101,9 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 					</div>
 					{border === "custom" &&
 						[0, 1].map((index) => (
-							<div key={index} className="palette-row">
-								<span className="settings-desc">{t(index ? "appearance.custom.end" : "appearance.custom.start")}</span>
-								<div className="swatches">
+							<div key={index} className="flex flex-col gap-1">
+								<Desc>{t(index ? "appearance.custom.end" : "appearance.custom.start")}</Desc>
+								<div className="flex flex-wrap gap-1.5">
 									{PALETTE.map((color) => (
 										<Swatch
 											key={color}
@@ -122,40 +121,26 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 								</div>
 							</div>
 						))}
-				</div>
+				</Block>
 
-				<div className={`settings-row ${rim.length ? "" : "is-disabled"}`}>
-					<div className="settings-text">
-						<span className="settings-label">{t("appearance.thickness.label")}</span>
-					</div>
-					<div className="segmented">
-						{THICKNESSES.map((n) => (
-							<button
-								type="button"
-								key={n}
-								className={thickness === n ? "is-active" : ""}
-								disabled={!rim.length}
-								onClick={() => setSetting(appearanceSettings.thickness, n)}
-							>
-								{t(`appearance.thickness.${n}`)}
-							</button>
-						))}
-					</div>
-				</div>
+				<Row label={t("appearance.thickness.label")} disabled={!rim.length}>
+					<Segmented
+						options={THICKNESSES.map((n) => ({ value: n, label: t(`appearance.thickness.${n}`) }))}
+						value={thickness}
+						disabled={!rim.length}
+						onChange={(n) => setSetting(appearanceSettings.thickness, n)}
+					/>
+				</Row>
 				<ToggleRow def={appearanceSettings.animate} value={readSetting(values, appearanceSettings.animate)} />
 				<ToggleRow def={appearanceSettings.glow} value={readSetting(values, appearanceSettings.glow)} />
 				<ToggleRow def={appearanceSettings.idleClock} value={readSetting(values, appearanceSettings.idleClock)} />
 			</motion.section>
 
-			<section className="settings-card">
-				<label className="settings-row">
-					<div className="settings-text">
-						<span className="settings-label">{t("appearance.hide.label")}</span>
-						<span className="settings-desc">{t("appearance.hide.desc")}</span>
-					</div>
+			<Card>
+				<Row as="label" label={t("appearance.hide.label")} desc={t("appearance.hide.desc")}>
 					<Toggle checked={hidden} onChange={(v) => setSetting(ISLAND_HIDDEN_KEY, v)} />
-				</label>
-			</section>
+				</Row>
+			</Card>
 		</>
 	);
 }
@@ -164,15 +149,17 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 function StylePreview({ style, rim }: { style: IslandStyle; rim: string[] }) {
 	const background = rimBackground(rim);
 	return (
-		<div className={`style-preview is-${style}`}>
-			<div className="style-preview-island">
-				{style === "windows" && (
-					<span
-						className={`rim ${background ? "" : "is-classic"}`}
-						style={{ "--rim-bg": background, "--rim-w": "1.5px" } as CSSProperties}
-					/>
+		<div className="relative h-18.5 overflow-hidden rounded-lg bg-[radial-gradient(120%_120%_at_80%_100%,#3b3a6b_0%,#16162a_60%,#0d0d17_100%)]">
+			<div
+				className={cn(
+					"absolute left-1/2 grid h-5.5 -translate-x-1/2 place-items-center bg-black",
+					style === "dynamic"
+						? "top-0 w-23 rounded-b-xl before:absolute before:top-0 before:right-full before:size-2 before:bg-[radial-gradient(circle_at_0_100%,transparent_70%,#000_71%)] after:absolute after:top-0 after:left-full after:size-2 after:bg-[radial-gradient(circle_at_100%_100%,transparent_70%,#000_71%)]"
+						: "top-2 w-20 rounded-[11px]",
 				)}
-				{style === "windows" && <span className="style-preview-time">9:41</span>}
+			>
+				{style === "windows" && <RimRing background={background} width={1.5} />}
+				{style === "windows" && <span className="text-[9.5px] font-[650] text-white">9:41</span>}
 			</div>
 		</div>
 	);
@@ -198,12 +185,22 @@ function Swatch({
 	return (
 		<button
 			type="button"
-			className={`swatch ${selected ? "is-selected" : ""} ${small ? "is-small" : ""}`}
+			className={cn(
+				"grid size-8 place-items-center rounded-full shadow-[inset_0_0_0_2px_transparent] transition-shadow duration-150 hover:shadow-[inset_0_0_0_2px_rgba(255,255,255,0.35)]",
+				small && "size-6",
+				selected && "shadow-[inset_0_0_0_2px_#fff] hover:shadow-[inset_0_0_0_2px_#fff]",
+			)}
 			title={title}
 			aria-pressed={selected}
 			onClick={onPick}
 		>
-			<span className={`swatch-fill ${outlined ? "is-outlined" : ""}`} style={{ background: fill }}>
+			<span
+				className={cn(
+					"grid size-[calc(100%-8px)] place-items-center rounded-full text-[11px] text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]",
+					outlined && "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]",
+				)}
+				style={{ background: fill }}
+			>
 				{edit && "✎"}
 			</span>
 		</button>

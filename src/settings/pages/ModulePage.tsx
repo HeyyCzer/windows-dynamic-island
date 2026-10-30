@@ -1,9 +1,11 @@
 import { motion } from "motion/react";
-import { Link, Navigate, useParams } from "react-router";
+import { Navigate, useParams } from "react-router";
+import { Card, Row } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
+import { BackLink, Title } from "../components/Heading";
 import { PlacementSelect } from "../components/PlacementSelect";
 import { ShortcutRow } from "../components/ShortcutRow";
 import { Toggle, ToggleRow } from "../components/Toggle";
@@ -29,51 +31,38 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
 
 	return (
 		<>
-			<Link to="/modules" className="settings-back">
-				‹ {t("modules.title")}
-			</Link>
-			<h1 className="settings-title settings-title-icon">
-				<span className="settings-title-glyph">{module.settingsIcon}</span>
-				{t(module.title)}
-			</h1>
-			<section className="settings-card">
-				<label className="settings-row">
-					<div className="settings-text">
-						<span className="settings-label">{t("settings.module.label")}</span>
-						<span className="settings-desc">{t("settings.module.desc")}</span>
-					</div>
+			<BackLink to="/modules">{t("modules.title")}</BackLink>
+			<Title icon={module.settingsIcon}>{t(module.title)}</Title>
+			<Card>
+				<Row as="label" label={t("settings.module.label")} desc={t("settings.module.desc")}>
 					<Toggle checked={enabled} onChange={(v) => setSetting(enabledDef, v)} />
-				</label>
-				<div className={`settings-row is-static ${enabled ? "" : "is-disabled"}`}>
-					<div className="settings-text">
-						<span className="settings-label">{t("layout.place")}</span>
-						<span className="settings-desc">{t("layout.placeDesc")}</span>
-					</div>
+				</Row>
+				<Row label={t("layout.place")} desc={t("layout.placeDesc")} disabled={!enabled}>
 					<PlacementSelect moduleId={module.id} disabled={!enabled} />
-				</div>
-			</section>
+				</Row>
+			</Card>
 			<motion.div
-				className="settings-group"
+				className="flex flex-col gap-3.5"
 				initial={false}
 				animate={{ opacity: enabled ? 1 : 0.4 }}
 				style={{ pointerEvents: enabled ? "auto" : "none" }}
 			>
 				{!!settings.length && (
-					<section className="settings-card">
+					<Card>
 						{settings.map((def) => (
 							<ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
 						))}
-					</section>
+					</Card>
 				)}
 				{module.shortcut && (
-					<section className="settings-card">
+					<Card>
 						<ShortcutRow id={module.shortcut} values={values} />
-					</section>
+					</Card>
 				)}
 				{Section && (
-					<section className="settings-card">
+					<Card>
 						<Section />
-					</section>
+					</Card>
 				)}
 			</motion.div>
 		</>

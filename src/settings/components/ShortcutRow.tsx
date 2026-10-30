@@ -1,6 +1,9 @@
+import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CloseIcon } from "../../components/icons";
+import { IconButton } from "../../components/ui/button";
+import { Row } from "../../components/ui/card";
 import { providerAction, useProvider } from "../../core/bridge";
+import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
 import { readSetting, setSetting } from "../../core/settings";
 import {
@@ -69,26 +72,28 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 	const taken = !recording && status?.taken;
 
 	return (
-		<div className="settings-row is-static">
-			<div className="settings-text">
-				<span className="settings-label">{t("shortcuts.label")}</span>
-				{error ? (
-					<span className="settings-error">{error}</span>
-				) : taken ? (
-					<span className="settings-error">{t("shortcuts.taken", { keys: showKeys(taken) })}</span>
-				) : (
-					<span className="settings-desc">{t("shortcuts.desc")}</span>
-				)}
-			</div>
-			<div className="shortcut-actions">
+		<Row
+			label={t("shortcuts.label")}
+			desc={error ?? (taken ? t("shortcuts.taken", { keys: showKeys(taken) }) : t("shortcuts.desc"))}
+			descTone={error || taken ? "error" : undefined}
+		>
+			<div className="flex flex-none items-center gap-2">
 				{chosen !== null && (
-					<button type="button" className="shortcut-reset" onClick={() => setSetting(def, null)}>
+					<button
+						type="button"
+						className="text-[12px] font-semibold text-text-faint hover:text-text"
+						onClick={() => setSetting(def, null)}
+					>
 						{t("shortcuts.reset")}
 					</button>
 				)}
 				<button
 					type="button"
-					className={`shortcut-keys ${recording ? "is-recording" : ""} ${keys ? "" : "is-off"}`}
+					className={cn(
+						"h-8 min-w-30 rounded-[10px] bg-white/8 px-3 font-[Cascadia_Code,Consolas,monospace] text-[12px] text-text shadow-[inset_0_0_0_1px_var(--hairline)]",
+						!keys && "text-text-faint",
+						recording && "text-[#d97757] shadow-[inset_0_0_0_1.5px_#d97757]",
+					)}
 					onClick={() => {
 						setError(null);
 						setRecording((r) => !r);
@@ -97,16 +102,11 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 					{label}
 				</button>
 				{keys && !recording && (
-					<button
-						type="button"
-						className="shortcut-clear"
-						title={t("shortcuts.disable")}
-						onClick={() => setSetting(def, "")}
-					>
-						<CloseIcon size={10} />
-					</button>
+					<IconButton size="sm" tone="danger" title={t("shortcuts.disable")} onClick={() => setSetting(def, "")}>
+						<XIcon size={10} />
+					</IconButton>
 				)}
 			</div>
-		</div>
+		</Row>
 	);
 }

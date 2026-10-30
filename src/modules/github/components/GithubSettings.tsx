@@ -1,5 +1,8 @@
+import { CircleDotIcon, XIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { CloseIcon, IssueIcon } from "../../../components/icons";
+import { Button, IconButton, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Divider, List, ListItem, Row } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/form";
 import { providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
@@ -14,7 +17,7 @@ export function GithubSettings() {
 	return (
 		<>
 			<Repos />
-			<div className="gh-divider" />
+			<Divider className="mb-1" />
 			<Account />
 		</>
 	);
@@ -38,16 +41,11 @@ function Repos() {
 	};
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("github.repos.title")}</span>
-					<span className="settings-desc">{t("github.repos.desc")}</span>
-				</div>
-			</div>
-			<form className="gh-add" onSubmit={add}>
-				<input
-					className="settings-input"
+		<Block>
+			<Row label={t("github.repos.title")} desc={t("github.repos.desc")} />
+			<form className="flex gap-2" onSubmit={add}>
+				<Input
+					className="flex-1"
 					value={input}
 					placeholder={t("github.repos.placeholder")}
 					spellCheck={false}
@@ -56,31 +54,32 @@ function Repos() {
 						setError(null);
 					}}
 				/>
-				<button type="button" className="settings-btn primary" disabled={!input.trim()}>
+				<Button variant="primary" disabled={!input.trim()}>
 					{t("github.repos.add")}
-				</button>
+				</Button>
 			</form>
-			{error && <span className="settings-error">{error}</span>}
+			{error && <Desc tone="error">{error}</Desc>}
 			{repos.length > 0 && (
-				<ul className="gh-repo-list">
+				<List>
 					{repos.map((name) => {
 						const repo = state?.repos.find((r) => r.name.toLowerCase() === name.toLowerCase());
 						return (
-							<li key={name} className="gh-repo-item">
-								<span className="gh-repo-name">{name}</span>
+							<ListItem key={name} name={name}>
 								{repo?.error ? (
-									<span className="gh-repo-status is-error">{t(`github.error.${repo.error}`)}</span>
+									<span className="flex items-center gap-1 text-[12px] font-medium text-danger">
+										{t(`github.error.${repo.error}`)}
+									</span>
 								) : (
 									repo?.openIssues != null && (
-										<span className="gh-repo-status">
-											<IssueIcon size={12} />
+										<span className="flex items-center gap-1 text-[12px] font-[650] text-[#3fb950]">
+											<CircleDotIcon size={12} />
 											{formatCount(repo.openIssues)}
 										</span>
 									)
 								)}
-								<button
-									type="button"
-									className="gh-remove"
+								<IconButton
+									size="sm"
+									tone="danger"
 									title={t("github.repos.remove")}
 									onClick={() =>
 										setSetting(
@@ -89,14 +88,14 @@ function Repos() {
 										)
 									}
 								>
-									<CloseIcon size={12} />
-								</button>
-							</li>
+									<XIcon size={12} />
+								</IconButton>
+							</ListItem>
 						);
 					})}
-				</ul>
+				</List>
 			)}
-		</div>
+		</Block>
 	);
 }
 
@@ -131,29 +130,25 @@ function Account() {
 				: t("github.account.none");
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("github.account.title")}</span>
-					<span className={`settings-desc ${state?.authError ? "gh-warn" : ""}`}>{status}</span>
-				</div>
+		<Block>
+			<Row label={t("github.account.title")} desc={status} descTone={state?.authError ? "warn" : undefined}>
 				{state?.auth === "token" && (
-					<button type="button" className="settings-btn danger" disabled={busy} onClick={() => run("clearToken")}>
+					<Button variant="danger" disabled={busy} onClick={() => run("clearToken")}>
 						{busy ? "…" : t("github.account.remove")}
-					</button>
+					</Button>
 				)}
-			</div>
+			</Row>
 			{state?.auth !== "token" && (
 				<>
 					<form
-						className="gh-add"
+						className="flex gap-2"
 						onSubmit={(e) => {
 							e.preventDefault();
 							run("setToken", { token });
 						}}
 					>
-						<input
-							className="settings-input"
+						<Input
+							className="flex-1"
 							type="password"
 							value={token}
 							placeholder={t("github.account.placeholder")}
@@ -161,23 +156,19 @@ function Account() {
 							spellCheck={false}
 							onChange={(e) => setToken(e.target.value)}
 						/>
-						<button type="button" className="settings-btn primary" disabled={busy || !token.trim()}>
+						<Button variant="primary" disabled={busy || !token.trim()}>
 							{busy ? "…" : t("github.account.save")}
-						</button>
+						</Button>
 					</form>
-					<span className="settings-desc">
+					<Desc>
 						{t("github.account.stored")}{" "}
-						<button
-							type="button"
-							className="gh-link"
-							onClick={() => providerAction("github", "open", { url: TOKEN_URL })}
-						>
+						<LinkButton onClick={() => providerAction("github", "open", { url: TOKEN_URL })}>
 							{t("github.account.create")}
-						</button>
-					</span>
+						</LinkButton>
+					</Desc>
 				</>
 			)}
-			{error && <span className="settings-error">{error}</span>}
-		</div>
+			{error && <Desc tone="error">{error}</Desc>}
+		</Block>
 	);
 }

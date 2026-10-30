@@ -1,3 +1,4 @@
+import { SparklesIcon } from "lucide-react";
 /**
  * AI Agents module — shows what coding agents are doing.
  *
@@ -9,7 +10,6 @@
  * To support another agent, add a folder exporting an `AgentDefinition` and
  * append it to `agents` below.
  */
-import { SparkleIcon } from "../../components/icons";
 import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { claudeAgent } from "./claude";
@@ -20,7 +20,6 @@ import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
 import { agentSettings } from "./settings";
-import "./ai-agents.css";
 
 const agents: AgentDefinition[] = [claudeAgent, codexAgent];
 
@@ -40,7 +39,7 @@ const PRIORITY: Record<AgentStatus, number> = { waiting: 90, limitsReset: 80, do
 export const aiAgentsModule: IslandModule = {
 	id: "ai-agents",
 	title: "agents.title",
-	settingsIcon: <SparkleIcon size={15} />,
+	settingsIcon: <SparklesIcon size={15} />,
 	settings: Object.values(agentSettings),
 	SettingsSection: () => <>{agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}</>,
 	useView(): ModuleView {

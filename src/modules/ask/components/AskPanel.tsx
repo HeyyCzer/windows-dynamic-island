@@ -1,7 +1,9 @@
+import { ArrowUpIcon, CameraIcon, FolderIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Glyph } from "../../../components/Glyph";
+import { IconButton, TextButton } from "../../../components/ui/button";
 import { command, providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { type Translate, useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
 import { useShortcutKeys } from "../../../core/shortcuts";
@@ -17,6 +19,9 @@ import {
 	pendingAttachments,
 } from "../store";
 import { Formatted } from "./Formatted";
+
+const userBubble =
+	"flex max-w-85 flex-col gap-1.5 self-end rounded-[15px] bg-[#2c2c2e] px-3 py-1.75 text-[13px] whitespace-pre-wrap";
 
 /** "Ask Claude": a conversation with Claude Code (headless) inside the island. */
 export function AskPanel({ state }: { state: AskState | undefined }) {
@@ -115,8 +120,8 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 
 	if (state && !state.available) {
 		return (
-			<div className="ask-panel">
-				<div className="ask-empty">{t("ask.notFound")}</div>
+			<div className="flex h-full flex-col gap-2">
+				<div className="m-auto max-w-105 text-center text-[12.5px]/[1.45] text-text-dim">{t("ask.notFound")}</div>
 			</div>
 		);
 	}
@@ -124,40 +129,42 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 	const lastAnswer = !running && last && !last.fromUser && !last.error && last.text ? last.text : null;
 
 	return (
-		<div className="ask-panel" onClick={(e) => e.stopPropagation()}>
-			<div className="ask-head">
+		<div className="flex h-full flex-col gap-2" onClick={(e) => e.stopPropagation()}>
+			<div className="flex items-center gap-2">
 				<motion.span
-					className="ask-logo"
+					className="grid text-[#d97757]"
 					animate={running ? { rotate: 360 } : { rotate: 0 }}
 					transition={running ? { duration: 2.4, repeat: Infinity, ease: "linear" } : { duration: 0.3 }}
 				>
 					<ClaudeIcon size={16} />
 				</motion.span>
-				<span className="ask-title">Claude</span>
-				{running && state?.status && <span className="ask-status">{statusText(t, state.status)}</span>}
-				<span className="ask-spacer" />
+				<span className="text-[14px] font-[650]">Claude</span>
+				{running && state?.status && <span className="text-[12px] text-text-dim">{statusText(t, state.status)}</span>}
+				<span className="flex-1" />
 				{messages.length > 0 && !running && (
-					<button type="button" className="ask-text-btn" onClick={() => providerAction(ASK_PROVIDER, "new")}>
-						{t("ask.new")}
-					</button>
+					<TextButton onClick={() => providerAction(ASK_PROVIDER, "new")}>{t("ask.new")}</TextButton>
 				)}
 			</div>
 
 			{messages.length === 0 ? (
-				<p className="ask-hint">
+				<p className="text-[12.5px]/[1.45] text-text-dim">
 					{t("ask.hint")} {hotkey && t("ask.hotkey", { keys: hotkey })}
 				</p>
 			) : (
-				<div className="ask-messages" ref={scroller} data-scroll>
+				<div
+					className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1 select-text [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-white/14"
+					ref={scroller}
+					data-scroll
+				>
 					{messages.map((m, i) =>
 						m.fromUser ? (
 							// biome-ignore lint/suspicious/noArrayIndexKey: messages are append-only and have no id
-							<div key={i} className="ask-user">
+							<div key={i} className={userBubble}>
 								{m.attachments.map((a) =>
 									a.isImage && a.thumb ? (
-										<img key={a.path} className="ask-user-image" src={a.thumb} alt="" />
+										<img key={a.path} className="max-h-22.5 rounded-lg object-cover" src={a.thumb} alt="" />
 									) : (
-										<span key={a.path} className="ask-user-file">
+										<span key={a.path} className="text-[12px] text-text-dim">
 											📎 {a.label ?? a.name}
 										</span>
 									),
@@ -166,37 +173,45 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 							</div>
 						) : (
 							// biome-ignore lint/suspicious/noArrayIndexKey: messages are append-only and have no id
-							<div key={i} className={`ask-answer ${m.error ? "is-error" : ""}`}>
+							<div key={i} className={cn("text-[13px]/normal text-white/92", m.error && "text-[#ff8a80]")}>
 								{m.text ? (
 									<Formatted text={m.text} />
 								) : running && i === messages.length - 1 ? (
-									<span className="ask-dots">…</span>
+									<span className="text-text-dim">…</span>
 								) : null}
 							</div>
 						),
 					)}
 					{lastAnswer && (
-						<button
-							type="button"
-							className="ask-text-btn ask-copy"
+						<TextButton
+							className="-ml-2 self-start"
 							onClick={() => {
 								navigator.clipboard.writeText(lastAnswer).then(() => setCopied(true));
 							}}
 						>
 							{copied ? t("ask.copied") : t("ask.copy")}
-						</button>
+						</TextButton>
 					)}
 				</div>
 			)}
 
 			{attachments.length > 0 && (
-				<div className="ask-chips">
+				<div className="flex flex-wrap gap-1.5">
 					{attachments.map((a) => (
-						<span key={a.path} className="ask-chip" title={a.path}>
-							{a.thumb ? <img src={a.thumb} alt="" /> : <Glyph name="folder" size={13} />}
-							<span className="ask-chip-name">{a.label ?? a.name}</span>
+						<span
+							key={a.path}
+							className="flex max-w-60 items-center gap-1.75 rounded-[10px] bg-[#2c2c2e] p-[3px_4px] text-[12px]"
+							title={a.path}
+						>
+							{a.thumb ? (
+								<img src={a.thumb} alt="" className="size-6 rounded-md object-cover" />
+							) : (
+								<FolderIcon size={13} />
+							)}
+							<span className="min-w-0 truncate">{a.label ?? a.name}</span>
 							<button
 								type="button"
+								className="size-4.5 rounded-full text-text-faint hover:bg-white/10 hover:text-text"
 								title={t("ask.remove")}
 								onClick={() => pendingAttachments.set((prev) => prev.filter((p) => p.path !== a.path))}
 							>
@@ -207,13 +222,14 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 				</div>
 			)}
 
-			<div className="ask-field" data-no-drag>
-				<button type="button" className="ask-icon-btn" title={t("ask.screenshot")} onClick={screenshot}>
-					<Glyph name="camera" size={14} />
-				</button>
+			<div className="flex items-end gap-1.5 rounded-[18px] bg-white/7 p-1.25" data-no-drag>
+				<IconButton title={t("ask.screenshot")} onClick={screenshot}>
+					<CameraIcon size={14} />
+				</IconButton>
 				<textarea
 					ref={input}
 					rows={1}
+					className="min-h-6.5 flex-1 resize-none bg-transparent p-1 text-[13px]/[18px] text-text outline-none select-text placeholder:text-text-faint"
 					value={draft}
 					placeholder={t("ask.placeholder")}
 					onChange={(e) => setDraft(e.target.value)}
@@ -224,13 +240,13 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 				/>
 				<button
 					type="button"
-					className={`ask-send ${running ? "is-stop" : ""}`}
+					className="grid size-7 flex-none place-items-center rounded-full text-white disabled:opacity-35"
 					style={{ background: CLAUDE_ORANGE }}
 					title={running ? t("ask.stop") : t("ask.send")}
 					disabled={!running && !draft.trim() && !attachments.length}
 					onClick={() => (running ? providerAction(ASK_PROVIDER, "cancel") : send())}
 				>
-					{running ? <span className="ask-stop-square" /> : <Glyph name="upload" size={13} />}
+					{running ? <span className="size-2.25 rounded-[2px] bg-white" /> : <ArrowUpIcon size={13} />}
 				</button>
 			</div>
 		</div>

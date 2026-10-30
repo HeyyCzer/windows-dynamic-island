@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { locales } from "./vite-plugin-locales.ts";
@@ -7,7 +8,7 @@ const { version } = JSON.parse(readFileSync("package.json", "utf8"));
 
 // https://v2.tauri.app/start/frontend/vite/
 export default defineConfig({
-	plugins: [react(), locales()],
+	plugins: [react(), tailwindcss(), locales()],
 	define: { __APP_VERSION__: JSON.stringify(version) },
 	clearScreen: false,
 	server: {

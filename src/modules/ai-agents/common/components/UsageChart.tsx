@@ -1,3 +1,5 @@
+import { SectionLabel } from "../../../../components/ui/text";
+import { cn } from "../../../../core/cn";
 import { useLocale, useT } from "../../../../core/i18n";
 import { formatTokens } from "../format";
 import type { UsageHistory } from "../types";
@@ -23,12 +25,12 @@ export function UsageChart({ usage, color }: { usage: UsageHistory; color: strin
 	const responses = (n: number) => t(n === 1 ? "agents.usage.response" : "agents.usage.responses", { n });
 
 	return (
-		<div className="agents-usage" style={{ "--agent": color } as React.CSSProperties}>
-			<div className="agents-usage-stats">
+		<div className="flex items-end gap-4.5 px-0.5 pt-0.5" style={{ "--agent": color } as React.CSSProperties}>
+			<div className="flex gap-4.5">
 				<Stat label={t("agents.usage.week")} value={formatTokens(week)} sub={responses(weekResponses)} />
 				<Stat label={t("agents.usage.last5h")} value={formatTokens(usage.last5hTokens)} />
 			</div>
-			<div className="agents-usage-chart">
+			<div className="flex flex-1 gap-1.5">
 				{days.map((d, i) => {
 					const isToday = i === days.length - 1;
 					// Noon avoids the date shifting across time zones.
@@ -37,13 +39,23 @@ export function UsageChart({ usage, color }: { usage: UsageHistory; color: strin
 					return (
 						<div
 							key={d.date}
-							className={`agents-usage-col ${isToday ? "is-today" : ""}`}
+							className="flex flex-1 flex-col items-center gap-0.75"
 							title={`${fullDate.format(date)}\n${formatTokens(d.tokens)} tokens · ${responses(d.responses)}`}
 						>
-							<div className="agents-usage-bar-area">
-								<div className={`agents-usage-bar ${d.tokens ? "" : "is-empty"}`} style={{ height }} />
+							<div className="flex h-8.5 items-end">
+								<div
+									className={cn(
+										"w-4.5 rounded-[4px_4px_1px_1px]",
+										!d.tokens
+											? "bg-white/18"
+											: isToday
+												? "bg-(--agent)"
+												: "bg-[color-mix(in_srgb,var(--agent)_62%,transparent)]",
+									)}
+									style={{ height }}
+								/>
 							</div>
-							<span className="agents-usage-day">
+							<span className={cn("text-[10px] text-text-faint", isToday && "font-[650] text-text")}>
 								{isToday ? t("agents.usage.todayShort") : dayName.format(date).replace(".", "")}
 							</span>
 						</div>
@@ -56,10 +68,10 @@ export function UsageChart({ usage, color }: { usage: UsageHistory; color: strin
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
 	return (
-		<div className="agents-usage-stat">
-			<span className="agents-section-label">{label}</span>
-			<span className="agents-usage-value">{value}</span>
-			{sub && <span className="agents-usage-sub">{sub}</span>}
+		<div className="flex min-w-16 flex-col gap-px">
+			<SectionLabel>{label}</SectionLabel>
+			<span className="text-[17px] font-[650] tabular-nums">{value}</span>
+			{sub && <span className="text-[11px] text-text-faint">{sub}</span>}
 		</div>
 	);
 }

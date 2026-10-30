@@ -1,6 +1,10 @@
+import { XIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { CloseIcon } from "../../../components/icons";
+import { Button, IconButton, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Divider, List, ListItem, Row, RowText } from "../../../components/ui/card";
+import { Input, Select } from "../../../components/ui/form";
 import { command, providerAction, useProvider } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
 import { Toggle } from "../../../settings/components/Toggle";
@@ -38,9 +42,9 @@ export function CalendarSettings() {
 	return (
 		<>
 			<Reminder />
-			<div className="cal-divider" />
+			<Divider className="mb-1" />
 			<GoogleAccount />
-			<div className="cal-divider" />
+			<Divider className="mb-1" />
 			<IcalLinks />
 			<Calendars />
 		</>
@@ -64,14 +68,9 @@ function Reminder() {
 	const free = LEAD_OPTIONS.filter((n) => !leads.includes(n));
 
 	return (
-		<div className={`settings-block ${remind ? "" : "is-disabled"}`}>
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("calendar.remindMinutes.label")}</span>
-					<span className="settings-desc">{t("calendar.remindMinutes.desc")}</span>
-				</div>
-				<select
-					className="settings-select"
+		<Block className={cn(!remind && "*:opacity-45")}>
+			<Row label={t("calendar.remindMinutes.label")} desc={t("calendar.remindMinutes.desc")}>
+				<Select
 					value=""
 					disabled={!remind || !free.length}
 					onChange={(e) => setSetting(remindMinutes, leadList([...leads, Number(e.target.value)]))}
@@ -84,16 +83,23 @@ function Reminder() {
 							{label(n)}
 						</option>
 					))}
-				</select>
-			</div>
-			<ul className="cal-leads">
+				</Select>
+			</Row>
+			<ul className="flex list-none flex-wrap gap-1.5">
 				{leads.map((n) => (
-					<li key={n} className="cal-lead">
+					<li
+						key={n}
+						className={cn(
+							"flex h-6.5 items-center gap-0.5 rounded-[13px] bg-white/6 pr-1 pl-3 text-[12.5px] font-[550]",
+							leads.length <= 1 && "pr-3",
+						)}
+					>
 						{label(n)}
 						{leads.length > 1 && (
-							<button
-								type="button"
-								className="cal-remove"
+							<IconButton
+								size="sm"
+								tone="danger"
+								className="size-5"
 								title={t("calendar.remindMinutes.remove")}
 								disabled={!remind}
 								onClick={() =>
@@ -103,8 +109,8 @@ function Reminder() {
 									)
 								}
 							>
-								<CloseIcon size={10} />
-							</button>
+								<XIcon size={10} />
+							</IconButton>
 						)}
 					</li>
 				))}
@@ -113,15 +119,11 @@ function Reminder() {
 				{ def: eventReminders, value: own },
 				{ def: remindSound, value: sound },
 			].map(({ def, value }) => (
-				<label key={def.key} className="settings-row">
-					<div className="settings-text">
-						<span className="settings-label">{t(def.label)}</span>
-						{def.description && <span className="settings-desc">{t(def.description)}</span>}
-					</div>
+				<Row as="label" label={t(def.label)} desc={def.description && t(def.description)} key={def.key}>
 					<Toggle checked={value} disabled={!remind} onChange={(v) => setSetting(def, v)} />
-				</label>
+				</Row>
 			))}
-		</div>
+		</Block>
 	);
 }
 
@@ -165,67 +167,47 @@ function GoogleAccount() {
 	};
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("calendar.google.title")}</span>
-					<span className={`settings-desc ${google?.error === "unauthorized" ? "cal-warn" : ""}`}>
-						{busy === "connect" ? t("calendar.google.waiting") : status}
-					</span>
-				</div>
+		<Block>
+			<Row
+				label={t("calendar.google.title")}
+				desc={busy === "connect" ? t("calendar.google.waiting") : status}
+				descTone={google?.error === "unauthorized" ? "warn" : undefined}
+			>
 				{busy === "connect" ? (
-					<button
-						type="button"
-						className="settings-btn"
-						onClick={() => providerAction(CALENDAR_PROVIDER, "cancelConnect")}
-					>
+					<Button onClick={() => providerAction(CALENDAR_PROVIDER, "cancelConnect")}>
 						{t("calendar.google.cancel")}
-					</button>
+					</Button>
 				) : google?.connected && google.error !== "unauthorized" ? (
-					<button
-						type="button"
-						className="settings-btn danger"
-						disabled={!!busy}
-						onClick={() => run("disconnectGoogle")}
-					>
+					<Button variant="danger" disabled={!!busy} onClick={() => run("disconnectGoogle")}>
 						{t("calendar.google.disconnect")}
-					</button>
+					</Button>
 				) : (
 					google?.hasClient && (
-						<button
-							type="button"
-							className="settings-btn primary"
-							disabled={!!busy}
-							onClick={() => run("connectGoogle", undefined, "connect")}
-						>
+						<Button variant="primary" disabled={!!busy} onClick={() => run("connectGoogle", undefined, "connect")}>
 							{t("calendar.google.connect")}
-						</button>
+						</Button>
 					)
 				)}
-			</div>
+			</Row>
 
 			{google && !google.hasClient && (
 				<>
-					<span className="settings-desc">
+					<Desc>
 						{t("calendar.google.clientHow")}{" "}
-						<button
-							type="button"
-							className="cal-link"
-							onClick={() => command("open_external", { url: CLOUD_CONSOLE_URL })}
-						>
+						<LinkButton onClick={() => command("open_external", { url: CLOUD_CONSOLE_URL })}>
 							{t("calendar.google.clientOpen")}
-						</button>
-					</span>
-					<form className="cal-form" onSubmit={saveClient}>
-						<input
-							className="settings-input"
+						</LinkButton>
+					</Desc>
+					<form className="flex gap-2" onSubmit={saveClient}>
+						<Input
+							className="flex-1"
 							value={clientId}
 							placeholder={t("calendar.google.clientId")}
 							spellCheck={false}
 							onChange={(e) => setClientId(e.target.value)}
 						/>
-						<input
-							className="settings-input"
+						<Input
+							className="flex-1"
 							type="password"
 							value={clientSecret}
 							placeholder={t("calendar.google.clientSecret")}
@@ -233,21 +215,21 @@ function GoogleAccount() {
 							spellCheck={false}
 							onChange={(e) => setClientSecret(e.target.value)}
 						/>
-						<button type="button" className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
+						<Button variant="primary" disabled={!!busy || !clientId.trim()}>
 							{t("calendar.google.clientSave")}
-						</button>
+						</Button>
 					</form>
 				</>
 			)}
 			{google?.hasClient && !google.builtinClient && !google.connected && (
-				<span className="settings-desc">
-					<button type="button" className="cal-link" disabled={!!busy} onClick={() => run("clearClient")}>
+				<Desc>
+					<LinkButton disabled={!!busy} onClick={() => run("clearClient")}>
 						{t("calendar.google.clientRemove")}
-					</button>
-				</span>
+					</LinkButton>
+				</Desc>
 			)}
-			{error && <span className="settings-error">{error}</span>}
-		</div>
+			{error && <Desc tone="error">{error}</Desc>}
+		</Block>
 	);
 }
 
@@ -274,14 +256,11 @@ function IcalLinks() {
 
 	const feeds = state?.feeds ?? [];
 	return (
-		<div className="settings-block">
-			<div className="settings-text">
-				<span className="settings-label">{t("calendar.ics.title")}</span>
-				<span className="settings-desc">{t("calendar.ics.desc")}</span>
-			</div>
-			<form className="cal-form" onSubmit={add}>
-				<input
-					className="settings-input"
+		<Block>
+			<RowText label={t("calendar.ics.title")} desc={t("calendar.ics.desc")} />
+			<form className="flex gap-2" onSubmit={add}>
+				<Input
+					className="flex-1"
 					type="password"
 					value={url}
 					placeholder={t("calendar.ics.placeholder")}
@@ -292,32 +271,31 @@ function IcalLinks() {
 						setError(null);
 					}}
 				/>
-				<button type="button" className="settings-btn primary" disabled={busy || !url.trim()}>
+				<Button variant="primary" disabled={busy || !url.trim()}>
 					{busy ? "…" : t("calendar.ics.add")}
-				</button>
+				</Button>
 			</form>
-			{error && <span className="settings-error">{error}</span>}
+			{error && <Desc tone="error">{error}</Desc>}
 			{feeds.length > 0 && (
-				<ul className="cal-list">
+				<List>
 					{feeds.map((f) => (
-						<li key={f.id} className="cal-item">
-							<span className="cal-item-name">{f.name ?? f.host}</span>
-							<span className={`cal-item-meta ${f.error ? "is-error" : ""}`}>
+						<ListItem key={f.id} name={f.name ?? f.host}>
+							<span className={cn("text-[12px] whitespace-nowrap text-text-faint", f.error && "text-danger")}>
 								{f.error ? errorText(t, f.error) : f.name ? f.host : ""}
 							</span>
-							<button
-								type="button"
-								className="cal-remove"
+							<IconButton
+								size="sm"
+								tone="danger"
 								title={t("calendar.ics.remove")}
 								onClick={() => providerAction(CALENDAR_PROVIDER, "removeFeed", { id: f.id })}
 							>
-								<CloseIcon size={12} />
-							</button>
-						</li>
+								<XIcon size={12} />
+							</IconButton>
+						</ListItem>
 					))}
-				</ul>
+				</List>
 			)}
-		</div>
+		</Block>
 	);
 }
 
@@ -329,22 +307,19 @@ function Calendars() {
 
 	return (
 		<>
-			<div className="cal-divider" />
-			<div className="settings-block">
-				<div className="settings-text">
-					<span className="settings-label">{t("calendar.calendars.title")}</span>
-					<span className="settings-desc">{t("calendar.calendars.desc")}</span>
-				</div>
-				<ul className="cal-list">
+			<Divider className="mb-1" />
+			<Block>
+				<RowText label={t("calendar.calendars.title")} desc={t("calendar.calendars.desc")} />
+				<List>
 					{calendars.map((c) => {
 						// From the setting, not `c.visible`: that one only catches up after
 						// the backend has fetched every calendar again.
 						const visible = visibility[c.key] ?? c.defaultVisible;
 						return (
-							<li key={c.key} className="cal-item">
-								<i className="cal-swatch" style={{ background: c.color }} />
-								<span className="cal-item-name">{c.name}</span>
-								<span className={`cal-item-meta ${c.error ? "is-error" : ""}`}>
+							<li key={c.key} className="flex min-h-8.5 items-center gap-2.5 rounded-[9px] bg-white/4 pr-1.5 pl-3">
+								<i className="size-2.5 flex-none rounded-[3px]" style={{ background: c.color }} />
+								<span className="min-w-0 flex-1 truncate text-[13px] font-[550]">{c.name}</span>
+								<span className={cn("text-[12px] whitespace-nowrap text-text-faint", c.error && "text-danger")}>
 									{c.error ? errorText(t, c.error) : c.source === "google" ? "Google" : "iCal"}
 								</span>
 								<Toggle
@@ -359,8 +334,8 @@ function Calendars() {
 							</li>
 						);
 					})}
-				</ul>
-			</div>
+				</List>
+			</Block>
 		</>
 	);
 }

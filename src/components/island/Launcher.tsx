@@ -18,15 +18,13 @@ export function Launcher({ entries, onSelect }: { entries: ModuleEntry[]; onSele
 	const t = useT();
 	return (
 		<div
-			className="launcher"
-			style={
-				{ "--launcher-cols": LAUNCHER_COLS, "--tile-h": `${TILE_H}px`, "--tile-gap": `${TILE_GAP}px` } as CSSProperties
-			}
+			className="grid h-full"
+			style={{ gridTemplateColumns: `repeat(${LAUNCHER_COLS}, 1fr)`, gridAutoRows: TILE_H, gap: TILE_GAP }}
 		>
 			{entries.map(({ module, view }, i) => (
 				<motion.button
 					key={module.id}
-					className="launcher-tile"
+					className="relative flex min-w-0 flex-col items-center justify-center gap-1.5 rounded-2xl bg-white/5 px-2 text-text-dim shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] transition-[background,color,box-shadow] duration-200 hover:bg-white/10 hover:text-text hover:shadow-[inset_0_0_0_1.5px_color-mix(in_srgb,var(--tab-accent)_55%,transparent)]"
 					style={{ "--tab-accent": view.accent ?? "#fff" } as CSSProperties}
 					initial={{ opacity: 0, scale: 0.92 }}
 					animate={{ opacity: 1, scale: 1 }}
@@ -36,9 +34,9 @@ export function Launcher({ entries, onSelect }: { entries: ModuleEntry[]; onSele
 						onSelect(module.id);
 					}}
 				>
-					<span className="launcher-icon">{view.icon}</span>
-					<span className="launcher-name">{t(module.title)}</span>
-					{view.active && <span className="tab-dot launcher-dot" />}
+					<span className="grid h-5 place-items-center">{view.icon}</span>
+					<span className="max-w-full truncate text-[11.5px] font-semibold">{t(module.title)}</span>
+					{view.active && <span className="absolute top-2.25 right-2.25 size-1.25 rounded-full bg-ok" />}
 				</motion.button>
 			))}
 		</div>

@@ -1,3 +1,64 @@
+@import "tailwindcss";
+
+/* Design tokens as Tailwind colors. `inline` keeps them pointing at the vars, so a
+   local override (e.g. the music panel's `--accent`) still flows into utilities. */
+@theme inline {
+	--color-island: var(--island);
+	--color-text: var(--text);
+	--color-text-dim: var(--text-dim);
+	--color-text-faint: var(--text-faint);
+	--color-hairline: var(--hairline);
+	--color-card: var(--card);
+	--color-accent: var(--accent);
+	--color-danger: #ff6b63;
+	--color-ok: #34c759;
+	--color-warn: #ffbd2e;
+	--animate-hydration-pulse: hydration-pulse 1.5s ease-in-out infinite;
+	--animate-gh-pulse: gh-pulse 1.6s ease-in-out infinite;
+	--animate-spin-fast: spin 0.9s linear infinite;
+	--animate-marquee: marquee var(--marquee-duration) ease-in-out infinite alternate;
+	--animate-rim-spin: rim-spin 7s linear infinite;
+	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+}
+
+/* Text that doesn't fit slides to its end and back (see `Marquee`). */
+@keyframes marquee {
+	0%,
+	18% {
+		transform: translateX(0);
+	}
+	82%,
+	100% {
+		transform: translateX(calc(var(--marquee-distance) - 24px));
+	}
+}
+
+/* The Windows Island rim's gradient turns around the island. */
+@property --rim-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+@keyframes rim-spin {
+	to {
+		--rim-angle: 360deg;
+	}
+}
+
+@keyframes gh-pulse {
+	50% {
+		box-shadow:
+			0 0 0 2px var(--island),
+			0 0 0 5px rgba(210, 153, 34, 0.35);
+	}
+}
+
+@keyframes hydration-pulse {
+	50% {
+		box-shadow: 0 0 0 5px rgba(69, 196, 230, 0.16);
+	}
+}
+
 :root {
 	--island: #000;
 	--text: #f5f5f7;
@@ -14,421 +75,50 @@
 	-webkit-font-smoothing: antialiased;
 }
 
-* {
-	box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-	margin: 0;
-	width: 100%;
-	height: 100%;
-	background: transparent;
-	overflow: hidden;
-	user-select: none;
-	cursor: default;
-}
-
-button {
-	font: inherit;
-	color: inherit;
-	background: none;
-	border: 0;
-	padding: 0;
-	cursor: pointer;
-}
-
-/* ---------------------------------------------------------------- island -- */
-
-.stage {
-	position: fixed;
-	inset: 0;
-	display: flex;
-	justify-content: center;
-	align-items: flex-start;
-	pointer-events: none;
-}
-
-.shell {
-	position: relative;
-	pointer-events: auto;
-	will-change: width, height, transform;
-	touch-action: none;
-}
-.shell.is-dragging,
-.shell.is-dragging * {
-	cursor: grabbing;
-}
-
-/* Concave "ears" that blend the island into the top edge of the screen. */
-.ear {
-	position: absolute;
-	top: 0;
-	pointer-events: none;
-}
-.ear.left {
-	right: 100%;
-	background: radial-gradient(circle at 0 100%, transparent 70%, var(--island) 71%);
-}
-.ear.right {
-	left: 100%;
-	background: radial-gradient(circle at 100% 100%, transparent 70%, var(--island) 71%);
-}
-
-.surface {
-	position: absolute;
-	inset: 0;
-	overflow: hidden;
-	background: var(--island);
-	box-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.7);
-	transition: box-shadow 0.4s ease;
-}
-.surface.is-big {
-	box-shadow:
-		0 26px 60px -18px rgba(0, 0, 0, 0.85),
-		inset 0 -1px 0 rgba(255, 255, 255, 0.06);
-}
-
-.content {
-	position: absolute;
-	top: 0;
-	left: 50%;
-	translate: -50% 0;
-	transform-origin: 50% 0;
-}
-
-/* compact pill */
-.compact {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	height: 100%;
-	padding: 0 12px 0 8px;
-}
-.compact-slot {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	min-width: 0;
-}
-.compact-slot.right {
-	justify-content: flex-end;
-}
-
-/* side bubble for the second active module */
-.bubble {
-	position: absolute;
-	top: 0;
-	left: calc(100% + 10px);
-	width: 38px;
-	height: 38px;
-	border-radius: 50%;
-	display: grid;
-	place-items: center;
-	background: var(--island);
-	box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.7);
-}
-
-/* persistent bubbles on the left (see `ModuleView.ambient`) */
-.ambient-bubbles {
-	position: absolute;
-	top: 0;
-	right: calc(100% + 10px);
-	display: flex;
-	flex-direction: row-reverse;
-	gap: 8px;
-	pointer-events: none;
-}
-.bubble.ambient {
-	position: relative;
-	left: auto;
-	flex: none;
-	transform-origin: 50% 0;
-	pointer-events: auto;
-}
-
-/* expanded panel */
-.expanded {
-	display: flex;
-	flex-direction: column;
-	height: 100%;
-	padding: 14px 20px 18px;
-}
-.expanded-body {
-	flex: 1;
-	min-height: 0;
-}
-
-.tabs {
-	display: flex;
-	gap: 4px;
-	margin-bottom: 10px;
-}
-.tab {
-	position: relative;
-	display: flex;
-	align-items: center;
-	gap: 7px;
-	height: 30px;
-	padding: 0 12px 0 8px;
-	border-radius: 15px;
-	color: var(--text-dim);
-	font-size: 13px;
-	font-weight: 600;
-	transition: color 0.2s;
-}
-.tab:hover,
-.tab.is-active {
-	color: var(--text);
-}
-.tab-pill {
-	position: absolute;
-	inset: 0;
-	border-radius: inherit;
-	background: rgba(255, 255, 255, 0.1);
-}
-.tab-icon,
-.tab-label {
-	position: relative;
-	display: grid;
-	place-items: center;
-}
-.tab-dot {
-	position: relative;
-	width: 5px;
-	height: 5px;
-	border-radius: 50%;
-	background: #34c759;
-}
-
-/* launcher: every module as a tile (the grid button in the tab bar) */
-.launcher {
-	display: grid;
-	grid-template-columns: repeat(var(--launcher-cols), 1fr);
-	grid-auto-rows: var(--tile-h);
-	gap: var(--tile-gap);
-	height: 100%;
-}
-.launcher-tile {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 6px;
-	min-width: 0;
-	padding: 0 8px;
-	border-radius: 16px;
-	color: var(--text-dim);
-	background: rgba(255, 255, 255, 0.05);
-	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
-	transition:
-		background 0.2s,
-		color 0.2s,
-		box-shadow 0.2s;
-}
-.launcher-tile:hover {
-	color: var(--text);
-	background: rgba(255, 255, 255, 0.1);
-	box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tab-accent) 55%, transparent);
-}
-.launcher-icon {
-	display: grid;
-	place-items: center;
-	height: 20px;
-}
-.launcher-name {
-	max-width: 100%;
-	overflow: hidden;
-	font-size: 11.5px;
-	font-weight: 600;
-	white-space: nowrap;
-	text-overflow: ellipsis;
-}
-.launcher-dot {
-	position: absolute;
-	top: 9px;
-	right: 9px;
-}
-.tab.tab-launcher {
-	padding: 0;
-	width: 30px;
-	justify-content: center;
-	margin-left: auto;
-}
-.tab.tab-launcher + .tab-gear {
-	margin-left: 0;
-}
-
-/* ----------------------------------------------------------- primitives -- */
-
-.marquee {
-	overflow: hidden;
-	white-space: nowrap;
-	mask-image: none;
-}
-.marquee > span {
-	display: inline-block;
-}
-.marquee.is-scrolling {
-	mask-image: linear-gradient(90deg, transparent 0, #000 12px, #000 calc(100% - 16px), transparent);
-}
-.marquee.is-scrolling > span {
-	padding: 0 12px;
-	animation: marquee var(--marquee-duration) ease-in-out infinite alternate;
-}
-@keyframes marquee {
-	0%,
-	18% {
-		transform: translateX(0);
+/* Resets live in `base`, so component and utility classes override them. */
+@layer base {
+	* {
+		box-sizing: border-box;
 	}
-	82%,
-	100% {
-		transform: translateX(calc(var(--marquee-distance) - 24px));
+
+	/* Preflight sets 1.5; the UI was drawn with the browser's `normal`. */
+	html {
+		line-height: normal;
+	}
+
+	html,
+	body,
+	#root {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+		background: transparent;
+		overflow: hidden;
+		user-select: none;
+		cursor: default;
+	}
+
+	button {
+		font: inherit;
+		color: inherit;
+		background: none;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
 	}
 }
 
-/* browser preview wallpaper (never applied inside Tauri) */
+/* The PiP and settings windows are opaque. */
+html:has([data-pip]),
+body:has([data-pip]) {
+	background: #000;
+}
+html:has([data-settings]),
+body:has([data-settings]) {
+	background: #0c0c10;
+}
+
+/* Browser preview wallpaper (never applied inside Tauri). */
 body.preview {
 	background: radial-gradient(120% 90% at 80% 100%, #3b3a6b 0%, #16162a 55%, #0d0d17 100%);
-}
-
-.tab-gear {
-	display: grid;
-	place-items: center;
-	width: 30px;
-	height: 30px;
-	margin-left: auto;
-	border-radius: 50%;
-	color: var(--text-faint);
-	transition:
-		color 0.2s,
-		background 0.2s;
-}
-/* The open module's controls (e.g. volume) take the gear's push to the right. */
-.tab-extra {
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	margin-left: auto;
-}
-.tab-extra + .tab-gear {
-	margin-left: 0;
-}
-.tab-gear:hover {
-	color: var(--text);
-	background: rgba(255, 255, 255, 0.08);
-}
-
-/* ------------------------------------------------- Windows Island style -- */
-
-/* Wraps the island for the tray's black hole spin. */
-.blackhole {
-	position: relative;
-	display: flex;
-	justify-content: center;
-	pointer-events: none;
-	transform-origin: 50% 50%;
-}
-
-.shell.is-windows .ear {
-	display: none;
-}
-
-/* Colored rim: a gradient ring masked to the border, inside the rounded shape. */
-@property --rim-angle {
-	syntax: "<angle>";
-	inherits: false;
-	initial-value: 0deg;
-}
-.rim {
-	position: absolute;
-	inset: 0;
-	z-index: 2;
-	border-radius: inherit;
-	padding: var(--rim-w, 2px);
-	background: var(--rim-bg);
-	-webkit-mask:
-		linear-gradient(#000 0 0) content-box,
-		linear-gradient(#000 0 0);
-	-webkit-mask-composite: xor;
-	mask-composite: exclude;
-	pointer-events: none;
-}
-.rim.is-classic {
-	background: rgba(255, 255, 255, 0.09);
-}
-.rim.is-animated {
-	animation: rim-spin 7s linear infinite;
-}
-@keyframes rim-spin {
-	to {
-		--rim-angle: 360deg;
-	}
-}
-
-.idle-clock {
-	display: grid;
-	place-items: center;
-	height: 100%;
-	font-size: 14px;
-	font-weight: 650;
-	letter-spacing: 0.01em;
-	font-variant-numeric: tabular-nums;
-}
-
-/* Tabs at the bottom, icons only, with a ring in the module's color. */
-.expanded.tabs-bottom {
-	padding-bottom: 8px;
-}
-.expanded.tabs-bottom .tabs {
-	justify-content: center;
-	margin: 8px 0 0;
-}
-.tabs.icons-only .tab {
-	width: 32px;
-	padding: 0;
-	justify-content: center;
-	border-radius: 50%;
-	opacity: 0.55;
-	transition: opacity 0.2s;
-}
-.tabs.icons-only .tab:hover,
-.tabs.icons-only .tab.is-active {
-	opacity: 1;
-}
-.tabs.icons-only .tab-pill {
-	box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--tab-accent) 70%, transparent);
-}
-.tabs.icons-only .tab-dot {
-	position: absolute;
-	top: 3px;
-	right: 3px;
-	box-shadow: 0 0 0 1.5px #000;
-}
-.expanded.tabs-bottom .tab-gear,
-.expanded.tabs-bottom .tab-extra {
-	margin-left: 6px;
-}
-
-/* Shared by the new modules: Fluent icon glyphs. */
-.glyph {
-	font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
-	font-style: normal;
-	line-height: 1;
-}
-.badge {
-	flex: none;
-	display: grid;
-	place-items: center;
-	overflow: hidden;
-	background-size: cover;
-	background-position: center;
-}
-
-/* Windows Island: launcher sits with the centered icon tabs. */
-.tabs.icons-only .tab.tab-launcher {
-	margin-left: 6px;
-	--tab-accent: #fff;
 }

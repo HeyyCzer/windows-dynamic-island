@@ -10,16 +10,16 @@ export function LimitBar({ limit, color, now }: { limit: UsageLimit; color: stri
 	const tone = pct >= 90 ? "#ff5f57" : pct >= 75 ? "#ffbd2e" : color;
 
 	return (
-		<div className="agents-limit">
-			<div className="agents-limit-head">
-				<span className="agents-limit-label">{limit.label}</span>
-				<span className="agents-limit-pct" style={{ color: tone }}>
+		<div>
+			<div className="mb-1.25 flex justify-between text-[12.5px] font-semibold">
+				<span className="text-text-dim">{limit.label}</span>
+				<span className="tabular-nums" style={{ color: tone }}>
 					{Math.round(pct)}%
 				</span>
 			</div>
-			<div className="agents-limit-track">
+			<div className="h-1.75 overflow-hidden rounded-full bg-white/9">
 				<motion.div
-					className="agents-limit-fill"
+					className="h-full origin-left rounded-[inherit]"
 					style={{ background: tone }}
 					initial={{ scaleX: 0 }}
 					animate={{ scaleX: pct / 100 }}
@@ -27,7 +27,7 @@ export function LimitBar({ limit, color, now }: { limit: UsageLimit; color: stri
 				/>
 			</div>
 			{limit.resetsAt && limit.resetsAt > now && (
-				<span className="agents-limit-reset">
+				<span className="mt-1 block text-[11px] text-text-faint">
 					{t("agents.limit.resetsIn", { time: formatIn(t, limit.resetsAt, now) })}
 				</span>
 			)}

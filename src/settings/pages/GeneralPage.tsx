@@ -1,32 +1,35 @@
 import { useEffect, useState } from "react";
+import { Card, Row } from "../../components/ui/card";
+import { NumberField, Select } from "../../components/ui/form";
 import { command, isTauri } from "../../core/bridge";
 import { type LanguagePref, languageSetting, locales, systemLocale, useT } from "../../core/i18n";
 import { generalSettings, monitorSettings, positionSettings, readSetting, setSetting } from "../../core/settings";
+import { Title } from "../components/Heading";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
 export function GeneralPage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
 	return (
 		<>
-			<h1 className="settings-title">{t("settings.general")}</h1>
-			<section className="settings-card">
+			<Title>{t("settings.general")}</Title>
+			<Card>
 				<LanguageRow value={readSetting(values, languageSetting)} />
 				<AutostartRow />
 				{Object.values(generalSettings).map((def) => (
 					<ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
 				))}
-			</section>
-			<section className="settings-card">
+			</Card>
+			<Card>
 				<MonitorRow value={readSetting(values, monitorSettings.monitor)} />
 				<ToggleRow def={monitorSettings.avoidMaximized} value={readSetting(values, monitorSettings.avoidMaximized)} />
-			</section>
-			<section className="settings-card">
+			</Card>
+			<Card>
 				<ToggleRow def={positionSettings.returnToCenter} value={readSetting(values, positionSettings.returnToCenter)} />
 				<SecondsRow
 					value={readSetting(values, positionSettings.returnDelay)}
 					disabled={!readSetting(values, positionSettings.returnToCenter)}
 				/>
-			</section>
+			</Card>
 		</>
 	);
 }
@@ -35,24 +38,16 @@ function LanguageRow({ value }: { value: LanguagePref }) {
 	const t = useT();
 	const system = locales[systemLocale()].name;
 	return (
-		<label className="settings-row">
-			<div className="settings-text">
-				<span className="settings-label">{t("settings.language.label")}</span>
-				<span className="settings-desc">{t("settings.language.desc")}</span>
-			</div>
-			<select
-				className="settings-select"
-				value={value}
-				onChange={(e) => setSetting(languageSetting, e.target.value as LanguagePref)}
-			>
+		<Row as="label" label={t("settings.language.label")} desc={t("settings.language.desc")}>
+			<Select value={value} onChange={(e) => setSetting(languageSetting, e.target.value as LanguagePref)}>
 				<option value="auto">{t("settings.language.auto", { language: system })}</option>
 				{Object.entries(locales).map(([code, { name }]) => (
 					<option key={code} value={code}>
 						{name}
 					</option>
 				))}
-			</select>
-		</label>
+			</Select>
+		</Row>
 	);
 }
 
@@ -85,12 +80,8 @@ function MonitorRow({ value }: { value: string }) {
 	const missing = value !== "primary" && monitors.length > 0 && !monitors.some((m) => m.id === value);
 
 	return (
-		<label className="settings-row">
-			<div className="settings-text">
-				<span className="settings-label">{t(def.label)}</span>
-				{def.description && <span className="settings-desc">{t(def.description)}</span>}
-			</div>
-			<select className="settings-select" value={value} onChange={(e) => setSetting(def, e.target.value)}>
+		<Row as="label" label={t(def.label)} desc={def.description && t(def.description)}>
+			<Select value={value} onChange={(e) => setSetting(def, e.target.value)}>
 				<option value="primary">
 					{primary ? t("settings.monitor.auto", { name: nameOf(primary) }) : t("settings.monitor.auto", { name: "—" })}
 				</option>
@@ -100,8 +91,8 @@ function MonitorRow({ value }: { value: string }) {
 					</option>
 				))}
 				{missing && <option value={value}>{t("settings.monitor.missing")}</option>}
-			</select>
-		</label>
+			</Select>
+		</Row>
 	);
 }
 
@@ -113,11 +104,7 @@ function AutostartRow() {
 	}, []);
 
 	return (
-		<label className="settings-row">
-			<div className="settings-text">
-				<span className="settings-label">{t("settings.autostart.label")}</span>
-				{!isTauri && <span className="settings-desc">{t("settings.autostart.appOnly")}</span>}
-			</div>
+		<Row as="label" label={t("settings.autostart.label")} desc={!isTauri && t("settings.autostart.appOnly")}>
 			<Toggle
 				checked={!!on}
 				disabled={on === null}
@@ -127,7 +114,7 @@ function AutostartRow() {
 					if (typeof result === "boolean") setOn(result);
 				}}
 			/>
-		</label>
+		</Row>
 	);
 }
 
@@ -143,25 +130,18 @@ function SecondsRow({ value, disabled }: { value: number; disabled: boolean }) {
 	};
 
 	return (
-		<label className={`settings-row ${disabled ? "is-disabled" : ""}`}>
-			<div className="settings-text">
-				<span className="settings-label">{t(def.label)}</span>
-				<span className="settings-desc">{t(def.description)}</span>
-			</div>
-			<span className="settings-number">
-				<input
-					type="number"
-					min={1}
-					max={3600}
-					step={1}
-					value={draft}
-					disabled={disabled}
-					onChange={(e) => setDraft(e.target.value)}
-					onBlur={commit}
-					onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-				/>
-				<span className="settings-unit">s</span>
-			</span>
-		</label>
+		<Row as="label" label={t(def.label)} desc={t(def.description)} disabled={disabled}>
+			<NumberField
+				unit="s"
+				min={1}
+				max={3600}
+				step={1}
+				value={draft}
+				disabled={disabled}
+				onChange={(e) => setDraft(e.target.value)}
+				onBlur={commit}
+				onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+			/>
+		</Row>
 	);
 }

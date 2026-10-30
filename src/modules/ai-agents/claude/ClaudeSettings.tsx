@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Button, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Row } from "../../../components/ui/card";
+import { Chip, Chips } from "../../../components/ui/text";
 import { providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
@@ -43,35 +46,33 @@ function Integration() {
 	};
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("claude.integration.title")}</span>
-					<span className="settings-desc">{t("claude.integration.desc", { file: "~/.claude/settings.json" })}</span>
-				</div>
+		<Block>
+			<Row
+				label={t("claude.integration.title")}
+				desc={t("claude.integration.desc", { file: "~/.claude/settings.json" })}
+			>
 				{outdated && (
-					<button type="button" className="settings-btn primary" disabled={busy} onClick={() => run("install")}>
+					<Button variant="primary" disabled={busy} onClick={() => run("install")}>
 						{busy ? "…" : t("claude.setup.update")}
-					</button>
+					</Button>
 				)}
-				<button
-					type="button"
-					className={`settings-btn ${installed ? "danger" : "primary"}`}
+				<Button
+					variant={installed ? "danger" : "primary"}
 					disabled={busy || !state}
 					onClick={() => run(installed ? "uninstall" : "install")}
 				>
 					{busy ? "…" : installed ? t("claude.integration.remove") : t("claude.integration.enable")}
-				</button>
-			</div>
-			<div className="settings-chips">
-				<Chip ok={!!i?.hooks} label="Hooks" />
-				<Chip ok={!!i?.statusline} label="Statusline" />
-				<Chip ok={!!i?.permissions} label={t("claude.integration.permissions")} />
-				<Chip ok={!!i?.serverOk} label={t("claude.integration.server")} />
-			</div>
-			{installed && <span className="settings-desc">{t("claude.integration.restart")}</span>}
-			{error && <span className="settings-error">{error}</span>}
-		</div>
+				</Button>
+			</Row>
+			<Chips>
+				<Chip ok={!!i?.hooks}>Hooks</Chip>
+				<Chip ok={!!i?.statusline}>Statusline</Chip>
+				<Chip ok={!!i?.permissions}>{t("claude.integration.permissions")}</Chip>
+				<Chip ok={!!i?.serverOk}>{t("claude.integration.server")}</Chip>
+			</Chips>
+			{installed && <Desc>{t("claude.integration.restart")}</Desc>}
+			{error && <Desc tone="error">{error}</Desc>}
+		</Block>
 	);
 }
 
@@ -89,38 +90,31 @@ function SoundRow({ kind }: { kind: keyof typeof claudeSounds }) {
 	};
 
 	return (
-		<div className="settings-row is-static">
-			<div className="settings-text">
-				<span className="settings-label">{t(defs.enabled.label)}</span>
-				<span className="settings-desc" title={file ?? undefined}>
+		<Row
+			label={t(defs.enabled.label)}
+			desc={
+				<span title={file ?? undefined}>
 					{name}
 					{" · "}
-					<button
-						type="button"
-						className="claude-sound-link"
-						onClick={() => providerAction("claude", "testSound", kind)}
-					>
+					<LinkButton tone="text" onClick={() => providerAction("claude", "testSound", kind)}>
 						{t("claude.sound.test")}
-					</button>
+					</LinkButton>
 					{" · "}
-					<button type="button" className="claude-sound-link" onClick={pick}>
+					<LinkButton tone="text" onClick={pick}>
 						{t("claude.sound.choose")}
-					</button>
+					</LinkButton>
 					{file && (
 						<>
 							{" · "}
-							<button type="button" className="claude-sound-link" onClick={() => setSetting(defs.file, null)}>
+							<LinkButton tone="text" onClick={() => setSetting(defs.file, null)}>
 								{t("claude.sound.reset")}
-							</button>
+							</LinkButton>
 						</>
 					)}
 				</span>
-			</div>
+			}
+		>
 			<Toggle checked={enabled} onChange={(v) => setSetting(defs.enabled, v)} />
-		</div>
+		</Row>
 	);
-}
-
-function Chip({ ok, label }: { ok: boolean; label: string }) {
-	return <span className={`settings-chip ${ok ? "ok" : ""}`}>{label}</span>;
 }

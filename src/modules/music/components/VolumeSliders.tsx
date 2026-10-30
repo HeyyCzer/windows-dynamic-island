@@ -1,5 +1,6 @@
+import { MonitorIcon, MusicIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ComputerIcon, MusicIcon } from "../../../components/icons";
+import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
 import { type MusicState, setVolume, type Volume } from "../hooks/useMusic";
@@ -27,7 +28,7 @@ export function VolumeSliders({ music }: { music: MusicState | undefined }) {
 				<VolumeSlider
 					name={t("music.computer")}
 					volume={music.volume}
-					icon={<ComputerIcon size={13} />}
+					icon={<MonitorIcon size={13} />}
 					onChange={(change) => setVolume({ target: "system", ...change })}
 				/>
 			)}
@@ -73,10 +74,16 @@ function VolumeSlider({
 
 	const percent = Math.round(shown.level * 100);
 	return (
-		<div className={`volume-chip ${shown.muted ? "is-muted" : ""}`} onClick={(e) => e.stopPropagation()}>
+		<div
+			className="flex h-6.5 min-w-0 flex-[0_1_auto] items-center gap-1.25 rounded-[13px] bg-white/6 pr-2.25 pl-1"
+			onClick={(e) => e.stopPropagation()}
+		>
 			<button
 				type="button"
-				className="volume-chip-icon"
+				className={cn(
+					"grid size-4.5 place-items-center text-text-dim transition-[opacity,color,transform] duration-200 hover:text-text active:scale-88 [&_img]:size-3.5",
+					shown.muted && "opacity-45",
+				)}
 				title={t(shown.muted ? "music.unmute" : "music.mute", { name })}
 				onClick={() => change({ muted: !shown.muted })}
 			>
@@ -84,7 +91,7 @@ function VolumeSlider({
 			</button>
 
 			<div
-				className="volume-chip-track"
+				className="group/track flex h-full w-16 min-w-7 flex-[0_1_auto] cursor-pointer touch-none items-center outline-none"
 				role="slider"
 				tabIndex={0}
 				title={`${name} · ${percent}%`}
@@ -109,8 +116,14 @@ function VolumeSlider({
 					setLevel(shown.level + step);
 				}}
 			>
-				<div className="volume-chip-bar">
-					<div className="volume-chip-fill" style={{ transform: `scaleX(${shown.level})` }} />
+				<div className="relative h-1 flex-1 overflow-hidden rounded-full bg-white/16 transition-[height] duration-200 ease-[ease] group-hover/track:h-1.5 group-focus-visible/track:h-1.5">
+					<div
+						className={cn(
+							"absolute inset-0 origin-left rounded-[inherit] bg-white transition-transform duration-120 ease-out",
+							shown.muted && "bg-white/30",
+						)}
+						style={{ transform: `scaleX(${shown.level})` }}
+					/>
 				</div>
 			</div>
 		</div>

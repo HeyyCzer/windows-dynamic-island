@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { AppLogo, GitHubIcon } from "../../components/icons";
+import { Button } from "../../components/ui/button";
+import { Card, Row } from "../../components/ui/card";
 import { command, isTauri } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 
@@ -30,21 +32,17 @@ function UpdateRow() {
 			: t(`settings.about.updates.${status.state}`);
 
 	return (
-		<div className="settings-row about-row">
-			<div className="settings-text">
-				<span className="settings-label">{t("settings.about.updates.label")}</span>
-				<span className="settings-desc">{desc}</span>
-			</div>
+		<Row label={t("settings.about.updates.label")} desc={desc}>
 			{status.state === "ready" ? (
-				<button type="button" className="settings-btn primary" onClick={() => command("install_update")}>
+				<Button variant="primary" onClick={() => command("install_update")}>
 					{t("settings.about.updates.install")}
-				</button>
+				</Button>
 			) : (
-				<button type="button" className="settings-btn about-btn" onClick={check} disabled={status.state === "checking"}>
+				<Button onClick={check} disabled={status.state === "checking"}>
 					{t("settings.about.updates.check")}
-				</button>
+				</Button>
 			)}
-		</div>
+		</Row>
 	);
 }
 
@@ -54,30 +52,23 @@ export function AboutPage() {
 
 	return (
 		<>
-			<div className="about-hero">
+			<div className="flex flex-col items-center gap-2.5 pt-4.5 pb-2.5 [&_svg]:drop-shadow-[0_8px_24px_rgba(143,148,255,0.18)]">
 				<AppLogo size={72} />
-				<div className="about-name">Dynamic Island</div>
-				<span className="about-version">{t("settings.about.version", { version: __APP_VERSION__ })}</span>
+				<div className="mt-1 text-[22px] font-bold tracking-[-0.015em]">Dynamic Island</div>
+				<span className="rounded-full bg-white/6 px-2.5 py-0.75 text-[12px] font-semibold text-text-dim tabular-nums">
+					{t("settings.about.version", { version: __APP_VERSION__ })}
+				</span>
 			</div>
-			<section className="settings-card">
-				<div className="settings-row about-row">
-					<div className="settings-text">
-						<span className="settings-label">{t("settings.about.source")}</span>
-						<span className="settings-desc">{REPO_URL.replace("https://", "")}</span>
-					</div>
-					<button type="button" className="settings-btn about-btn" onClick={openRepo}>
+			<Card>
+				<Row label={t("settings.about.source")} desc={REPO_URL.replace("https://", "")}>
+					<Button onClick={openRepo}>
 						<GitHubIcon size={14} />
 						GitHub
-					</button>
-				</div>
+					</Button>
+				</Row>
 				<UpdateRow />
-				<div className="settings-row about-row">
-					<div className="settings-text">
-						<span className="settings-label">{t("settings.about.license")}</span>
-						<span className="settings-desc">GNU GPL v3.0</span>
-					</div>
-				</div>
-			</section>
+				<Row label={t("settings.about.license")} desc="GNU GPL v3.0"></Row>
+			</Card>
 		</>
 	);
 }

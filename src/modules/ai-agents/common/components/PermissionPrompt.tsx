@@ -30,24 +30,34 @@ export function PermissionPrompt({ item, now, more }: { item: AgentSessionRef; n
 	};
 
 	return (
-		<div className="agents-permission" style={{ "--agent": agent.color } as React.CSSProperties}>
-			<div className="agents-permission-head">
+		<div
+			className="flex flex-col gap-2.5 rounded-[20px] bg-card px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(255,189,46,0.35)]"
+			style={{ "--agent": agent.color } as React.CSSProperties}
+		>
+			<div className="flex min-w-0 items-center gap-2">
 				<StatusGlyph agent={agent} status="waiting" size={16} />
-				<span className="agents-permission-title">
+				<span className="min-w-0 flex-1 truncate text-[14px] font-[650]">
 					{t("agents.permission.title", { project: session.title || agent.name, tool: request.tool })}
 				</span>
-				{more > 0 && <span className="agents-permission-more">{t("agents.permission.more", { n: more })}</span>}
-				<span className="agents-permission-time">{formatAgo(t, request.since, now)}</span>
+				{more > 0 && (
+					<span className="flex-none rounded-full bg-[rgba(255,189,46,0.16)] px-2 py-px text-[11px] font-bold text-warn">
+						{t("agents.permission.more", { n: more })}
+					</span>
+				)}
+				<span className="flex-none text-[11px] text-text-faint">{formatAgo(t, request.since, now)}</span>
 			</div>
 			{request.detail && (
-				<pre className="agents-permission-detail" data-scroll>
+				<pre
+					className="max-h-13 overflow-y-auto rounded-[10px] bg-black/35 px-2.5 py-2 font-[Cascadia_Code,Consolas,monospace] text-[11.5px]/[1.45] break-all whitespace-pre-wrap text-text [scrollbar-width:none]"
+					data-scroll
+				>
 					{request.detail}
 				</pre>
 			)}
-			<div className="agents-permission-actions">
+			<div className="flex items-center gap-2">
 				<button
 					type="button"
-					className="agents-permission-btn is-allow"
+					className="h-7 rounded-[14px] px-3.5 text-[12px] font-bold transition-[filter,background] duration-150 disabled:opacity-55 bg-(--agent) text-white enabled:hover:brightness-112"
 					disabled={!!busy}
 					onClick={() => decide("allow")}
 				>
@@ -56,7 +66,7 @@ export function PermissionPrompt({ item, now, more }: { item: AgentSessionRef; n
 				{request.always && (
 					<button
 						type="button"
-						className="agents-permission-btn is-always"
+						className="h-7 rounded-[14px] px-3.5 text-[12px] font-bold transition-[filter,background] duration-150 disabled:opacity-55 bg-white/10 text-text enabled:hover:bg-white/18"
 						disabled={!!busy}
 						title={t("agents.permission.alwaysTitle", { rule: request.always })}
 						onClick={() => decide("always")}
@@ -66,16 +76,16 @@ export function PermissionPrompt({ item, now, more }: { item: AgentSessionRef; n
 				)}
 				<button
 					type="button"
-					className="agents-permission-btn is-deny"
+					className="h-7 rounded-[14px] px-3.5 text-[12px] font-bold transition-[filter,background] duration-150 disabled:opacity-55 text-[#ff453a] enabled:hover:bg-[rgba(255,69,58,0.14)]"
 					disabled={!!busy}
 					onClick={() => decide("deny")}
 				>
 					{busy === "deny" ? "…" : t("agents.permission.deny")}
 				</button>
 				{error ? (
-					<span className="agents-permission-error">{error}</span>
+					<span className="ml-auto truncate text-[11px] text-[#ff453a]">{error}</span>
 				) : (
-					<span className="agents-permission-hint">{t("agents.permission.hint")}</span>
+					<span className="ml-auto truncate text-[11px] text-text-faint">{t("agents.permission.hint")}</span>
 				)}
 			</div>
 		</div>

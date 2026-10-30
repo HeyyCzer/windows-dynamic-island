@@ -1,5 +1,6 @@
 import { useMemo, useState, type WheelEvent } from "react";
 import { command } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useLocale, useT } from "../../../core/i18n";
 import { useNow } from "../../ai-agents/common/format";
 import { DAY_MS, dayDots, eventsOn, sameDay, startOfDay } from "../events";
@@ -98,19 +99,28 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
 		return (
 			<li
 				key={e.id}
-				className={`clock-event ${live ? "is-live" : ""} ${e.id === highlight ? "is-due" : ""}`}
+				className={cn(
+					"flex h-6 cursor-default items-center gap-2 rounded-[7px] bg-white/4 pr-1 pl-2 text-[12px] shadow-[inset_2.5px_0_0_var(--cal-color)] hover:bg-white/8",
+					e.id === highlight &&
+						"bg-[color-mix(in_srgb,var(--cal-color)_18%,transparent)] hover:bg-[color-mix(in_srgb,var(--cal-color)_18%,transparent)]",
+				)}
 				style={{ "--cal-color": colors.get(e.calendar) ?? "#8E8E93" } as React.CSSProperties}
 				title={[e.title, e.location].filter(Boolean).join("\n")}
 				onClick={() => openLink(e.url)}
 			>
-				<span className="clock-event-time">
+				<span
+					className={cn(
+						"min-w-9.5 flex-none text-[11px] font-[650] text-text-faint tabular-nums",
+						live && "text-(--cal-color)",
+					)}
+				>
 					{e.allDay ? t("calendar.allDay") : e.start < startOfDay(focus).getTime() ? "…" : hourFormat.format(e.start)}
 				</span>
-				<span className="clock-event-title">{e.title || t("calendar.untitled")}</span>
+				<span className="min-w-0 flex-1 truncate font-[550] text-text-dim">{e.title || t("calendar.untitled")}</span>
 				{joinable && (
 					<button
 						type="button"
-						className="clock-event-join"
+						className="h-4.5 flex-none rounded-[9px] bg-(--cal-color) px-2 text-[10.5px] font-bold text-white"
 						onClick={(ev) => {
 							ev.stopPropagation();
 							openLink(e.meetingUrl);
@@ -124,59 +134,84 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
 	};
 
 	return (
-		<div className="clock-panel" onClick={(e) => e.stopPropagation()}>
-			<div className={`clock-main ${hasSources ? "has-events" : ""}`}>
-				<span className="clock-time">
+		<div className="flex h-full items-stretch justify-between gap-6 px-1" onClick={(e) => e.stopPropagation()}>
+			<div
+				className={cn(
+					"flex min-w-0 flex-col justify-center gap-1",
+					hasSources && "flex-1 justify-start gap-0.75 pt-1.5",
+				)}
+			>
+				<span
+					className={cn(
+						"font-[Segoe_UI_Variable_Display,Segoe_UI,sans-serif] text-[44px]/none font-[650] tracking-[-0.02em] tabular-nums",
+						hasSources && "text-[36px]/none",
+					)}
+				>
 					{time}
-					<span className="clock-seconds">{seconds}</span>
+					<span className="ml-1 text-[16px] font-semibold text-text-faint">{seconds}</span>
 				</span>
-				<span className="clock-date">{longDate}</span>
-				<span className="clock-meta">
+				<span className="text-[13.5px] font-semibold text-text-dim first-letter:uppercase">{longDate}</span>
+				<span className="text-[12px] text-text-faint first-letter:uppercase">
 					{selected && !sameDay(selected, today) ? relative : t("clock.week", { n: isoWeek(focus) })}
 				</span>
 				{hasSources && (
-					<ul className="clock-events">
+					<ul className="mt-1.5 flex min-w-0 list-none flex-col gap-0.5">
 						{shown.map(row)}
 						{dayEvents.length > shown.length && (
-							<li className="clock-event-more">{t("calendar.more", { n: dayEvents.length - shown.length })}</li>
+							<li className="pl-2 text-[11px] text-text-faint">
+								{t("calendar.more", { n: dayEvents.length - shown.length })}
+							</li>
 						)}
-						{dayEvents.length === 0 && <li className="clock-event-more">{t("calendar.free")}</li>}
+						{dayEvents.length === 0 && <li className="pl-2 text-[11px] text-text-faint">{t("calendar.free")}</li>}
 					</ul>
 				)}
 			</div>
 
-			<div className="clock-cal" data-scroll onWheel={onWheel}>
-				<div className="clock-cal-head">
-					<span className="clock-cal-month">{monthLabel}</span>
+			<div className="flex w-63 flex-none flex-col justify-center gap-1" data-scroll onWheel={onWheel}>
+				<div className="flex h-5.5 items-center gap-1">
+					<span className="flex-1 text-[13px] font-[650] first-letter:uppercase">{monthLabel}</span>
 					{(!onCurrentMonth || selected) && (
-						<button type="button" className="clock-cal-today" onClick={goToday}>
+						<button
+							type="button"
+							className="h-5 rounded-[10px] bg-[rgba(255,69,58,0.14)] px-2 text-[11px] font-[650] text-[#ff453a]"
+							onClick={goToday}
+						>
 							{t("clock.today")}
 						</button>
 					)}
-					<button type="button" className="clock-cal-nav" title={t("clock.prev")} onClick={() => shift(-1)}>
+					<button
+						type="button"
+						className="size-5.5 rounded-full text-[17px] leading-none text-text-dim hover:bg-white/8"
+						title={t("clock.prev")}
+						onClick={() => shift(-1)}
+					>
 						‹
 					</button>
-					<button type="button" className="clock-cal-nav" title={t("clock.next")} onClick={() => shift(1)}>
+					<button
+						type="button"
+						className="size-5.5 rounded-full text-[17px] leading-none text-text-dim hover:bg-white/8"
+						title={t("clock.next")}
+						onClick={() => shift(1)}
+					>
 						›
 					</button>
 				</div>
-				<div className="clock-cal-grid">
+				<div className="grid grid-cols-7 gap-x-0.5 gap-y-px">
 					{weekdays.map((w, i) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: weekday labels can repeat (narrow format), and the order is fixed
-						<span key={`w${i}`} className="clock-cal-weekday">
+						<span key={`w${i}`} className="h-3.5 text-center text-[10px] font-[650] text-text-faint uppercase">
 							{w}
 						</span>
 					))}
 					{days.slice(0, rows * 7).map((d) => {
-						const classes = [
-							"clock-cal-day",
-							d.getMonth() !== month.getMonth() && "is-other",
-							sameDay(d, today) && "is-today",
-							selected && sameDay(d, selected) && "is-selected",
-							(d.getDay() === 0 || d.getDay() === 6) && "is-weekend",
-						]
-							.filter(Boolean)
-							.join(" ");
+						const isToday = sameDay(d, today);
+						const classes = cn(
+							"relative h-5.25 rounded-[7px] text-[11.5px] font-[550] text-text-dim tabular-nums hover:bg-white/8",
+							(d.getDay() === 0 || d.getDay() === 6) && "text-text-faint",
+							d.getMonth() !== month.getMonth() && "opacity-35",
+							selected && sameDay(d, selected) && "text-text shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.5)]",
+							isToday && "bg-[#ff453a] font-[750] text-white hover:bg-[#ff453a]",
+						);
 						const marks = dots.get(d.toDateString());
 						return (
 							<button
@@ -184,15 +219,15 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
 								key={d.toDateString()}
 								className={classes}
 								onClick={() => {
-									setSelected(sameDay(d, today) ? null : d);
+									setSelected(isToday ? null : d);
 									if (d.getMonth() !== month.getMonth()) setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
 								}}
 							>
 								{d.getDate()}
 								{marks && (
-									<span className="clock-cal-dots">
+									<span className="pointer-events-none absolute inset-x-0 bottom-px flex justify-center gap-0.5">
 										{marks.map((c) => (
-											<i key={c} style={{ background: c }} />
+											<i key={c} className="size-0.75 rounded-full" style={{ background: isToday ? "#fff" : c }} />
 										))}
 									</span>
 								)}

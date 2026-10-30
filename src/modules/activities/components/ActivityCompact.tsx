@@ -8,7 +8,7 @@ export function ActivityCompactLeft({ activity: a }: { activity: Activity }) {
 	return (
 		<>
 			<Badge icon={a.icon} image={a.image} color={a.color ?? "#ffffff"} size={24} glyphSize={12} />
-			{a.style !== "level" && <Marquee text={a.title} className="activity-compact-title" />}
+			{a.style !== "level" && <Marquee text={a.title} className="max-w-50 text-[13px] font-semibold" />}
 		</>
 	);
 }
@@ -19,18 +19,24 @@ export function ActivityCompactRight({ activity: a }: { activity: Activity }) {
 	if (a.style === "level" && a.progress != null) {
 		return (
 			<>
-				<div className="activity-level">
+				<div className="relative h-1.5 w-24 flex-none overflow-hidden rounded-full bg-white/14">
 					<motion.div
-						className="activity-fill"
+						className="absolute inset-0 origin-left rounded-[inherit]"
 						style={{ background: color }}
 						initial={false}
 						animate={{ scaleX: a.progress }}
 						transition={{ type: "spring", stiffness: 500, damping: 40 }}
 					/>
 				</div>
-				<span className="activity-compact-value">{Math.round(a.progress * 100)}</span>
+				<span className="min-w-5.5 text-right text-[12px] font-semibold text-text-dim tabular-nums">
+					{Math.round(a.progress * 100)}
+				</span>
 			</>
 		);
 	}
-	return a.progress != null ? <span className="activity-compact-value">{Math.round(a.progress * 100)}%</span> : null;
+	return a.progress != null ? (
+		<span className="min-w-5.5 text-right text-[12px] font-semibold text-text-dim tabular-nums">
+			{Math.round(a.progress * 100)}%
+		</span>
+	) : null;
 }

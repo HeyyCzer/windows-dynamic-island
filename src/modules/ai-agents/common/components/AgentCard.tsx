@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { SectionLabel } from "../../../../components/ui/text";
 import { command } from "../../../../core/bridge";
 import { useT } from "../../../../core/i18n";
 import { formatTokens } from "../format";
@@ -25,17 +26,21 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
 	}, [refreshLimits]);
 
 	return (
-		<div className="agents-card" style={{ "--agent": agent.color } as React.CSSProperties}>
-			<div className="agents-card-col">
-				<div className="agents-card-head">
+		<div className="grid grid-cols-[1.35fr_1fr] gap-3" style={{ "--agent": agent.color } as React.CSSProperties}>
+			<div className="flex flex-col rounded-[20px] bg-card px-4 py-3.5 shadow-[inset_0_0_0_1px_var(--hairline)] gap-2.5">
+				<div className="flex items-center gap-2 text-(--agent)">
 					<agent.Icon size={18} />
-					<span className="agents-card-name">{agent.name}</span>
-					{snapshot.model && <span className="agents-badge">{snapshot.model}</span>}
+					<span className="text-[15px] font-[650] text-text">{agent.name}</span>
+					{snapshot.model && (
+						<span className="ml-auto rounded-full bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] px-2 py-0.5 text-[11px] font-[650] text-(--agent)">
+							{snapshot.model}
+						</span>
+					)}
 				</div>
 				{snapshot.limits.length ? (
 					<button
 						type="button"
-						className="agents-limits"
+						className="-m-1.5 flex w-[calc(100%+12px)] flex-col gap-2.5 rounded-[10px] p-1.5 text-left transition-[background] duration-200 enabled:hover:bg-white/5 disabled:cursor-default"
 						disabled={!agent.usageUrl}
 						onClick={(e) => {
 							e.stopPropagation();
@@ -47,28 +52,28 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
 						))}
 					</button>
 				) : (
-					<p className="agents-hint">{snapshot.limitsHint ?? tr("agents.noLimits")}</p>
+					<p className="text-[12px] text-text-faint">{snapshot.limitsHint ?? tr("agents.noLimits")}</p>
 				)}
 				{snapshot.setup && <SetupButton setup={snapshot.setup} color={agent.color} />}
 			</div>
 
-			<div className="agents-card-col agents-tokens">
-				<span className="agents-section-label">{tr("agents.tokensToday")}</span>
+			<div className="flex flex-col rounded-[20px] bg-card px-4 py-3.5 shadow-[inset_0_0_0_1px_var(--hairline)] gap-1">
+				<SectionLabel>{tr("agents.tokensToday")}</SectionLabel>
 				<motion.span
 					key={formatTokens(total)}
-					className="agents-tokens-total"
+					className="text-[30px] font-bold tracking-[-0.02em] tabular-nums"
 					initial={{ opacity: 0.4 }}
 					animate={{ opacity: 1 }}
 				>
 					{formatTokens(total)}
 				</motion.span>
 				{responses != null && (
-					<span className="agents-usage-sub">
+					<span className="text-[11px] text-text-faint">
 						{tr(responses === 1 ? "agents.usage.response" : "agents.usage.responses", { n: responses })}
 					</span>
 				)}
 				{t && (
-					<dl className="agents-tokens-grid">
+					<dl className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 text-[11.5px] [&_dd]:text-right [&_dd]:text-text-dim [&_dd]:tabular-nums [&_dt]:text-text-faint">
 						<dt>{tr("agents.tokens.input")}</dt>
 						<dd>{formatTokens(t.input)}</dd>
 						<dt>{tr("agents.tokens.output")}</dt>
@@ -88,10 +93,10 @@ function SetupButton({ setup, color }: { setup: NonNullable<AgentSnapshot["setup
 	const t = useT();
 	const [state, setState] = useState<"idle" | "busy" | "error">("idle");
 	return (
-		<div className="agents-setup">
-			<p>{setup.message}</p>
+		<div>
+			<p className="mb-2 text-[11.5px]/[1.4] text-text-dim">{setup.message}</p>
 			<motion.button
-				className="agents-setup-btn"
+				className="h-7 rounded-[14px] px-3.5 text-[12px] font-bold text-white disabled:opacity-60"
 				style={{ background: color }}
 				whileTap={{ scale: 0.94 }}
 				disabled={state === "busy"}

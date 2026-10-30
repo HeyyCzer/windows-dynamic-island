@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { cn } from "../../../../core/cn";
 import type { AgentDefinition, AgentStatus } from "../types";
 
 /**
@@ -10,7 +11,7 @@ export function StatusDot({ status, color, size = 14 }: { status: AgentStatus; c
 	if (status === "working") {
 		return (
 			<motion.svg
-				className="agents-dot"
+				className="relative grid flex-none place-items-center"
 				width={size}
 				height={size}
 				viewBox="0 0 14 14"
@@ -24,7 +25,10 @@ export function StatusDot({ status, color, size = 14 }: { status: AgentStatus; c
 	}
 	if (status === "done") {
 		return (
-			<span className="agents-dot is-done" style={{ width: size, height: size }}>
+			<span
+				className="relative grid flex-none place-items-center rounded-full bg-ok"
+				style={{ width: size, height: size }}
+			>
 				<svg width={size - 5} height={size - 5} viewBox="0 0 12 12" aria-hidden>
 					<path
 						d="M2.5 6.5l2.2 2.2 4.8-5"
@@ -39,15 +43,21 @@ export function StatusDot({ status, color, size = 14 }: { status: AgentStatus; c
 		);
 	}
 	return (
-		<span className="agents-dot" style={{ width: size, height: size }}>
+		<span className="relative grid flex-none place-items-center" style={{ width: size, height: size }}>
 			{status === "waiting" && (
 				<motion.span
-					className="agents-glyph-halo"
+					className="absolute inset-0 rounded-full bg-warn"
 					animate={{ scale: [1, 2], opacity: [0.6, 0] }}
 					transition={{ duration: 1.3, repeat: Infinity, ease: "easeOut" }}
 				/>
 			)}
-			<span className={`agents-dot-core is-${status}`} />
+			<span
+				className={cn(
+					"size-1.75 rounded-full bg-white/28",
+					status === "waiting" && "bg-warn",
+					status === "limitsReset" && "bg-ok",
+				)}
+			/>
 		</span>
 	);
 }
@@ -66,10 +76,10 @@ export function StatusGlyph({
 	size?: number;
 }) {
 	return (
-		<div className="agents-glyph" style={{ width: size, height: size }}>
+		<div className="relative grid flex-none place-items-center" style={{ width: size, height: size }}>
 			{status === "waiting" && (
 				<motion.span
-					className="agents-glyph-halo"
+					className="absolute inset-0 rounded-full bg-warn"
 					animate={{ scale: [1, 1.9], opacity: [0.7, 0] }}
 					transition={{ duration: 1.3, repeat: Infinity, ease: "easeOut" }}
 				/>
@@ -95,7 +105,7 @@ export function StatusGlyph({
 			</motion.div>
 			{status === "done" && (
 				<motion.span
-					className="agents-glyph-check"
+					className="absolute -right-0.75 -bottom-0.75 grid size-2.75 place-items-center rounded-full bg-ok shadow-[0_0_0_2px_#000]"
 					initial={{ scale: 0 }}
 					animate={{ scale: 1 }}
 					transition={{ type: "spring", stiffness: 500, damping: 18, delay: 0.1 }}

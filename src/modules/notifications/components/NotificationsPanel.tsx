@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Badge } from "../../../components/Glyph";
+import { TextButton } from "../../../components/ui/button";
+import { Empty, SectionLabel } from "../../../components/ui/text";
 import { providerAction } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { formatAgo, useNow } from "../../ai-agents/common/format";
@@ -20,30 +22,28 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
 	}, [unread]);
 
 	return (
-		<div className="notif-panel">
-			<div className="notif-head">
-				<span className="notif-heading">{t("notifications.title")}</span>
+		<div className="flex h-full flex-col">
+			<div className="mb-1 flex items-center justify-between">
+				<SectionLabel>{t("notifications.title")}</SectionLabel>
 				{items.length > 0 && (
-					<button
-						type="button"
-						className="notif-clear"
+					<TextButton
 						onClick={(e) => {
 							e.stopPropagation();
 							providerAction(NOTIFICATIONS_PROVIDER, "clear");
 						}}
 					>
 						{t("notifications.clear")}
-					</button>
+					</TextButton>
 				)}
 			</div>
 			{items.length === 0 ? (
-				<div className="notif-empty">{t("notifications.empty")}</div>
+				<Empty>{t("notifications.empty")}</Empty>
 			) : (
-				<ul className="notif-list" data-scroll>
+				<ul className="flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
 					{items.map((item) => (
 						<li
 							key={item.id}
-							className="notif-row"
+							className="flex cursor-pointer items-start gap-3 rounded-xl px-2 py-1.5 hover:bg-white/5"
 							title={item.app ? t("notifications.open", { app: item.app }) : undefined}
 							onClick={(e) => {
 								e.stopPropagation();
@@ -51,12 +51,12 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
 							}}
 						>
 							<Badge icon="bell" image={item.logo} color={NOTIFICATION_BLUE} size={32} radius={9} glyphSize={14} />
-							<div className="notif-texts">
-								{item.app && <span className="notif-app">{item.app}</span>}
-								<span className="notif-title">{item.title}</span>
-								{item.body && <span className="notif-body">{item.body}</span>}
+							<div className="flex min-w-0 flex-1 flex-col">
+								{item.app && <span className="text-[11px] font-semibold text-text-faint">{item.app}</span>}
+								<span className="truncate text-[13px] font-semibold">{item.title}</span>
+								{item.body && <span className="truncate text-[12px] text-text-dim">{item.body}</span>}
 							</div>
-							<span className="notif-time">{formatAgo(t, item.receivedAt, now)}</span>
+							<span className="flex-none text-[11px] text-text-faint">{formatAgo(t, item.receivedAt, now)}</span>
 						</li>
 					))}
 				</ul>

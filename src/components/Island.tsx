@@ -2,6 +2,7 @@ import { motion } from "motion/react";
 import { useMemo } from "react";
 import { useAppearance } from "../core/appearance";
 import { useTauriEvent } from "../core/bridge";
+import { cn } from "../core/cn";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
 import { useHitRects } from "../core/useHitRects";
@@ -60,10 +61,10 @@ export function Island() {
 
 	return (
 		<IslandContext.Provider value={api}>
-			<div className="stage">
+			<div className="pointer-events-none fixed inset-0 flex items-start justify-center">
 				{/* The tray's black hole: the island spins into its own center and comes back out. */}
 				<motion.div
-					className="blackhole"
+					className="pointer-events-none relative flex origin-center justify-center"
 					initial={false}
 					animate={swallowed ? { scale: 0, rotate: -200, opacity: 0 } : { scale: 1, rotate: 0, opacity: 1 }}
 					transition={
@@ -73,7 +74,10 @@ export function Island() {
 					}
 				>
 					<motion.div
-						className={`shell ${windows ? "is-windows" : "is-dynamic"} ${drag.dragging ? "is-dragging" : ""}`}
+						className={cn(
+							"pointer-events-auto relative touch-none will-change-[width,height,transform]",
+							drag.dragging && "cursor-grabbing **:cursor-grabbing",
+						)}
 						{...(hidden || swallowed ? {} : { "data-hit": true })}
 						{...ctl.domHover}
 						style={{ ...drag.style, marginTop: v.top }}
@@ -91,18 +95,23 @@ export function Island() {
 						transition={transition}
 						onClick={() => resting && ctl.expand()}
 					>
-						<motion.span
-							className="ear left"
-							initial={false}
-							animate={{ width: g.ear, height: g.ear }}
-							transition={v.shellSpring}
-						/>
-						<motion.span
-							className="ear right"
-							initial={false}
-							animate={{ width: g.ear, height: g.ear }}
-							transition={v.shellSpring}
-						/>
+						{/* Concave "ears" that blend the notch into the top edge of the screen. */}
+						{!windows && (
+							<>
+								<motion.span
+									className="pointer-events-none absolute top-0 right-full bg-[radial-gradient(circle_at_0_100%,transparent_70%,var(--island)_71%)]"
+									initial={false}
+									animate={{ width: g.ear, height: g.ear }}
+									transition={v.shellSpring}
+								/>
+								<motion.span
+									className="pointer-events-none absolute top-0 left-full bg-[radial-gradient(circle_at_100%_100%,transparent_70%,var(--island)_71%)]"
+									initial={false}
+									animate={{ width: g.ear, height: g.ear }}
+									transition={v.shellSpring}
+								/>
+							</>
+						)}
 
 						<Surface g={g} big={big} look={look} transition={transition} contentKey={content.key} rim={rim}>
 							{content.node}

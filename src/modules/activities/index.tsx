@@ -1,3 +1,4 @@
+import { RefreshCwIcon } from "lucide-react";
 /**
  * Live activities — alerts and ongoing activities from the local HTTP API,
  * plus the system's own (volume, battery, Bluetooth headphones) and alerts
@@ -7,7 +8,8 @@
  * An alert (with an expiry) takes over the compact island until it runs out;
  * ongoing activities stay until removed and are listed in the panel.
  */
-import { Badge, Glyph } from "../../components/Glyph";
+import { Badge } from "../../components/Glyph";
+import { Empty } from "../../components/ui/text";
 import { useProvider } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, useSettings } from "../../core/settings";
@@ -17,7 +19,6 @@ import { ActivityCompactLeft, ActivityCompactRight } from "./components/Activity
 import { ApiSettings } from "./components/ApiSettings";
 import { activitySettings, SOURCE_SETTING } from "./settings";
 import { ACTIVITIES_PROVIDER, type ActivitiesState, type Activity } from "./types";
-import "./activities.css";
 
 const ROW = 58;
 const MAX_ROWS = 4;
@@ -32,7 +33,7 @@ const MODULE_SOURCES: Record<string, string> = {
 export const activitiesModule: IslandModule = {
 	id: "activities",
 	title: "activities.title",
-	settingsIcon: <Glyph name="sync" size={14} />,
+	settingsIcon: <RefreshCwIcon size={14} />,
 	settings: Object.values(activitySettings),
 	SettingsSection: ApiSettings,
 	useHiddenSettings() {
@@ -61,7 +62,7 @@ export const activitiesModule: IslandModule = {
 			icon: top ? (
 				<Badge icon={top.icon} image={top.image} color={top.color ?? "#fff"} size={22} glyphSize={11} />
 			) : (
-				<Glyph name="sync" size={14} />
+				<RefreshCwIcon size={14} />
 			),
 			compact: top && {
 				left: <ActivityCompactLeft activity={top} />,
@@ -69,15 +70,15 @@ export const activitiesModule: IslandModule = {
 				width: top.style === "level" ? 300 : 340,
 			},
 			expanded: alert ? (
-				<div className="activities-panel">
+				<div className="flex h-full flex-col gap-1 overflow-y-auto [scrollbar-width:none]">
 					<ActivityCard activity={alert} />
 				</div>
 			) : (
-				<div className="activities-panel" data-scroll>
+				<div className="flex h-full flex-col gap-1 overflow-y-auto [scrollbar-width:none]" data-scroll>
 					{ongoing.map((a) => (
 						<ActivityCard key={a.id} activity={a} compact />
 					))}
-					{!ongoing.length && <Empty />}
+					{!ongoing.length && <NothingYet />}
 				</div>
 			),
 			expandedSize: alert
@@ -90,7 +91,7 @@ export const activitiesModule: IslandModule = {
 };
 
 /** Pinned to the tab bar with nothing going on. */
-function Empty() {
+function NothingYet() {
 	const t = useT();
-	return <div className="activities-empty">{t("activities.empty")}</div>;
+	return <Empty>{t("activities.empty")}</Empty>;
 }

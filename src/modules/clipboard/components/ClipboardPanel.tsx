@@ -1,6 +1,8 @@
-import { type PointerEvent, useRef, useState } from "react";
-import { Glyph } from "../../../components/Glyph";
+import { ClipboardIcon, CopyIcon, ExternalLinkIcon, FolderIcon, MessageCircleIcon, TextIcon } from "lucide-react";
+import { type PointerEvent, type ReactNode, useRef, useState } from "react";
+import { TextButton } from "../../../components/ui/button";
 import { providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { type Translate, useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
 import { formatAgo, useNow } from "../../ai-agents/common/format";
@@ -35,32 +37,30 @@ export function ClipboardPanel({ state, hero }: { state: ClipboardState | undefi
 	const [first, ...rest] = items;
 
 	return (
-		<div className="clip-panel" onClick={(e) => e.stopPropagation()}>
-			<div className="clip-head">
-				<span className="clip-hint">{items.length ? t("clipboard.hint") : t("clipboard.empty")}</span>
+		<div className="flex h-full flex-col gap-1.5" onClick={(e) => e.stopPropagation()}>
+			<div className="flex items-center justify-between gap-3">
+				<span className="text-[12px] text-text-dim">{items.length ? t("clipboard.hint") : t("clipboard.empty")}</span>
 				{items.length > 0 && (
-					<button type="button" className="clip-clear" onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}>
-						{t("clipboard.clear")}
-					</button>
+					<TextButton onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}>{t("clipboard.clear")}</TextButton>
 				)}
 			</div>
 			{hero && first ? (
 				<>
 					<Hero item={first} />
-					<ul className="clip-list" data-scroll>
+					<ul className="min-h-0 flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
 						{rest.map((item) => (
 							<Row key={item.id} item={item} />
 						))}
 					</ul>
 				</>
 			) : (
-				<ul className="clip-list" data-scroll>
+				<ul className="min-h-0 flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
 					{items.map((item) => (
 						<Row key={item.id} item={item} />
 					))}
 					{!items.length && (
-						<li className="clip-empty">
-							<Glyph name="clipboard" size={22} />
+						<li className="grid h-full place-items-center text-text-faint">
+							<ClipboardIcon size={22} />
 						</li>
 					)}
 				</ul>
@@ -135,16 +135,22 @@ function useDragOut(item: ClipItem) {
 function Visual({ item, size }: { item: ClipItem; size: number }) {
 	if (item.kind === "image" && item.thumb) {
 		return (
-			<img className="clip-thumb" src={item.thumb} alt="" draggable={false} style={{ width: size, height: size }} />
+			<img
+				className="flex-none rounded-[7px] bg-white/6 object-cover"
+				src={item.thumb}
+				alt=""
+				draggable={false}
+				style={{ width: size, height: size }}
+			/>
 		);
 	}
 	return (
-		<span className="clip-icon" style={{ width: size, height: size }}>
-			<Glyph
-				name={item.kind === "files" ? "folder" : "text"}
-				size={size * 0.42}
-				color={item.kind === "files" ? "#64D2FF" : CLIPBOARD_YELLOW}
-			/>
+		<span className="grid flex-none place-items-center rounded-[9px] bg-white/7" style={{ width: size, height: size }}>
+			{item.kind === "files" ? (
+				<FolderIcon size={size * 0.42} color="#64D2FF" />
+			) : (
+				<TextIcon size={size * 0.42} color={CLIPBOARD_YELLOW} />
+			)}
 		</span>
 	);
 }
@@ -158,7 +164,7 @@ function Meta({ item }: { item: ClipItem }) {
 		item.source,
 		formatAgo(t, item.copiedAt, now),
 	].filter(Boolean);
-	return <span className="clip-meta">{parts.join(" · ")}</span>;
+	return <span className="truncate text-[11.5px] text-text-dim">{parts.join(" · ")}</span>;
 }
 
 function Row({ item }: { item: ClipItem }) {
@@ -167,20 +173,32 @@ function Row({ item }: { item: ClipItem }) {
 	const drag = useDragOut(item);
 
 	return (
-		<li className="clip-row" title={t("clipboard.copy")} data-no-drag onClick={a.copy} {...drag}>
+		<li
+			className="group relative flex h-12 cursor-pointer items-center gap-2.5 rounded-xl px-2 hover:bg-white/6"
+			title={t("clipboard.copy")}
+			data-no-drag
+			onClick={a.copy}
+			{...drag}
+		>
 			<Visual item={item} size={36} />
-			<div className="clip-texts">
-				<span className={`clip-title ${item.kind === "text" ? "is-text" : ""}`}>{clipTitle(t, item)}</span>
+			<div className="flex min-w-0 flex-1 flex-col gap-px">
+				<span className={cn("truncate text-[13px] font-semibold", item.kind === "text" && "font-medium")}>
+					{clipTitle(t, item)}
+				</span>
 				{a.done ? (
-					<span className="clip-done">✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}</span>
+					<span className="truncate text-[11.5px] font-semibold text-[#30d158]">
+						✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}
+					</span>
 				) : (
 					<Meta item={item} />
 				)}
 			</div>
-			<div className="clip-actions">
-				{a.ask && <IconButton icon="chat" label={t("clipboard.ask")} onClick={a.ask} />}
-				{item.kind !== "text" && <IconButton icon="folder" label={t("clipboard.keep")} onClick={a.keep} />}
-				<IconButton icon="×" label={t("clipboard.remove")} onClick={a.remove} />
+			<div className="hidden gap-1 group-hover:flex">
+				{a.ask && <RowAction icon={<MessageCircleIcon size={11} />} label={t("clipboard.ask")} onClick={a.ask} />}
+				{item.kind !== "text" && (
+					<RowAction icon={<FolderIcon size={11} />} label={t("clipboard.keep")} onClick={a.keep} />
+				)}
+				<RowAction icon="×" label={t("clipboard.remove")} onClick={a.remove} />
 			</div>
 		</li>
 	);
@@ -192,29 +210,58 @@ function Hero({ item }: { item: ClipItem }) {
 	const drag = useDragOut(item);
 
 	return (
-		<div className="clip-hero" data-no-drag {...drag}>
-			{item.thumb && <img className="clip-hero-img" src={item.thumb} alt="" draggable={false} />}
-			<div className="clip-hero-side">
-				<span className="clip-title">{clipTitle(t, item)}</span>
+		<div className="flex h-29 flex-none cursor-grab gap-3.5 rounded-[14px] bg-card p-1.5" data-no-drag {...drag}>
+			{item.thumb && (
+				<img
+					className="h-26 max-w-47.5 flex-none rounded-[9px] bg-white/4 object-contain"
+					src={item.thumb}
+					alt=""
+					draggable={false}
+				/>
+			)}
+			<div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+				<span className="truncate text-[13px] font-semibold">{clipTitle(t, item)}</span>
 				{a.done ? (
-					<span className="clip-done">✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}</span>
+					<span className="truncate text-[11.5px] font-semibold text-[#30d158]">
+						✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}
+					</span>
 				) : (
 					<Meta item={item} />
 				)}
-				<div className="clip-hero-buttons">
-					<button type="button" className="clip-pill" title={t("clipboard.copy")} onClick={a.copy}>
-						<Glyph name="copy" size={11} /> {t("clipboard.short.copy")}
+				<div className="mt-2 flex flex-wrap gap-1.5">
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+						title={t("clipboard.copy")}
+						onClick={a.copy}
+					>
+						<CopyIcon size={11} /> {t("clipboard.short.copy")}
 					</button>
 					{a.ask && (
-						<button type="button" className="clip-pill" title={t("clipboard.ask")} onClick={a.ask}>
-							<Glyph name="chat" size={11} /> {t("clipboard.short.ask")}
+						<button
+							type="button"
+							className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+							title={t("clipboard.ask")}
+							onClick={a.ask}
+						>
+							<MessageCircleIcon size={11} /> {t("clipboard.short.ask")}
 						</button>
 					)}
-					<button type="button" className="clip-pill" title={t("clipboard.keep")} onClick={a.keep}>
-						<Glyph name="folder" size={11} /> {t("clipboard.short.keep")}
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+						title={t("clipboard.keep")}
+						onClick={a.keep}
+					>
+						<FolderIcon size={11} /> {t("clipboard.short.keep")}
 					</button>
-					<button type="button" className="clip-pill" title={t("clipboard.open")} onClick={a.open}>
-						<Glyph name="open" size={11} /> {t("clipboard.open")}
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+						title={t("clipboard.open")}
+						onClick={a.open}
+					>
+						<ExternalLinkIcon size={11} /> {t("clipboard.open")}
 					</button>
 				</div>
 			</div>
@@ -222,18 +269,18 @@ function Hero({ item }: { item: ClipItem }) {
 	);
 }
 
-function IconButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+function RowAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
 	return (
 		<button
 			type="button"
-			className="clip-btn"
+			className="grid size-6 place-items-center rounded-full bg-[#3a3a3c] text-[14px] leading-none hover:bg-[#4a4a4e]"
 			title={label}
 			onClick={(e) => {
 				e.stopPropagation();
 				onClick();
 			}}
 		>
-			{icon.length === 1 ? icon : <Glyph name={icon} size={11} />}
+			{icon}
 		</button>
 	);
 }

@@ -1,4 +1,7 @@
 import { type FormEvent, useState } from "react";
+import { Button, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Row } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/form";
 import { command, providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { MUSIC_PROVIDER } from "../hooks/useMusic";
@@ -73,75 +76,57 @@ export function SpotifySettings() {
 						: t("music.spotify.none");
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("music.spotify.title")}</span>
-					<span className={`settings-desc ${revoked || (status?.connected && status.error) ? "cal-warn" : ""}`}>
-						{description}
-					</span>
-				</div>
+		<Block>
+			<Row
+				label={t("music.spotify.title")}
+				desc={description}
+				descTone={revoked || (status?.connected && status.error) ? "warn" : undefined}
+			>
 				{busy === "connect" ? (
-					<button
-						type="button"
-						className="settings-btn"
-						onClick={() => providerAction(MUSIC_PROVIDER, "spotifyCancel")}
-					>
-						{t("music.spotify.cancel")}
-					</button>
+					<Button onClick={() => providerAction(MUSIC_PROVIDER, "spotifyCancel")}>{t("music.spotify.cancel")}</Button>
 				) : status?.connected && !revoked ? (
-					<button
-						type="button"
-						className="settings-btn danger"
-						disabled={!!busy}
-						onClick={() => run("spotifyDisconnect")}
-					>
+					<Button variant="danger" disabled={!!busy} onClick={() => run("spotifyDisconnect")}>
 						{t("music.spotify.disconnect")}
-					</button>
+					</Button>
 				) : (
 					status?.hasClient && (
-						<button
-							type="button"
-							className="settings-btn primary"
-							disabled={!!busy}
-							onClick={() => run("spotifyConnect", undefined, "connect")}
-						>
+						<Button variant="primary" disabled={!!busy} onClick={() => run("spotifyConnect", undefined, "connect")}>
 							{t("music.spotify.connect")}
-						</button>
+						</Button>
 					)
 				)}
-			</div>
+			</Row>
 
 			{status && !status.hasClient && (
 				<>
-					<span className="settings-desc">
+					<Desc>
 						{t("music.spotify.clientHow", { redirect: REDIRECT })}{" "}
-						<button type="button" className="cal-link" onClick={() => command("open_external", { url: DASHBOARD_URL })}>
+						<LinkButton onClick={() => command("open_external", { url: DASHBOARD_URL })}>
 							{t("music.spotify.clientOpen")}
-						</button>
-					</span>
-					<form className="cal-form" onSubmit={saveClient}>
-						<input
-							className="settings-input"
+						</LinkButton>
+					</Desc>
+					<form className="flex gap-2" onSubmit={saveClient}>
+						<Input
+							className="flex-1"
 							value={clientId}
 							placeholder={t("music.spotify.clientId")}
 							spellCheck={false}
 							onChange={(e) => setClientId(e.target.value)}
 						/>
-						<button type="button" className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
+						<Button variant="primary" disabled={!!busy || !clientId.trim()}>
 							{t("music.spotify.clientSave")}
-						</button>
+						</Button>
 					</form>
 				</>
 			)}
 			{status?.hasClient && !status.connected && (
-				<span className="settings-desc">
-					<button type="button" className="cal-link" disabled={!!busy} onClick={() => run("spotifyClearClient")}>
+				<Desc>
+					<LinkButton disabled={!!busy} onClick={() => run("spotifyClearClient")}>
 						{t("music.spotify.clientRemove")}
-					</button>
-				</span>
+					</LinkButton>
+				</Desc>
 			)}
-			{error && <span className="settings-error">{error}</span>}
-		</div>
+			{error && <Desc tone="error">{error}</Desc>}
+		</Block>
 	);
 }

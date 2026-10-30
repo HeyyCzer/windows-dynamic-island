@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
+import { cn } from "../../../../core/cn";
 import { useT } from "../../../../core/i18n";
 import { formatAgo, formatElapsed } from "../format";
 import type { AgentSessionRef } from "../types";
@@ -12,11 +13,11 @@ import { StatusDot, StatusGlyph } from "./StatusGlyph";
 export function SessionList({ items, now, showAgent }: { items: AgentSessionRef[]; now: number; showAgent: boolean }) {
 	const t = useT();
 	if (!items.length) {
-		return <div className="agents-empty">{t("agents.noSessions")}</div>;
+		return <div className="py-1.5 text-[12.5px] text-text-faint">{t("agents.noSessions")}</div>;
 	}
 
 	return (
-		<ul className="agents-sessions">
+		<ul className="list-none">
 			<AnimatePresence initial={false}>
 				{items.map(({ agent, session }) => {
 					const running = session.status === "working" || session.status === "waiting";
@@ -28,7 +29,10 @@ export function SessionList({ items, now, showAgent }: { items: AgentSessionRef[
 						<motion.li
 							key={`${agent.id}:${session.id}`}
 							layout
-							className={`agents-session is-${session.status} ${agent.openSession && session.cwd ? "is-clickable" : ""}`}
+							className={cn(
+								"flex h-7.5 items-center gap-2.5 text-[13px]",
+								agent.openSession && session.cwd && "cursor-pointer rounded-lg hover:bg-white/5",
+							)}
 							title={agent.openSession && session.cwd ? t("agents.openProject") : undefined}
 							onClick={(e) => {
 								if (!agent.openSession || !session.cwd) return;
@@ -45,17 +49,26 @@ export function SessionList({ items, now, showAgent }: { items: AgentSessionRef[
 							) : (
 								<StatusDot status={session.status} color={agent.color} />
 							)}
-							<span className="agents-session-title">{session.title || agent.name}</span>
-							<span className="agents-session-activity" title={detail(session) ?? undefined}>
+							<span className="font-[650] whitespace-nowrap">{session.title || agent.name}</span>
+							<span
+								className={cn("min-w-0 flex-1 truncate text-text-dim", session.status === "waiting" && "text-warn")}
+								title={detail(session) ?? undefined}
+							>
 								{/* Busy: what it's doing. Otherwise what it was asked, which tells apart sessions of one project. */}
 								{running ? session.activity : (session.prompt ?? session.summary ?? session.activity)}
 							</span>
 							{session.contextPct != null && (
-								<span className="agents-session-ctx" title={t("agents.contextUsed")}>
+								<span
+									className="rounded-full bg-white/7 px-1.5 py-px text-[11px] text-text-faint"
+									title={t("agents.contextUsed")}
+								>
 									{Math.round(session.contextPct)}%
 								</span>
 							)}
-							<span className="agents-session-time" style={{ color: running ? agent.color : undefined }}>
+							<span
+								className="min-w-14 text-right text-[12px] font-semibold text-text-faint tabular-nums"
+								style={{ color: running ? agent.color : undefined }}
+							>
 								{time}
 							</span>
 						</motion.li>
