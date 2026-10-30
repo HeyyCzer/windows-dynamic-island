@@ -1,3 +1,4 @@
+import { SearchIcon } from "lucide-react";
 /**
  * Find on screen — what you type is looked for in everything on the screen,
  * text inside pictures included (Windows' OCR). Every match is highlighted
@@ -5,7 +6,6 @@
  * A global shortcut (Ctrl+Alt+F by default) opens it from anywhere.
  * Backend: `src-tauri/src/providers/find/`.
  */
-import { Glyph } from "../../components/Glyph";
 import { useProvider } from "../../core/bridge";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { FindPanel } from "./components/FindPanel";
@@ -16,7 +16,7 @@ export const findModule: IslandModule = {
 	id: "find",
 	shortcut: "find",
 	title: "find.title",
-	settingsIcon: <Glyph name="search" size={14} />,
+	settingsIcon: <SearchIcon size={14} />,
 	settings: Object.values(findSettings),
 	useView(): ModuleView {
 		const state = useProvider<FindState>(FIND_PROVIDER);
@@ -24,7 +24,7 @@ export const findModule: IslandModule = {
 			active: false,
 			priority: 0,
 			accent: FIND_YELLOW,
-			icon: <Glyph name="search" size={14} color={FIND_YELLOW} />,
+			icon: <SearchIcon size={14} color={FIND_YELLOW} />,
 			expanded: <FindPanel state={state} />,
 			expandedSize: { width: 540, height: 108 },
 		};

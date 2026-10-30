@@ -1,4 +1,4 @@
-import { WaterDropIcon } from "../../../components/icons";
+import { DropletIcon } from "lucide-react";
 import { cn } from "../../../core/cn";
 import { useNow } from "../../ai-agents/common/format";
 
@@ -20,7 +20,7 @@ export function HydrationBubble({ deadline, due }: { deadline: number | null; du
 				due && "animate-hydration-pulse bg-[rgba(69,196,230,0.18)] text-white",
 			)}
 		>
-			{deadline && !due ? <span>{remainingLabel(deadline, now)}</span> : <WaterDropIcon size={17} />}
+			{deadline && !due ? <span>{remainingLabel(deadline, now)}</span> : <DropletIcon size={17} />}
 		</span>
 	);
 }

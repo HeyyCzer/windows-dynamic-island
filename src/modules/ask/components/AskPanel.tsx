@@ -1,6 +1,6 @@
+import { ArrowUpIcon, CameraIcon, FolderIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Glyph } from "../../../components/Glyph";
 import { IconButton, TextButton } from "../../../components/ui/button";
 import { command, providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
@@ -206,7 +206,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 							{a.thumb ? (
 								<img src={a.thumb} alt="" className="size-6 rounded-md object-cover" />
 							) : (
-								<Glyph name="folder" size={13} />
+								<FolderIcon size={13} />
 							)}
 							<span className="min-w-0 truncate">{a.label ?? a.name}</span>
 							<button
@@ -224,7 +224,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 
 			<div className="flex items-end gap-1.5 rounded-[18px] bg-white/7 p-1.25" data-no-drag>
 				<IconButton title={t("ask.screenshot")} onClick={screenshot}>
-					<Glyph name="camera" size={14} />
+					<CameraIcon size={14} />
 				</IconButton>
 				<textarea
 					ref={input}
@@ -246,7 +246,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 					disabled={!running && !draft.trim() && !attachments.length}
 					onClick={() => (running ? providerAction(ASK_PROVIDER, "cancel") : send())}
 				>
-					{running ? <span className="size-2.25 rounded-[2px] bg-white" /> : <Glyph name="upload" size={13} />}
+					{running ? <span className="size-2.25 rounded-[2px] bg-white" /> : <ArrowUpIcon size={13} />}
 				</button>
 			</div>
 		</div>

@@ -1,5 +1,5 @@
+import { XIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { CloseIcon } from "../../../components/icons";
 import { Button, IconButton, LinkButton } from "../../../components/ui/button";
 import { Block, Desc, Divider, List, ListItem, Row, RowText } from "../../../components/ui/card";
 import { Input, Select } from "../../../components/ui/form";
@@ -109,7 +109,7 @@ function Reminder() {
 									)
 								}
 							>
-								<CloseIcon size={10} />
+								<XIcon size={10} />
 							</IconButton>
 						)}
 					</li>
@@ -289,7 +289,7 @@ function IcalLinks() {
 								title={t("calendar.ics.remove")}
 								onClick={() => providerAction(CALENDAR_PROVIDER, "removeFeed", { id: f.id })}
 							>
-								<CloseIcon size={12} />
+								<XIcon size={12} />
 							</IconButton>
 						</ListItem>
 					))}

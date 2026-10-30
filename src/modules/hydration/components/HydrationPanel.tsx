@@ -1,4 +1,4 @@
-import { WaterDropIcon } from "../../../components/icons";
+import { DropletIcon } from "lucide-react";
 import { SectionLabel } from "../../../components/ui/text";
 import { useT } from "../../../core/i18n";
 import { useNow } from "../../ai-agents/common/format";
@@ -48,7 +48,7 @@ export function HydrationPanel({
 			onClick={(e) => e.stopPropagation()}
 		>
 			<span className="grid size-11.5 flex-none place-items-center rounded-2xl bg-[rgba(69,196,230,0.14)] text-[#82ddf3] group-data-due:bg-[#2ea9cc] group-data-due:text-white">
-				<WaterDropIcon size={21} />
+				<DropletIcon size={21} />
 			</span>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 				<SectionLabel size="sm">

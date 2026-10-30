@@ -1,7 +1,7 @@
 import { emit } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "lucide-react";
 import { type MouseEvent, useEffect, useRef, type WheelEvent } from "react";
-import { NextIcon, PauseIcon, PlayIcon, PrevIcon } from "../components/icons";
 import { Marquee } from "../components/Marquee";
 import { command, isTauri } from "../core/bridge";
 import { useSyncLocale, useT } from "../core/i18n";
@@ -118,21 +118,25 @@ export function PipApp() {
 							className="grid size-7 flex-none cursor-pointer place-items-center rounded-full text-[13px] text-white hover:bg-white/16"
 							onClick={() => musicAction("previous")}
 						>
-							<PrevIcon size={16} />
+							<SkipBackIcon size={16} fill="currentColor" />
 						</button>
 						<button
 							type="button"
 							className="grid size-9 flex-none cursor-pointer place-items-center rounded-full text-[13px] text-white hover:bg-white/16"
 							onClick={() => musicAction("toggle")}
 						>
-							{music?.playing ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
+							{music?.playing ? (
+								<PauseIcon size={20} fill="currentColor" />
+							) : (
+								<PlayIcon size={20} fill="currentColor" />
+							)}
 						</button>
 						<button
 							type="button"
 							className="grid size-7 flex-none cursor-pointer place-items-center rounded-full text-[13px] text-white hover:bg-white/16"
 							onClick={() => musicAction("next")}
 						>
-							<NextIcon size={16} />
+							<SkipForwardIcon size={16} fill="currentColor" />
 						</button>
 					</div>
 					<div className="flex items-center gap-2 text-[10.5px] text-white/75 tabular-nums">

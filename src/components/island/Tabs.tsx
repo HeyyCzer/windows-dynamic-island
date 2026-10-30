@@ -1,3 +1,4 @@
+import { LayoutGridIcon, SettingsIcon } from "lucide-react";
 import { motion, type Transition } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
 import { tv } from "tailwind-variants";
@@ -5,7 +6,6 @@ import { command } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 import type { ModuleEntry } from "../../core/types";
 import { LAUNCHER } from "../../core/useIslandController";
-import { GearIcon, GridIcon } from "../icons";
 
 const tabs = tv({
 	slots: {
@@ -93,7 +93,7 @@ export function Tabs({
 			>
 				{current === LAUNCHER && pill}
 				<span className={s.part()}>
-					<GridIcon size={14} />
+					<LayoutGridIcon size={14} />
 				</span>
 			</button>
 			{/* Sliders inside: pressing them must not drag the island. */}
@@ -113,7 +113,7 @@ export function Tabs({
 					command("open_settings");
 				}}
 			>
-				<GearIcon size={16} />
+				<SettingsIcon size={16} />
 			</motion.button>
 		</div>
 	);

@@ -1,5 +1,5 @@
+import { XIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CloseIcon } from "../../components/icons";
 import { IconButton } from "../../components/ui/button";
 import { Row } from "../../components/ui/card";
 import { providerAction, useProvider } from "../../core/bridge";
@@ -103,7 +103,7 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 				</button>
 				{keys && !recording && (
 					<IconButton size="sm" tone="danger" title={t("shortcuts.disable")} onClick={() => setSetting(def, "")}>
-						<CloseIcon size={10} />
+						<XIcon size={10} />
 					</IconButton>
 				)}
 			</div>

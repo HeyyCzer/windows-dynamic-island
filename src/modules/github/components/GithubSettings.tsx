@@ -1,5 +1,5 @@
+import { CircleDotIcon, XIcon } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { CloseIcon, IssueIcon } from "../../../components/icons";
 import { Button, IconButton, LinkButton } from "../../../components/ui/button";
 import { Block, Desc, Divider, List, ListItem, Row } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/form";
@@ -72,7 +72,7 @@ function Repos() {
 								) : (
 									repo?.openIssues != null && (
 										<span className="flex items-center gap-1 text-[12px] font-[650] text-[#3fb950]">
-											<IssueIcon size={12} />
+											<CircleDotIcon size={12} />
 											{formatCount(repo.openIssues)}
 										</span>
 									)
@@ -88,7 +88,7 @@ function Repos() {
 										)
 									}
 								>
-									<CloseIcon size={12} />
+									<XIcon size={12} />
 								</IconButton>
 							</ListItem>
 						);

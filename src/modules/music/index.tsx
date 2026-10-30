@@ -1,9 +1,9 @@
+import { MusicIcon } from "lucide-react";
 /**
  * Music module — Spotify and any other player exposed through the Windows
  * media controls (browsers, Apple Music, VLC…). Everything music-related lives
  * in this folder; its backend counterpart is `src-tauri/src/providers/music/`.
  */
-import { MusicIcon } from "../../components/icons";
 import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { Artwork } from "./components/Artwork";

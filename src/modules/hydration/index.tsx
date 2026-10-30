@@ -1,6 +1,6 @@
+import { DropletIcon } from "lucide-react";
 /** Hydration timer, reminder panel and its optional persistent countdown bubble. */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { WaterDropIcon } from "../../components/icons";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
@@ -89,7 +89,7 @@ function useHydrationTimer(intervalMinutes: number, snoozeMinutes: number, autoS
 export const hydrationModule: IslandModule = {
 	id: "hydration",
 	title: "hydration.title",
-	settingsIcon: <WaterDropIcon size={15} />,
+	settingsIcon: <DropletIcon size={15} />,
 	enabledByDefault: false,
 	settings: Object.values(hydrationSettings),
 	SettingsSection: HydrationSettings,
@@ -106,12 +106,12 @@ export const hydrationModule: IslandModule = {
 			active: timer.due,
 			priority: 65,
 			accent: "#45c4e6",
-			icon: <WaterDropIcon size={15} color="#45c4e6" />,
+			icon: <DropletIcon size={15} color="#45c4e6" />,
 			compact: timer.due
 				? {
 						left: (
 							<span className="flex items-center gap-2 text-[13px] font-[650]">
-								<WaterDropIcon size={15} color="#45c4e6" />
+								<DropletIcon size={15} color="#45c4e6" />
 								{t("hydration.titleDue")}
 							</span>
 						),

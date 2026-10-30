@@ -1,9 +1,10 @@
+import { BellIcon } from "lucide-react";
 /**
  * Windows notifications — WhatsApp, Teams, Outlook… mirrored into the
  * island. New ones arrive as alerts (through the activities module); this
  * module keeps the recent history. Backend: `src-tauri/src/providers/notifications/`.
  */
-import { Badge, Glyph } from "../../components/Glyph";
+import { Badge } from "../../components/Glyph";
 import { Marquee } from "../../components/Marquee";
 import { useProvider } from "../../core/bridge";
 import type { IslandModule, ModuleView } from "../../core/types";
@@ -19,7 +20,7 @@ const ROW = 52;
 export const notificationsModule: IslandModule = {
 	id: "notifications",
 	title: "notifications.title",
-	settingsIcon: <Glyph name="bell" size={14} />,
+	settingsIcon: <BellIcon size={14} />,
 	SettingsSection: NotificationsSettings,
 	useView(): ModuleView {
 		const state = useProvider<NotificationsState>(NOTIFICATIONS_PROVIDER);
@@ -34,7 +35,7 @@ export const notificationsModule: IslandModule = {
 			priority: 30,
 			hidden: items.length === 0,
 			accent: NOTIFICATION_BLUE,
-			icon: <Glyph name="bell" size={14} color={NOTIFICATION_BLUE} />,
+			icon: <BellIcon size={14} color={NOTIFICATION_BLUE} />,
 			compact: latest && {
 				left: (
 					<>

@@ -1,5 +1,5 @@
+import { DownloadIcon, FolderIcon, MessageCircleIcon } from "lucide-react";
 import { type PointerEvent, useRef } from "react";
-import { Glyph } from "../../../components/Glyph";
 import { TextButton } from "../../../components/ui/button";
 import { providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
@@ -36,7 +36,7 @@ export function ShelfPanel({ state }: { state: ShelfState | undefined }) {
 				))}
 				{!items.length && (
 					<div className="m-auto flex flex-col items-center gap-1.5 text-[12.5px] text-text-dim">
-						<Glyph name="download" size={22} />
+						<DownloadIcon size={22} />
 						<span>{t("shelf.drop")}</span>
 					</div>
 				)}
@@ -95,7 +95,7 @@ function Tile({ item }: { item: ShelfItem }) {
 						island.expand("ask");
 					}}
 				>
-					<Glyph name="chat" size={10} />
+					<MessageCircleIcon size={10} />
 				</button>
 			)}
 			<button
@@ -112,7 +112,7 @@ function Tile({ item }: { item: ShelfItem }) {
 
 /** A generic document / folder icon with the extension on it. */
 function FileIcon({ item }: { item: ShelfItem }) {
-	if (item.isDir) return <Glyph name="folder" size={30} color="#64D2FF" />;
+	if (item.isDir) return <FolderIcon size={30} color="#64D2FF" />;
 	return (
 		<span className="relative h-10.5 w-8.5 rounded-[4px_12px_4px_4px] bg-[linear-gradient(160deg,#e9e9ee,#b9b9c2)]">
 			<span className="absolute inset-x-0.75 bottom-1.25 rounded-[3px] bg-[#0a84ff] py-px text-center text-[8.5px] font-[750] text-white uppercase">

@@ -1,6 +1,6 @@
+import { GripVerticalIcon } from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 import { useNavigate } from "react-router";
-import { GripIcon } from "../../components/icons";
 import { Card } from "../../components/ui/card";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
@@ -62,7 +62,7 @@ function ModuleRow({ module, enabled }: { module: IslandModule; enabled: boolean
 				title={t("layout.drag")}
 				onPointerDown={(e) => drag.start(e)}
 			>
-				<GripIcon size={14} />
+				<GripVerticalIcon size={14} />
 			</span>
 			<button
 				type="button"

@@ -1,4 +1,4 @@
-import { IssueIcon, RefreshIcon } from "../../../components/icons";
+import { CircleDotIcon, RefreshCwIcon } from "lucide-react";
 import { IconButton, LinkButton } from "../../../components/ui/button";
 import { SectionLabel } from "../../../components/ui/text";
 import { command, providerAction } from "../../../core/bridge";
@@ -36,7 +36,7 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 					title={t("github.refresh")}
 					onClick={() => providerAction("github", "refresh")}
 				>
-					<RefreshIcon size={14} />
+					<RefreshCwIcon size={14} />
 				</IconButton>
 			</div>
 
@@ -99,7 +99,7 @@ function RepoRow({ repo, fresh }: { repo: GithubRepo; fresh: boolean }) {
 					!repo.openIssues && "text-text-faint",
 				)}
 			>
-				<IssueIcon size={13} />
+				<CircleDotIcon size={13} />
 				{repo.openIssues == null ? "—" : formatCount(repo.openIssues)}
 			</span>
 		</button>

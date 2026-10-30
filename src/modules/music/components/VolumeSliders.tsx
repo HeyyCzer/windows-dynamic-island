@@ -1,5 +1,5 @@
+import { MonitorIcon, MusicIcon } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
-import { ComputerIcon, MusicIcon } from "../../../components/icons";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { useIsland } from "../../../core/island";
@@ -28,7 +28,7 @@ export function VolumeSliders({ music }: { music: MusicState | undefined }) {
 				<VolumeSlider
 					name={t("music.computer")}
 					volume={music.volume}
-					icon={<ComputerIcon size={13} />}
+					icon={<MonitorIcon size={13} />}
 					onChange={(change) => setVolume({ target: "system", ...change })}
 				/>
 			)}

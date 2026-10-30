@@ -1,3 +1,4 @@
+import { CalendarIcon } from "lucide-react";
 /**
  * Clock — the time, and a month calendar to look up dates, as a tab of the
  * open island. (In the Windows Island style the resting pill also shows the
@@ -9,7 +10,6 @@
  * few minutes before it starts.
  */
 import { useEffect, useMemo, useRef } from "react";
-import { Glyph } from "../../components/Glyph";
 import { Marquee } from "../../components/Marquee";
 import { providerAction, useProvider } from "../../core/bridge";
 import { useLocale, useT } from "../../core/i18n";
@@ -30,7 +30,7 @@ function ReminderLeft({ event, color }: { event: CalEvent; color: string }) {
 	return (
 		<>
 			<span className="grid size-6 flex-none place-items-center rounded-[7px]" style={{ background: `${color}29` }}>
-				<Glyph name="calendar" size={12} color={color} />
+				<CalendarIcon size={12} color={color} />
 			</span>
 			<Marquee text={event.title || t("calendar.untitled")} className="max-w-47.5 min-w-0 text-[13px] font-semibold" />
 		</>
@@ -58,7 +58,7 @@ function ReminderRight({ event, now, color }: { event: CalEvent; now: number; co
 export const clockModule: IslandModule = {
 	id: "clock",
 	title: "clock.title",
-	settingsIcon: <Glyph name="calendar" size={14} />,
+	settingsIcon: <CalendarIcon size={14} />,
 	settings: Object.values(calendarSettings),
 	SettingsSection: CalendarSettings,
 	useView(): ModuleView {
@@ -96,7 +96,7 @@ export const clockModule: IslandModule = {
 			// A meeting about to start beats music, under Ask Claude and the system alerts.
 			priority: 55,
 			accent: CLOCK_RED,
-			icon: <Glyph name="calendar" size={14} />,
+			icon: <CalendarIcon size={14} />,
 			compact: due && {
 				left: <ReminderLeft event={due} color={color} />,
 				right: <ReminderRight event={due} now={now} color={color} />,

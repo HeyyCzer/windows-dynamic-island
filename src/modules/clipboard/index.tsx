@@ -1,10 +1,10 @@
+import { ClipboardIcon } from "lucide-react";
 /**
  * Clipboard — what you copy shows up in the island for a moment, screenshots
  * open it with the picture, and the latest items stay listed to copy again,
  * drag out, keep on the shelf or ask Claude about.
  * Backend: `src-tauri/src/providers/clipboard/`.
  */
-import { Glyph } from "../../components/Glyph";
 import { Block, Desc } from "../../components/ui/card";
 import { useProvider } from "../../core/bridge";
 import { useT } from "../../core/i18n";
@@ -35,7 +35,7 @@ function ClipboardSettings() {
 export const clipboardModule: IslandModule = {
 	id: "clipboard",
 	title: "clipboard.title",
-	settingsIcon: <Glyph name="clipboard" size={14} />,
+	settingsIcon: <ClipboardIcon size={14} />,
 	settings: Object.values(clipboardSettings),
 	SettingsSection: ClipboardSettings,
 	useView(): ModuleView {
@@ -61,7 +61,7 @@ export const clipboardModule: IslandModule = {
 			priority: 75,
 			hidden: items.length === 0,
 			accent: CLIPBOARD_YELLOW,
-			icon: <Glyph name="clipboard" size={14} color={CLIPBOARD_YELLOW} />,
+			icon: <ClipboardIcon size={14} color={CLIPBOARD_YELLOW} />,
 			compact: latest && {
 				left: <ClipboardCompactLeft item={latest} />,
 				right: <ClipboardCompactRight />,

@@ -1,5 +1,5 @@
+import { MusicIcon } from "lucide-react";
 import { motion } from "motion/react";
-import { MusicIcon } from "../../../components/icons";
 import { Marquee } from "../../../components/Marquee";
 import { useT } from "../../../core/i18n";
 import { useSetting } from "../../../core/settings";

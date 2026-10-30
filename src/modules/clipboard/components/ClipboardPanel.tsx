@@ -1,5 +1,5 @@
-import { type PointerEvent, useRef, useState } from "react";
-import { Glyph } from "../../../components/Glyph";
+import { ClipboardIcon, CopyIcon, ExternalLinkIcon, FolderIcon, MessageCircleIcon, TextIcon } from "lucide-react";
+import { type PointerEvent, type ReactNode, useRef, useState } from "react";
 import { TextButton } from "../../../components/ui/button";
 import { providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
@@ -60,7 +60,7 @@ export function ClipboardPanel({ state, hero }: { state: ClipboardState | undefi
 					))}
 					{!items.length && (
 						<li className="grid h-full place-items-center text-text-faint">
-							<Glyph name="clipboard" size={22} />
+							<ClipboardIcon size={22} />
 						</li>
 					)}
 				</ul>
@@ -146,11 +146,11 @@ function Visual({ item, size }: { item: ClipItem; size: number }) {
 	}
 	return (
 		<span className="grid flex-none place-items-center rounded-[9px] bg-white/7" style={{ width: size, height: size }}>
-			<Glyph
-				name={item.kind === "files" ? "folder" : "text"}
-				size={size * 0.42}
-				color={item.kind === "files" ? "#64D2FF" : CLIPBOARD_YELLOW}
-			/>
+			{item.kind === "files" ? (
+				<FolderIcon size={size * 0.42} color="#64D2FF" />
+			) : (
+				<TextIcon size={size * 0.42} color={CLIPBOARD_YELLOW} />
+			)}
 		</span>
 	);
 }
@@ -194,9 +194,11 @@ function Row({ item }: { item: ClipItem }) {
 				)}
 			</div>
 			<div className="hidden gap-1 group-hover:flex">
-				{a.ask && <IconButton icon="chat" label={t("clipboard.ask")} onClick={a.ask} />}
-				{item.kind !== "text" && <IconButton icon="folder" label={t("clipboard.keep")} onClick={a.keep} />}
-				<IconButton icon="×" label={t("clipboard.remove")} onClick={a.remove} />
+				{a.ask && <RowAction icon={<MessageCircleIcon size={11} />} label={t("clipboard.ask")} onClick={a.ask} />}
+				{item.kind !== "text" && (
+					<RowAction icon={<FolderIcon size={11} />} label={t("clipboard.keep")} onClick={a.keep} />
+				)}
+				<RowAction icon="×" label={t("clipboard.remove")} onClick={a.remove} />
 			</div>
 		</li>
 	);
@@ -233,7 +235,7 @@ function Hero({ item }: { item: ClipItem }) {
 						title={t("clipboard.copy")}
 						onClick={a.copy}
 					>
-						<Glyph name="copy" size={11} /> {t("clipboard.short.copy")}
+						<CopyIcon size={11} /> {t("clipboard.short.copy")}
 					</button>
 					{a.ask && (
 						<button
@@ -242,7 +244,7 @@ function Hero({ item }: { item: ClipItem }) {
 							title={t("clipboard.ask")}
 							onClick={a.ask}
 						>
-							<Glyph name="chat" size={11} /> {t("clipboard.short.ask")}
+							<MessageCircleIcon size={11} /> {t("clipboard.short.ask")}
 						</button>
 					)}
 					<button
@@ -251,7 +253,7 @@ function Hero({ item }: { item: ClipItem }) {
 						title={t("clipboard.keep")}
 						onClick={a.keep}
 					>
-						<Glyph name="folder" size={11} /> {t("clipboard.short.keep")}
+						<FolderIcon size={11} /> {t("clipboard.short.keep")}
 					</button>
 					<button
 						type="button"
@@ -259,7 +261,7 @@ function Hero({ item }: { item: ClipItem }) {
 						title={t("clipboard.open")}
 						onClick={a.open}
 					>
-						<Glyph name="open" size={11} /> {t("clipboard.open")}
+						<ExternalLinkIcon size={11} /> {t("clipboard.open")}
 					</button>
 				</div>
 			</div>
@@ -267,7 +269,7 @@ function Hero({ item }: { item: ClipItem }) {
 	);
 }
 
-function IconButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
+function RowAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
 	return (
 		<button
 			type="button"
@@ -278,7 +280,7 @@ function IconButton({ icon, label, onClick }: { icon: string; label: string; onC
 				onClick();
 			}}
 		>
-			{icon.length === 1 ? icon : <Glyph name={icon} size={11} />}
+			{icon}
 		</button>
 	);
 }

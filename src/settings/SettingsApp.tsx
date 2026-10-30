@@ -1,7 +1,7 @@
+import { InfoIcon, LayoutGridIcon, PaletteIcon, SettingsIcon } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
-import { GearIcon, GridIcon, InfoIcon, PaletteIcon } from "../components/icons";
 import { useSyncLocale, useT } from "../core/i18n";
 import { useSettings } from "../core/settings";
 import { NavItem, NavSection } from "./components/NavItem";
@@ -30,11 +30,11 @@ export function SettingsApp() {
 				<div className="flex min-h-0 flex-1">
 					<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
 						<NavSection label={t("settings.section.app")} />
-						<NavItem to="/" icon={<GearIcon size={15} />} label={t("settings.general")} />
+						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
 						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
 						<NavSection label={t("settings.section.island")} />
 						{/* Stays highlighted on each module's own page too. */}
-						<NavItem to="/modules" end={false} icon={<GridIcon size={14} />} label={t("modules.title")} />
+						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
 						<div className="flex-1" />
 						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
 					</nav>

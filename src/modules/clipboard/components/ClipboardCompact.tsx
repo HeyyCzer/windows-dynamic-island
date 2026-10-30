@@ -1,4 +1,4 @@
-import { Glyph } from "../../../components/Glyph";
+import { CheckIcon, ClipboardIcon, FolderIcon } from "lucide-react";
 import { Marquee } from "../../../components/Marquee";
 import { useT } from "../../../core/i18n";
 import { CLIPBOARD_YELLOW, type ClipItem } from "../types";
@@ -13,7 +13,11 @@ export function ClipboardCompactLeft({ item }: { item: ClipItem }) {
 				<img className="size-6 flex-none rounded-md object-cover" src={item.thumb} alt="" draggable={false} />
 			) : (
 				<span className="grid size-6 flex-none place-items-center rounded-[7px] bg-[rgba(255,214,10,0.16)]">
-					<Glyph name={item.kind === "files" ? "folder" : "clipboard"} size={12} color={CLIPBOARD_YELLOW} />
+					{item.kind === "files" ? (
+						<FolderIcon size={12} color={CLIPBOARD_YELLOW} />
+					) : (
+						<ClipboardIcon size={12} color={CLIPBOARD_YELLOW} />
+					)}
 				</span>
 			)}
 			<Marquee text={clipTitle(t, item)} className="max-w-50 min-w-0 text-[13px] font-semibold" />
@@ -25,7 +29,7 @@ export function ClipboardCompactRight() {
 	const t = useT();
 	return (
 		<span className="inline-flex items-center gap-1 text-[12px] font-semibold whitespace-nowrap text-[#ffd60a]">
-			<Glyph name="check" size={10} /> {t("clipboard.copied")}
+			<CheckIcon size={10} /> {t("clipboard.copied")}
 		</span>
 	);
 }

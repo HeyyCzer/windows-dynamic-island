@@ -1,6 +1,6 @@
+import { PauseIcon, PlayIcon, SkipBackIcon, SkipForwardIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import type { ReactNode } from "react";
-import { NextIcon, PauseIcon, PlayIcon, PrevIcon } from "../../../components/icons";
 import { cn } from "../../../core/cn";
 import { type MusicState, musicAction } from "../hooks/useMusic";
 
@@ -8,7 +8,7 @@ export function Controls({ music }: { music: MusicState }) {
 	return (
 		<div className="flex items-center gap-3.5">
 			<CtrlButton disabled={!music.canPrevious} onClick={() => musicAction("previous")}>
-				<PrevIcon size={20} />
+				<SkipBackIcon size={20} fill="currentColor" />
 			</CtrlButton>
 			<CtrlButton big onClick={() => musicAction("toggle")}>
 				<AnimatePresence mode="popLayout" initial={false}>
@@ -20,12 +20,12 @@ export function Controls({ music }: { music: MusicState }) {
 						transition={{ type: "spring", stiffness: 500, damping: 28 }}
 						style={{ display: "grid" }}
 					>
-						{music.playing ? <PauseIcon size={26} /> : <PlayIcon size={26} />}
+						{music.playing ? <PauseIcon size={26} fill="currentColor" /> : <PlayIcon size={26} fill="currentColor" />}
 					</motion.span>
 				</AnimatePresence>
 			</CtrlButton>
 			<CtrlButton disabled={!music.canNext} onClick={() => musicAction("next")}>
-				<NextIcon size={20} />
+				<SkipForwardIcon size={20} fill="currentColor" />
 			</CtrlButton>
 		</div>
 	);

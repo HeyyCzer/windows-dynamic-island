@@ -1,5 +1,5 @@
+import { MusicIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { MusicIcon } from "../../../components/icons";
 
 /** Album art that cross-fades (zoom + blur) whenever the track changes. */
 export function Artwork({
