@@ -147,6 +147,7 @@
   border-radius: 50%;
 }
 .clock-cal-day.is-today .clock-cal-dots i {
+  /* biome-ignore lint/complexity/noImportantStyles: beats the calendar color set inline */
   background: #fff !important;
 }
 .clock-events {

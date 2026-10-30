@@ -12,6 +12,7 @@ import { StatusGlyph } from "./StatusGlyph";
 export function PermissionPrompt({ item, now, more }: { item: AgentSessionRef; now: number; more: number }) {
   const t = useT();
   const { agent, session } = item;
+  // biome-ignore lint/style/noNonNullAssertion: only rendered for sessions with a pending permission
   const request = session.permission!;
   const [busy, setBusy] = useState<PermissionDecision | null>(null);
   const [error, setError] = useState<string | null>(null);

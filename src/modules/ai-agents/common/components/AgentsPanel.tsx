@@ -31,6 +31,7 @@ export function AgentsPanel({
   if (asking.length) {
     return (
       <div className="agents-panel">
+        {/* biome-ignore lint/style/noNonNullAssertion: asking only holds sessions with a pending permission */}
         <PermissionPrompt key={asking[0].session.permission!.id} item={asking[0]} now={now} more={asking.length - 1} />
         <div className="agents-now">
           <span className="agents-section-label">{t("agents.now")}</span>

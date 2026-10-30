@@ -22,7 +22,7 @@ const files = import.meta.glob<Messages>("../locales/*.json5", { eager: true, im
 
 export const locales: Record<string, { name: string; messages: Messages }> = Object.fromEntries(
   Object.entries(files).map(([path, messages]) => {
-    const code = path.match(/([^/]+)\.json5$/)![1];
+    const code = path.match(/([^/]+)\.json5$/)?.[1] ?? path;
     return [code, { name: messages["language.name"] ?? code, messages }];
   }),
 );

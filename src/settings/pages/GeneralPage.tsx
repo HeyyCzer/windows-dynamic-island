@@ -88,7 +88,7 @@ function MonitorRow({ value }: { value: string }) {
     <label className="settings-row">
       <div className="settings-text">
         <span className="settings-label">{t(def.label)}</span>
-        <span className="settings-desc">{t(def.description!)}</span>
+        {def.description && <span className="settings-desc">{t(def.description)}</span>}
       </div>
       <select className="settings-select" value={value} onChange={(e) => setSetting(def, e.target.value)}>
         <option value="primary">
