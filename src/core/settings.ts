@@ -24,7 +24,9 @@ export type Values = Record<string, unknown>;
 
 let values: Values = {};
 const listeners = new Set<() => void>();
-const notify = () => listeners.forEach((l) => l());
+const notify = () => {
+  for (const l of listeners) l();
+};
 const subscribe = (l: () => void) => {
   listeners.add(l);
   return () => listeners.delete(l);

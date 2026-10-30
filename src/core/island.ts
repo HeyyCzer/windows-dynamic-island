@@ -42,7 +42,7 @@ export function createStore<T>(initial: T) {
     get: () => value,
     set(next: T | ((prev: T) => T)) {
       value = typeof next === "function" ? (next as (prev: T) => T)(value) : next;
-      listeners.forEach((l) => l());
+      for (const l of listeners) l();
     },
     use: () => useSyncExternalStore(subscribe, () => value),
   };

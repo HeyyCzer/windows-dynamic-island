@@ -17,7 +17,7 @@ const listeners = new Set<Listener>();
 const localEvents = new Map<string, Set<(payload: unknown) => void>>();
 
 function notify() {
-  listeners.forEach((l) => l());
+  for (const l of listeners) l();
 }
 
 function subscribe(listener: Listener) {
@@ -33,7 +33,7 @@ export function publishLocal(id: string, data: unknown) {
 
 /** Emit an event locally (used by the browser mock). */
 export function emitLocal(event: string, payload: unknown) {
-  localEvents.get(event)?.forEach((h) => h(payload));
+  for (const h of localEvents.get(event) ?? []) h(payload);
 }
 
 let started = false;
