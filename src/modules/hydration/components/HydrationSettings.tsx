@@ -64,7 +64,7 @@ function DurationRow({
 				<span className="settings-label">{label}</span>
 				<span className="settings-desc">{description}</span>
 			</span>
-			<span className="hydration-duration">
+			<span className="flex flex-none items-center gap-2">
 				{custom && (
 					<span className="settings-number">
 						<input

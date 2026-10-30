@@ -8,7 +8,6 @@ import { HydrationBubble } from "./components/HydrationBubble";
 import { HydrationPanel } from "./components/HydrationPanel";
 import { HydrationSettings } from "./components/HydrationSettings";
 import { hydrationInterval, hydrationSettings, hydrationSnooze } from "./settings";
-import "./hydration.css";
 
 const MINUTE = 60_000;
 
@@ -111,12 +110,12 @@ export const hydrationModule: IslandModule = {
 			compact: timer.due
 				? {
 						left: (
-							<span className="hydration-compact">
+							<span className="flex items-center gap-2 text-[13px] font-[650]">
 								<WaterDropIcon size={15} color="#45c4e6" />
 								{t("hydration.titleDue")}
 							</span>
 						),
-						right: <span className="hydration-compact-action">{t("hydration.reminder")}</span>,
+						right: <span className="text-[12px] font-bold text-[#82ddf3]">{t("hydration.reminder")}</span>,
 						width: 265,
 					}
 				: undefined,

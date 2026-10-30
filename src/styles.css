@@ -13,7 +13,14 @@
 	--color-danger: #ff6b63;
 	--color-ok: #34c759;
 	--color-warn: #ffbd2e;
+	--animate-hydration-pulse: hydration-pulse 1.5s ease-in-out infinite;
 	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+}
+
+@keyframes hydration-pulse {
+	50% {
+		box-shadow: 0 0 0 5px rgba(69, 196, 230, 0.16);
+	}
 }
 
 :root {
