@@ -18,7 +18,12 @@
 		},
 		"rules": {
 			"preset": "recommended",
+			"style": {
+				"noDescendingSpecificity": "off"
+			},
 			"a11y": {
+				"noStaticElementInteractions": "off",
+				"useKeyWithClickEvents": "off",
 				"noLabelWithoutControl": {
 					"level": "error",
 					"options": { "inputComponents": ["Toggle"] }
