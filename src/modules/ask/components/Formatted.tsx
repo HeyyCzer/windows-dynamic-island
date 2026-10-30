@@ -1,5 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 
+const strong = "font-[650] text-white";
+
 /** Just enough Markdown for chat answers: **bold**, `code`, bullet lists and headings. */
 export function Formatted({ text }: { text: string }) {
 	const lines = text.replace(/\r\n?/g, "\n").split("\n");
@@ -19,7 +21,7 @@ export function Formatted({ text }: { text: string }) {
 					// biome-ignore lint/suspicious/noArrayIndexKey: lines are derived from the text, never reordered
 					<Fragment key={i}>
 						{i > 0 && <br />}
-						{heading ? <strong>{inline(line)}</strong> : inline(line)}
+						{heading ? <strong className={strong}>{inline(line)}</strong> : inline(line)}
 					</Fragment>
 				);
 			})}
@@ -38,7 +40,11 @@ function inline(line: string): ReactNode[] {
 }
 
 function inlinePart(part: string): ReactNode {
-	if (part.length > 4 && part.startsWith("**") && part.endsWith("**")) return <strong>{part.slice(2, -2)}</strong>;
-	if (part.length > 2 && part.startsWith("`") && part.endsWith("`")) return <code>{part.slice(1, -1)}</code>;
+	if (part.length > 4 && part.startsWith("**") && part.endsWith("**"))
+		return <strong className={strong}>{part.slice(2, -2)}</strong>;
+	if (part.length > 2 && part.startsWith("`") && part.endsWith("`"))
+		return (
+			<code className="font-[Cascadia_Mono,Consolas,monospace] text-[12px] text-[#f2b880]">{part.slice(1, -1)}</code>
+		);
 	return part;
 }
