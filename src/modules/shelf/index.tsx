@@ -10,7 +10,6 @@ import { draggingFiles } from "../../core/island";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { SHELF_PROVIDER, type ShelfState } from "./actions";
 import { ShelfPanel } from "./components/ShelfPanel";
-import "./shelf.css";
 
 const SHELF_BLUE = "#64D2FF";
 const PER_ROW = 5;
