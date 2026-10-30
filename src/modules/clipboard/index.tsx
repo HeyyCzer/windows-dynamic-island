@@ -14,7 +14,6 @@ import { ClipboardCompactLeft, ClipboardCompactRight } from "./components/Clipbo
 import { ClipboardPanel } from "./components/ClipboardPanel";
 import { clipboardSettings } from "./settings";
 import { CLIPBOARD_PROVIDER, CLIPBOARD_YELLOW, type ClipboardState } from "./types";
-import "./clipboard.css";
 
 /** The "copied" pill stays this long. */
 const FLASH_MS = 3000;

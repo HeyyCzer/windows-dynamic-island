@@ -10,13 +10,13 @@ export function ClipboardCompactLeft({ item }: { item: ClipItem }) {
 	return (
 		<>
 			{item.kind === "image" && item.thumb ? (
-				<img className="clip-compact-thumb" src={item.thumb} alt="" draggable={false} />
+				<img className="size-6 flex-none rounded-md object-cover" src={item.thumb} alt="" draggable={false} />
 			) : (
-				<span className="clip-compact-icon">
+				<span className="grid size-6 flex-none place-items-center rounded-[7px] bg-[rgba(255,214,10,0.16)]">
 					<Glyph name={item.kind === "files" ? "folder" : "clipboard"} size={12} color={CLIPBOARD_YELLOW} />
 				</span>
 			)}
-			<Marquee text={clipTitle(t, item)} className="clip-compact-title" />
+			<Marquee text={clipTitle(t, item)} className="max-w-50 min-w-0 text-[13px] font-semibold" />
 		</>
 	);
 }
@@ -24,7 +24,7 @@ export function ClipboardCompactLeft({ item }: { item: ClipItem }) {
 export function ClipboardCompactRight() {
 	const t = useT();
 	return (
-		<span className="clip-compact-label">
+		<span className="inline-flex items-center gap-1 text-[12px] font-semibold whitespace-nowrap text-[#ffd60a]">
 			<Glyph name="check" size={10} /> {t("clipboard.copied")}
 		</span>
 	);
