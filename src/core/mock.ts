@@ -89,8 +89,8 @@ function claudeState(now: number) {
 		sessions: [
 			{
 				id: "a",
-				project: "dynamic-island",
-				cwd: "~/projects/dynamic-island",
+				project: "windows-island",
+				cwd: "~/projects/windows-island",
 				status: "working",
 				activity: { kind: "edit", arg: "Island.tsx" },
 				tool: "Edit",
@@ -215,10 +215,10 @@ function publishGithub(now: number) {
 		author: "octocat",
 		createdAt: new Date(now - 3_600_000).toISOString(),
 	});
-	const newest = issue(128, "Island flickers when switching monitors", "HeyyCzer/windows-dynamic-island");
+	const newest = issue(128, "Island flickers when switching monitors", "HeyyCzer/windows-island");
 	publishLocal("github", {
 		repos: [
-			{ name: "HeyyCzer/windows-dynamic-island", openIssues: 7, latest: newest, error: null },
+			{ name: "HeyyCzer/windows-island", openIssues: 7, latest: newest, error: null },
 			{
 				name: "tauri-apps/tauri",
 				openIssues: 1284,
@@ -233,7 +233,7 @@ function publishGithub(now: number) {
 		rateLimitedUntil: null,
 		loading: false,
 		updatedAt: now - 90_000,
-		newIssue: { repo: "HeyyCzer/windows-dynamic-island", issue: newest, seenAt: now },
+		newIssue: { repo: "HeyyCzer/windows-island", issue: newest, seenAt: now },
 	});
 }
 
@@ -437,7 +437,7 @@ function publishClipboard(now: number) {
 		}),
 		item(2, { kind: "files", names: ["report.pdf", "cover.png"], source: "Windows Explorer", copiedAt: now - 300_000 }),
 		item(1, {
-			preview: "https://github.com/HeyyCzer/windows-dynamic-island/issues/128",
+			preview: "https://github.com/HeyyCzer/windows-island/issues/128",
 			chars: 61,
 			source: "Google Chrome",
 			copiedAt: now - 900_000,

@@ -35,7 +35,7 @@ const TRANSCRIPT_TAIL: u64 = 512 * 1024;
 /// Tools whose dialog is a question or a plan to read, not a yes/no.
 const NOT_APPROVABLE: &[&str] = &["AskUserQuestion", "ExitPlanMode"];
 const DETAIL_CHARS: usize = 400;
-const DENY_MESSAGE: &str = "The user denied this from the Dynamic Island.";
+const DENY_MESSAGE: &str = "The user denied this from Island for Windows.";
 
 /// What the island shows for a pending request.
 #[derive(Debug, Clone, PartialEq, Serialize)]

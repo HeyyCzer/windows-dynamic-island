@@ -97,10 +97,10 @@
     quit: "Quit",
     hide: "Hide island",
     show: "Show island",
-    hiddenTooltip: "Dynamic Island (hidden): click to show",
+    hiddenTooltip: "Island for Windows (hidden): click to show",
   },
   window: {
-    settings: "Dynamic Island — Settings",
+    settings: "Island for Windows — Settings",
   },
 
   // Island chrome
@@ -435,7 +435,7 @@
     style: {
       label: "Style",
       desc: "How the island looks on your screen.",
-      dynamic: "Dynamic Island",
+      dynamic: "Notch",
       dynamicDesc: "Hangs from the top edge like a notch, tabs with names.",
       windows: "Windows Island",
       windowsDesc: "A floating pill with a clock at rest, a colored rim and tabs at the bottom.",

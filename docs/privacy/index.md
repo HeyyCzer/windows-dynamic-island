@@ -1,8 +1,8 @@
-# Privacy Policy — Dynamic Island for Windows
+# Privacy Policy — Island for Windows
 
 *Last updated: October 26, 2026*
 
-Dynamic Island for Windows ("the app") is a free, open-source desktop app published at [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island). This policy explains what data the app touches, where it goes and how to remove it.
+Island for Windows ("the app") is a free, open-source desktop app published at [github.com/HeyyCzer/windows-island](https://github.com/HeyyCzer/windows-island). This policy explains what data the app touches, where it goes and how to remove it.
 
 ## The short version
 
@@ -35,7 +35,7 @@ Because the app has no server, none of your data ever reaches us, so there is no
 - **Local only.** The app's built-in servers (the local API, the Claude Code bridge and the sign-in redirect) listen on `127.0.0.1` only and cannot be reached from your network or the internet.
 - **Sensitive clipboard content skipped.** Anything password managers mark as private is never read, and clipboard pictures saved for dragging are deleted every time the app starts.
 - **Revocation.** **Disconnect** revokes the Google token with Google and deletes it from your computer.
-- **Open source.** All of the app's code is public at [github.com/HeyyCzer/windows-dynamic-island](https://github.com/HeyyCzer/windows-dynamic-island), so anyone can check how data is handled. Security problems can be reported through the repository's issues.
+- **Open source.** All of the app's code is public at [github.com/HeyyCzer/windows-island](https://github.com/HeyyCzer/windows-island), so anyone can check how data is handled. Security problems can be reported through the repository's issues.
 
 ## Online services
 
@@ -109,4 +109,4 @@ Changes to this policy are published in this file, with the date at the top upda
 
 ## Contact
 
-Questions or requests: open an issue at [github.com/HeyyCzer/windows-dynamic-island/issues](https://github.com/HeyyCzer/windows-dynamic-island/issues).
+Questions or requests: open an issue at [github.com/HeyyCzer/windows-island/issues](https://github.com/HeyyCzer/windows-island/issues).

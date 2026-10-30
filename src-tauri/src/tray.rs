@@ -62,7 +62,7 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
     });
 
     let mut builder = TrayIconBuilder::with_id(TRAY_ID)
-        .tooltip("Dynamic Island")
+        .tooltip("Island for Windows")
         .menu(&menu)
         // Left click: the black hole swallows the island / gives it back. Right click: menu.
         .show_menu_on_left_click(false)
@@ -140,7 +140,7 @@ pub fn sync_hidden(app: &AppHandle) {
     let Some(tray) = app.tray_by_id(TRAY_ID) else { return };
     let icon = app.default_window_icon().map(|icon| if hidden { dimmed(icon) } else { icon.clone() });
     let _ = tray.set_icon(icon);
-    let tooltip = if hidden { i18n::t(app, "tray.hiddenTooltip") } else { "Dynamic Island".to_string() };
+    let tooltip = if hidden { i18n::t(app, "tray.hiddenTooltip") } else { "Island for Windows".to_string() };
     let _ = tray.set_tooltip(Some(tooltip));
 }
 

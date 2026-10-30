@@ -35,7 +35,7 @@ const MAX_IMAGE_BYTES: u64 = 3_500_000;
 const MAX_THUMB_BYTES: u64 = 6_000_000;
 const CLAUDE_ORANGE: &str = "#D97757";
 
-const SYSTEM_PROMPT: &str = "You are answering through Dynamic Island, a small pill at the top of the user's Windows \
+const SYSTEM_PROMPT: &str = "You are answering through Island for Windows, a small pill at the top of the user's Windows \
 screen. Answer in {language}, short and direct: a few sentences or a short list. Avoid tables, headings and long \
 code blocks unless the user asks. Use at most **bold** and `code` as formatting. In this window you can't ask for \
 permission: if a task needs editing files or running commands, explain what you would do and suggest opening \

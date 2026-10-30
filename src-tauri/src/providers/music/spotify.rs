@@ -378,7 +378,7 @@ fn authorize(hub: &Hub, client: &str, cancel: &AtomicBool) -> Result<String, Str
 fn browser_page(message: &str) -> String {
     let message = message.replace('&', "&amp;").replace('<', "&lt;");
     format!(
-        "<!doctype html><meta charset=utf-8><title>Dynamic Island</title>\
+        "<!doctype html><meta charset=utf-8><title>Island for Windows</title>\
          <body style=\"margin:0;height:100vh;display:grid;place-items:center;background:#111;color:#eee;\
          font:15px 'Segoe UI',sans-serif\"><p>{message}</p>"
     )

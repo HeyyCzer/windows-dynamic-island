@@ -193,8 +193,8 @@ const MANIFEST: &str = r#"<?xml version="1.0" encoding="utf-8"?>
   IgnorableNamespaces="uap uap3 uap10 desktop6 rescap">
   <Identity Name="{name}" Publisher="{publisher}" Version="{version}" ProcessorArchitecture="neutral" />
   <Properties>
-    <DisplayName>Dynamic Island</DisplayName>
-    <PublisherDisplayName>Dynamic Island</PublisherDisplayName>
+    <DisplayName>Island for Windows</DisplayName>
+    <PublisherDisplayName>HeyyCzer</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
     <uap10:AllowExternalContent>true</uap10:AllowExternalContent>
     <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
@@ -213,7 +213,7 @@ const MANIFEST: &str = r#"<?xml version="1.0" encoding="utf-8"?>
   </Capabilities>
   <Applications>
     <Application Id="{name}" Executable="{exe}" uap10:TrustLevel="mediumIL" uap10:RuntimeBehavior="win32App">
-      <uap:VisualElements DisplayName="Dynamic Island" Description="Dynamic Island for Windows"
+      <uap:VisualElements DisplayName="Island for Windows" Description="Island for Windows"
                           BackgroundColor="transparent" AppListEntry="none"
                           Square150x150Logo="Assets\Square150x150Logo.png"
                           Square44x44Logo="Assets\Square44x44Logo.png" />

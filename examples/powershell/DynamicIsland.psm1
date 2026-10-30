@@ -1,4 +1,4 @@
-# Dynamic Island — PowerShell helpers
+# Island for Windows — PowerShell helpers
 #   Import-Module .\examples\powershell\DynamicIsland.psm1
 #   Send-IslandNotification -Title "Build ok" -Icon check -Color "#30D158"
 

@@ -1,4 +1,4 @@
-"""Dynamic Island client (standard library only).
+"""Island for Windows client (standard library only).
 
     from island import notify, activity, remove
     notify("Treino finalizado", subtitle="loss 0.031", icon="check", color="#30D158")

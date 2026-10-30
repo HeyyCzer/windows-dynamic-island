@@ -93,7 +93,7 @@ jobs:
         with:
           tauriScript: bun tauri
           tagName: v__VERSION__
-          releaseName: Dynamic Island v__VERSION__
+          releaseName: Island for Windows v__VERSION__
           releaseBody: ${{ steps.notes.outputs.body }}
           # `latest.json` is what installed apps poll to find updates.
           uploadUpdaterJson: true

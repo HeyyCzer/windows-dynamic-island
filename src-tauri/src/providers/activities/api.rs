@@ -134,7 +134,7 @@ fn status(activities: &Activities) -> Value {
             })
         });
     json!({
-        "name": "Dynamic Island",
+        "name": "Island for Windows",
         "version": activities.app().package_info().version.to_string(),
         "activities": items,
         "media": media,

@@ -4,16 +4,16 @@ const en = {
   htmlLang: "en",
   otherLang: { lang: "pt-br" as Lang, label: "Português" },
   meta: {
-    title: "Dynamic Island for Windows",
+    title: "Island for Windows",
     description:
-      "An iPhone-style Dynamic Island for the top of your Windows desktop: music, Claude Code sessions, notifications and more.",
-    privacyTitle: "Privacy Policy · Dynamic Island for Windows",
+      "An iPhone-style island for the top of your Windows desktop: music, Claude Code sessions, notifications and more.",
+    privacyTitle: "Privacy Policy · Island for Windows",
   },
   island: {
     waiting: "Waiting for you",
     request: "Claude Code wants to run",
     command: "bun run build",
-    project: "windows-dynamic-island",
+    project: "windows-island",
     allow: "Allow",
     always: "Always allow",
     deny: "Deny",
@@ -45,7 +45,7 @@ const en = {
     },
   },
   hero: {
-    title: "A Dynamic Island for the top of your Windows desktop",
+    title: "An island for the top of your Windows desktop",
     lead: "It shows what's playing, what your Claude Code sessions are doing and your notifications, and stays out of the way the rest of the time.",
     download: "Download for Windows",
     github: "View the source",
@@ -85,7 +85,7 @@ const en = {
   looks: {
     title: "A black notch or a glowing pill",
     body: "Keep it as a plain black notch hanging from the top edge, or switch to a floating pill with a rim in one of seven gradients, or two colors of your own.",
-    items: ["Dynamic Island", "Windows Island, classic", "Windows Island, thin mono", "Windows Island, Aurora with glow"],
+    items: ["Notch", "Windows Island, classic", "Windows Island, thin mono", "Windows Island, Aurora with glow"],
   },
   more: {
     title: "And also",

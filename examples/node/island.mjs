@@ -1,4 +1,4 @@
-// Dynamic Island client for Node 18+ (uses the built-in fetch).
+// Island for Windows client for Node 18+ (uses the built-in fetch).
 //   import { notify, activity, remove } from "./island.mjs";
 //   await notify({ title: "Deploy ok", icon: "check", color: "#30D158" });
 

@@ -249,7 +249,8 @@ fn read_item(n: &UserNotification, logos: &mut HashMap<String, Option<String>>) 
         }
         Err(_) => (String::new(), String::new(), None),
     };
-    if app.eq_ignore_ascii_case("Dynamic Island") {
+    // The package keeps its old display name until it is re-registered.
+    if ["Island for Windows", "Dynamic Island"].iter().any(|own| app.eq_ignore_ascii_case(own)) {
         return None;
     }
 

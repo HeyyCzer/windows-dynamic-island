@@ -56,7 +56,7 @@ pub fn close_pip(app: AppHandle) {
 fn create(app: &AppHandle) -> tauri::Result<()> {
     let w = width(app);
     let win = WebviewWindowBuilder::new(app, PIP_LABEL, WebviewUrl::App("index.html".into()))
-        .title("Dynamic Island — Video")
+        .title("Island for Windows — Video")
         .inner_size(w, w * 9.0 / 16.0)
         .decorations(false)
         .always_on_top(true)

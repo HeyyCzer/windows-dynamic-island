@@ -3,7 +3,7 @@ import ptBr from "./pt-br";
 
 export type Lang = "en" | "pt-br";
 
-export const REPO = "https://github.com/HeyyCzer/windows-dynamic-island";
+export const REPO = "https://github.com/HeyyCzer/windows-island";
 export const DOWNLOAD = `${REPO}/releases/latest`;
 
 /** Path of a page in the given language, with the GitHub Pages base. */

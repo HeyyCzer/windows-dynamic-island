@@ -4,16 +4,16 @@ const ptBr: Strings = {
   htmlLang: "pt-BR",
   otherLang: { lang: "en", label: "English" },
   meta: {
-    title: "Dynamic Island para Windows",
+    title: "Island for Windows",
     description:
-      "Uma Dynamic Island no estilo do iPhone para o topo da área de trabalho do Windows: música, sessões do Claude Code, notificações e mais.",
-    privacyTitle: "Política de Privacidade · Dynamic Island para Windows",
+      "Uma ilha no estilo do iPhone para o topo da área de trabalho do Windows: música, sessões do Claude Code, notificações e mais.",
+    privacyTitle: "Política de Privacidade · Island for Windows",
   },
   island: {
     waiting: "Esperando você",
     request: "O Claude Code quer executar",
     command: "bun run build",
-    project: "windows-dynamic-island",
+    project: "windows-island",
     allow: "Permitir",
     always: "Sempre permitir",
     deny: "Negar",
@@ -45,7 +45,7 @@ const ptBr: Strings = {
     },
   },
   hero: {
-    title: "Uma Dynamic Island para o topo da área de trabalho do Windows",
+    title: "Uma ilha para o topo da área de trabalho do Windows",
     lead: "Ela mostra o que está tocando, o que suas sessões do Claude Code estão fazendo e suas notificações, e fica fora do caminho no resto do tempo.",
     download: "Baixar para Windows",
     github: "Ver o código-fonte",
@@ -85,7 +85,7 @@ const ptBr: Strings = {
   looks: {
     title: "Um entalhe preto ou uma pílula brilhante",
     body: "Deixe como um entalhe preto pendurado na borda de cima, ou troque por uma pílula flutuante com borda em um de sete gradientes, ou com duas cores suas.",
-    items: ["Dynamic Island", "Windows Island, clássica", "Windows Island, mono fina", "Windows Island, Aurora com brilho"],
+    items: ["Notch", "Windows Island, clássica", "Windows Island, mono fina", "Windows Island, Aurora com brilho"],
   },
   more: {
     title: "E também",

@@ -5,7 +5,7 @@ import { Card, Row } from "../../components/ui/card";
 import { command, isTauri } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 
-const REPO_URL = "https://github.com/HeyyCzer/windows-dynamic-island";
+const REPO_URL = "https://github.com/HeyyCzer/windows-island";
 
 type UpdateStatus =
 	| { state: "idle" | "checking" | "latest" | "dev" | "portable" | "error" }
@@ -54,7 +54,7 @@ export function AboutPage() {
 		<>
 			<div className="flex flex-col items-center gap-2.5 pt-4.5 pb-2.5 [&_svg]:drop-shadow-[0_8px_24px_rgba(143,148,255,0.18)]">
 				<AppLogo size={72} />
-				<div className="mt-1 text-[22px] font-bold tracking-[-0.015em]">Dynamic Island</div>
+				<div className="mt-1 text-[22px] font-bold tracking-[-0.015em]">Island for Windows</div>
 				<span className="rounded-full bg-white/6 px-2.5 py-0.75 text-[12px] font-semibold text-text-dim tabular-nums">
 					{t("settings.about.version", { version: __APP_VERSION__ })}
 				</span>

@@ -11,7 +11,7 @@ export function TitleBar() {
 		<header className="flex h-10 flex-none items-center justify-between bg-[#0c0c10] pl-4" data-tauri-drag-region>
 			<div className="flex items-center gap-2 text-[12px] font-semibold text-text-dim" data-tauri-drag-region>
 				<AppLogo className="pointer-events-none flex-none" />
-				Dynamic Island
+				Island for Windows
 				<span className="pointer-events-none font-medium text-text-faint">·</span>
 				<span className="pointer-events-none font-medium text-text-faint">{t("settings.subtitle")}</span>
 			</div>

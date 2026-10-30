@@ -85,10 +85,10 @@
     quit: "Sair",
     hide: "Ocultar ilha",
     show: "Mostrar ilha",
-    hiddenTooltip: "Dynamic Island (oculta): clique para mostrar",
+    hiddenTooltip: "Island for Windows (oculta): clique para mostrar",
   },
   window: {
-    settings: "Dynamic Island — Configurações",
+    settings: "Island for Windows — Configurações",
   },
 
   island: {
@@ -400,7 +400,7 @@
     style: {
       label: "Estilo",
       desc: "Como a ilha aparece na sua tela.",
-      dynamic: "Dynamic Island",
+      dynamic: "Notch",
       dynamicDesc: "Pendurada na borda de cima, como um notch, com abas nomeadas.",
       windows: "Windows Island",
       windowsDesc: "Uma pílula flutuante com relógio em repouso, borda colorida e abas embaixo.",

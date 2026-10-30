@@ -63,7 +63,7 @@ fn get(path: &str, query: &[(&str, &str)], token: Option<&str>) -> Result<Value,
         .get(format!("{API}{path}"))
         .header("Accept", "application/vnd.github+json")
         .header("X-GitHub-Api-Version", "2022-11-28")
-        .header("User-Agent", "windows-dynamic-island");
+        .header("User-Agent", "windows-island");
     for (k, v) in query {
         req = req.query(*k, *v);
     }

@@ -413,7 +413,7 @@ unsafe extern "system" fn overlay_proc(
 
     match msg {
         // There is no frame, but `DefWindowProc` still paints a classic title bar
-        // ("Dynamic Island" on a dark band) across the whole strip when the window
+        // ("Island for Windows" on a dark band) across the whole strip when the window
         // gets activated (dropping on the shelf, typing a question…).
         WM_NCPAINT => return LRESULT(0),
         // Still delivered (tao tracks focus with it); lParam -1 tells

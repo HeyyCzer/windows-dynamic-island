@@ -1,7 +1,7 @@
 [package]
 name = "dynamic-island"
 version = "0.3.10"
-description = "Dynamic Island for Windows"
+description = "Island for Windows"
 license = "GPL-3.0-or-later"
 edition = "2024"
 rust-version = "1.98"
