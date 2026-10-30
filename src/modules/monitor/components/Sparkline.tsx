@@ -18,11 +18,23 @@ export function Sparkline({ values, color, max }: { values: number[]; color: str
 		const y = h - (Math.min(Math.max(v, 0), top) / top) * (h - 2) - 1;
 		return `${x.toFixed(1)},${y.toFixed(1)}`;
 	});
-	if (points.length < 2) return <svg className="mon-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" />;
+	if (points.length < 2)
+		return (
+			<svg
+				className="mt-auto block h-7.5 w-full overflow-visible"
+				viewBox={`0 0 ${w} ${h}`}
+				preserveAspectRatio="none"
+			/>
+		);
 	const first = points[0].split(",")[0];
 
 	return (
-		<svg className="mon-spark" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" aria-hidden>
+		<svg
+			className="mt-auto block h-7.5 w-full overflow-visible"
+			viewBox={`0 0 ${w} ${h}`}
+			preserveAspectRatio="none"
+			aria-hidden
+		>
 			<defs>
 				<linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
 					<stop offset="0" stopColor={color} stopOpacity="0.35" />

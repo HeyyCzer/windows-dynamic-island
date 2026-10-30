@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect } from "react";
 import { providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useLocale, useT } from "../../../core/i18n";
 import { levelColor, MONITOR_PROVIDER, type MonitorState, NETWORK_BLUE } from "../types";
 import { Sparkline } from "./Sparkline";
@@ -34,14 +35,14 @@ export function MonitorPanel({ state }: { state: MonitorState | undefined }) {
 	}, []);
 
 	if (!state || (state.cpu == null && state.memoryUsed == null)) {
-		return <div className="mon-loading">{t("monitor.loading")}</div>;
+		return <div className="grid h-full place-items-center text-[13px] text-text-faint">{t("monitor.loading")}</div>;
 	}
 
 	const memory = state.memoryUsed != null && state.memoryTotal ? (state.memoryUsed / state.memoryTotal) * 100 : null;
 	const percent = (v: number | null) => (v == null ? "—" : `${Math.round(v)}%`);
 
 	return (
-		<div className="mon-panel">
+		<div className="grid h-full grid-cols-4 gap-2">
 			<Tile
 				label={t("monitor.cpu")}
 				value={percent(state.cpu)}
@@ -98,12 +99,18 @@ function Tile({
 	small?: boolean;
 }) {
 	return (
-		<div className="mon-tile">
-			<span className="mon-label">{label}</span>
-			<span className={`mon-value ${small ? "is-small" : ""}`} style={{ color }}>
+		<div className="flex min-w-0 flex-col rounded-[14px] bg-card px-2.5 pt-2 pb-1.5">
+			<span className="text-[10.5px] font-bold tracking-[0.06em] text-text-faint uppercase">{label}</span>
+			<span
+				className={cn(
+					"mt-0.5 text-[22px]/[1.15] font-bold whitespace-nowrap tabular-nums",
+					small && "text-[15px]/[1.6]",
+				)}
+				style={{ color }}
+			>
 				{value}
 			</span>
-			<span className="mon-detail">{detail || " "}</span>
+			<span className="truncate text-[11px] text-text-dim tabular-nums">{detail || " "}</span>
 			{chart}
 		</div>
 	);

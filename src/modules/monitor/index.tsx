@@ -11,7 +11,6 @@ import { MonitorBubble } from "./components/MonitorBubble";
 import { MonitorPanel } from "./components/MonitorPanel";
 import { systemMonitorSettings } from "./settings";
 import { MONITOR_GREEN, MONITOR_PROVIDER, type MonitorState } from "./types";
-import "./monitor.css";
 
 export const monitorModule: IslandModule = {
 	id: "monitor",
