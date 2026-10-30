@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Divider, Row } from "../../../components/ui/card";
+import { NumberField, Select } from "../../../components/ui/form";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
 import { hydrationInterval, hydrationSnooze } from "../settings";
@@ -22,7 +24,7 @@ export function HydrationSettings() {
 				options={INTERVALS}
 				onChange={(value) => setSetting(hydrationInterval, value)}
 			/>
-			<div className="hydration-settings-divider" />
+			<Divider />
 			<DurationRow
 				label={t("hydration.snooze.label")}
 				description={t("hydration.snooze.desc")}
@@ -59,30 +61,22 @@ function DurationRow({
 	};
 
 	return (
-		<div className="settings-row is-static">
-			<span className="settings-text">
-				<span className="settings-label">{label}</span>
-				<span className="settings-desc">{description}</span>
-			</span>
+		<Row label={label} desc={description}>
 			<span className="flex flex-none items-center gap-2">
 				{custom && (
-					<span className="settings-number">
-						<input
-							type="number"
-							min={1}
-							max={MAX_MINUTES}
-							step={1}
-							value={draft}
-							aria-label={label}
-							onChange={(e) => setDraft(e.target.value)}
-							onBlur={commit}
-							onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
-						/>
-						<span className="settings-unit">min</span>
-					</span>
+					<NumberField
+						unit="min"
+						min={1}
+						max={MAX_MINUTES}
+						step={1}
+						value={draft}
+						aria-label={label}
+						onChange={(e) => setDraft(e.target.value)}
+						onBlur={commit}
+						onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+					/>
 				)}
-				<select
-					className="settings-select"
+				<Select
 					value={custom ? CUSTOM : value}
 					aria-label={label}
 					onChange={(e) => {
@@ -97,8 +91,8 @@ function DurationRow({
 						</option>
 					))}
 					<option value={CUSTOM}>{t("hydration.custom")}</option>
-				</select>
+				</Select>
 			</span>
-		</div>
+		</Row>
 	);
 }

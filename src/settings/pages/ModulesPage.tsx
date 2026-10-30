@@ -1,10 +1,13 @@
 import { Reorder, useDragControls } from "motion/react";
 import { useNavigate } from "react-router";
 import { GripIcon } from "../../components/icons";
+import { Card } from "../../components/ui/card";
+import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
 import { inOrder, layoutSettings, moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
+import { Lead, Title } from "../components/Heading";
 import { PlacementSelect } from "../components/PlacementSelect";
 import { Toggle } from "../components/Toggle";
 
@@ -21,13 +24,13 @@ export function ModulesPage({ values }: { values: Record<string, unknown> }) {
 
 	return (
 		<>
-			<h1 className="settings-title">{t("modules.title")}</h1>
-			<p className="settings-lead">{t("modules.desc")}</p>
-			<section className="settings-card">
+			<Title>{t("modules.title")}</Title>
+			<Lead>{t("modules.desc")}</Lead>
+			<Card>
 				<Reorder.Group
 					as="ul"
 					axis="y"
-					className="layout-list"
+					className="list-none py-1.5"
 					values={ordered.map((m) => m.id)}
 					onReorder={(ids: string[]) => setSetting(layoutSettings.order, ids)}
 				>
@@ -35,7 +38,7 @@ export function ModulesPage({ values }: { values: Record<string, unknown> }) {
 						<ModuleRow key={m.id} module={m} enabled={readSetting(values, moduleEnabled(m))} />
 					))}
 				</Reorder.Group>
-			</section>
+			</Card>
 		</>
 	);
 }
@@ -49,21 +52,42 @@ function ModuleRow({ module, enabled }: { module: IslandModule; enabled: boolean
 		<Reorder.Item
 			as="li"
 			value={module.id}
-			className={`layout-row ${enabled ? "" : "is-off"}`}
+			className="relative flex h-10.5 items-center gap-2.5 rounded-[9px] bg-transparent px-1 hover:bg-white/4"
 			dragListener={false}
 			dragControls={drag}
 			whileDrag={{ scale: 1.02, boxShadow: "0 10px 24px -10px rgba(0,0,0,0.6)" }}
 		>
-			<span className="layout-grip" title={t("layout.drag")} onPointerDown={(e) => drag.start(e)}>
+			<span
+				className="grid h-7 w-5 cursor-grab touch-none place-items-center text-text-faint active:cursor-grabbing"
+				title={t("layout.drag")}
+				onPointerDown={(e) => drag.start(e)}
+			>
 				<GripIcon size={14} />
 			</span>
-			<button type="button" className="layout-open" title={t("modules.open")} onClick={open}>
-				<span className="layout-icon">{module.settingsIcon}</span>
-				<span className="layout-name">{t(module.title)}</span>
+			<button
+				type="button"
+				className="group/open flex h-full min-w-0 flex-1 items-center gap-2.5 text-left"
+				title={t("modules.open")}
+				onClick={open}
+			>
+				<span className={cn("grid w-4.5 place-items-center", !enabled && "opacity-40")}>{module.settingsIcon}</span>
+				<span
+					className={cn(
+						"flex-1 text-[13px] font-semibold underline-offset-3 group-hover/open:underline",
+						!enabled && "opacity-40",
+					)}
+				>
+					{t(module.title)}
+				</span>
 			</button>
-			<PlacementSelect moduleId={module.id} disabled={!enabled} className="layout-place" />
+			<PlacementSelect moduleId={module.id} disabled={!enabled} compact />
 			<Toggle checked={enabled} onChange={(v) => setSetting(moduleEnabled(module), v)} />
-			<button type="button" className="layout-chevron" title={t("modules.open")} onClick={open}>
+			<button
+				type="button"
+				className="h-7 w-5.5 rounded-[7px] text-[18px] leading-none text-text-faint hover:bg-white/6 hover:text-text"
+				title={t("modules.open")}
+				onClick={open}
+			>
 				›
 			</button>
 		</Reorder.Item>

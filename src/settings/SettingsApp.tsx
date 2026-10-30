@@ -11,7 +11,6 @@ import { AppearancePage } from "./pages/AppearancePage";
 import { GeneralPage } from "./pages/GeneralPage";
 import { ModulePage } from "./pages/ModulePage";
 import { ModulesPage } from "./pages/ModulesPage";
-import "./settings.css";
 
 /**
  * Settings window: frameless, with a sidebar in two groups — the app itself
@@ -26,20 +25,20 @@ export function SettingsApp() {
 
 	return (
 		<MemoryRouter>
-			<div className="settings">
+			<div className="flex h-full flex-col" data-settings>
 				<TitleBar />
-				<div className="settings-main">
-					<nav className="settings-nav">
+				<div className="flex min-h-0 flex-1">
+					<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
 						<NavSection label={t("settings.section.app")} />
 						<NavItem to="/" icon={<GearIcon size={15} />} label={t("settings.general")} />
 						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
 						<NavSection label={t("settings.section.island")} />
 						{/* Stays highlighted on each module's own page too. */}
 						<NavItem to="/modules" end={false} icon={<GridIcon size={14} />} label={t("modules.title")} />
-						<div className="settings-nav-spacer" />
+						<div className="flex-1" />
 						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
 					</nav>
-					<main className="settings-content">
+					<main className="min-w-0 flex-1 overflow-y-auto rounded-tl-xl bg-[#121217] shadow-[inset_1px_1px_0_var(--hairline)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-3 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-white/12 [&::-webkit-scrollbar-thumb]:bg-clip-padding">
 						<Page>
 							<Routes>
 								<Route index element={<GeneralPage values={values} />} />
@@ -62,7 +61,7 @@ function Page({ children }: { children: ReactNode }) {
 	return (
 		<motion.div
 			key={pathname}
-			className="settings-page"
+			className="mx-auto flex max-w-170 flex-col gap-3.5 px-9 pt-7 pb-10 select-text"
 			initial={{ opacity: 0, y: 6 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.18, ease: "easeOut" }}

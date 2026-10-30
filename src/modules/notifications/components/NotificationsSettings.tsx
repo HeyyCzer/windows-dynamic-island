@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Button } from "../../../components/ui/button";
+import { Block, Desc, Row } from "../../../components/ui/card";
+import { Chip, Chips } from "../../../components/ui/text";
 import { providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { NOTIFICATIONS_PROVIDER, type NotificationsState } from "../types";
@@ -11,16 +14,11 @@ export function NotificationsSettings() {
 	const access = state?.access ?? "noIdentity";
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("notifications.access.title")}</span>
-					<span className="settings-desc">{t(`notifications.access.${access}`)}</span>
-				</div>
+		<Block>
+			<Row label={t("notifications.access.title")} desc={t(`notifications.access.${access}`)}>
 				{access === "noIdentity" && (
-					<button
-						type="button"
-						className="settings-btn primary"
+					<Button
+						variant="primary"
 						disabled={busy}
 						onClick={async () => {
 							setBusy(true);
@@ -33,37 +31,31 @@ export function NotificationsSettings() {
 						}}
 					>
 						{busy ? t("notifications.access.enabling") : t("notifications.access.enable")}
-					</button>
+					</Button>
 				)}
 				{access === "denied" && (
-					<button
-						type="button"
-						className="settings-btn about-btn"
-						onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openPrivacy")}
-					>
+					<Button onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openPrivacy")}>
 						{t("notifications.access.openPrivacy")}
-					</button>
+					</Button>
 				)}
 				{access === "allowed" && (
-					<div className="settings-chips">
-						<span className="settings-chip ok">{t("notifications.access.on")}</span>
-					</div>
+					<Chips>
+						<Chip ok>{t("notifications.access.on")}</Chip>
+					</Chips>
 				)}
-			</div>
-			{access === "noIdentity" && <span className="settings-desc">{t("notifications.access.how")}</span>}
+			</Row>
+			{access === "noIdentity" && <Desc>{t("notifications.access.how")}</Desc>}
 			{state?.error && (
 				<>
-					<span className="settings-error">{state.error}</span>
-					<button
-						type="button"
-						className="settings-btn about-btn"
+					<Desc tone="error">{state.error}</Desc>
+					<Button
 						style={{ alignSelf: "flex-start" }}
 						onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openDeveloper")}
 					>
 						{t("notifications.access.openDeveloper")}
-					</button>
+					</Button>
 				</>
 			)}
-		</div>
+		</Block>
 	);
 }

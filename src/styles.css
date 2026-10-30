@@ -41,6 +41,7 @@
 	--hairline: rgba(255, 255, 255, 0.07);
 	--card: rgba(255, 255, 255, 0.055);
 	--accent: #a0a4ff;
+	--select-chevron: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M1 1l4 4 4-4' fill='none' stroke='%23aaa' stroke-width='1.6' stroke-linecap='round'/></svg>");
 	font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
 	font-feature-settings:
 		"tnum" 1,
@@ -332,10 +333,14 @@
 	}
 }
 
-/* the PiP window has no transparent corners */
+/* the PiP and settings windows are opaque */
 html:has([data-pip]),
 body:has([data-pip]) {
 	background: #000;
+}
+html:has([data-settings]),
+body:has([data-settings]) {
+	background: #0c0c10;
 }
 
 /* browser preview wallpaper (never applied inside Tauri) */

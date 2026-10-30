@@ -1,4 +1,5 @@
 import { IssueIcon, RefreshIcon } from "../../../components/icons";
+import { LinkButton } from "../../../components/ui/button";
 import { command, providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
@@ -45,13 +46,7 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 			{repos.length === 0 ? (
 				<div className="flex flex-1 flex-col items-center justify-center gap-1.5 text-[13px] text-text-dim">
 					<span>{t("github.empty")}</span>
-					<button
-						type="button"
-						className="font-semibold text-accent hover:underline"
-						onClick={() => command("open_settings")}
-					>
-						{t("github.addInSettings")}
-					</button>
+					<LinkButton onClick={() => command("open_settings")}>{t("github.addInSettings")}</LinkButton>
 				</div>
 			) : (
 				<div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none]">

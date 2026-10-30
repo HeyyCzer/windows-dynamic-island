@@ -1,7 +1,9 @@
 import { type FormEvent, useState } from "react";
 import { CloseIcon, IssueIcon } from "../../../components/icons";
+import { Button, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Row } from "../../../components/ui/card";
+import { Input } from "../../../components/ui/form";
 import { providerAction, useProvider } from "../../../core/bridge";
-import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
 import { formatCount, parseRepo } from "../repo";
@@ -39,16 +41,11 @@ function Repos() {
 	};
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("github.repos.title")}</span>
-					<span className="settings-desc">{t("github.repos.desc")}</span>
-				</div>
-			</div>
+		<Block>
+			<Row label={t("github.repos.title")} desc={t("github.repos.desc")}></Row>
 			<form className="flex gap-2" onSubmit={add}>
-				<input
-					className="settings-input flex-1"
+				<Input
+					className="flex-1"
 					value={input}
 					placeholder={t("github.repos.placeholder")}
 					spellCheck={false}
@@ -57,11 +54,11 @@ function Repos() {
 						setError(null);
 					}}
 				/>
-				<button type="button" className="settings-btn primary" disabled={!input.trim()}>
+				<Button variant="primary" disabled={!input.trim()}>
 					{t("github.repos.add")}
-				</button>
+				</Button>
 			</form>
-			{error && <span className="settings-error">{error}</span>}
+			{error && <Desc tone="error">{error}</Desc>}
 			{repos.length > 0 && (
 				<ul className="mt-0.5 flex list-none flex-col gap-1">
 					{repos.map((name) => {
@@ -99,7 +96,7 @@ function Repos() {
 					})}
 				</ul>
 			)}
-		</div>
+		</Block>
 	);
 }
 
@@ -134,18 +131,14 @@ function Account() {
 				: t("github.account.none");
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("github.account.title")}</span>
-					<span className={cn("settings-desc", state?.authError && "text-warn")}>{status}</span>
-				</div>
+		<Block>
+			<Row label={t("github.account.title")} desc={status} descTone={state?.authError ? "warn" : undefined}>
 				{state?.auth === "token" && (
-					<button type="button" className="settings-btn danger" disabled={busy} onClick={() => run("clearToken")}>
+					<Button variant="danger" disabled={busy} onClick={() => run("clearToken")}>
 						{busy ? "…" : t("github.account.remove")}
-					</button>
+					</Button>
 				)}
-			</div>
+			</Row>
 			{state?.auth !== "token" && (
 				<>
 					<form
@@ -155,8 +148,8 @@ function Account() {
 							run("setToken", { token });
 						}}
 					>
-						<input
-							className="settings-input flex-1"
+						<Input
+							className="flex-1"
 							type="password"
 							value={token}
 							placeholder={t("github.account.placeholder")}
@@ -164,23 +157,19 @@ function Account() {
 							spellCheck={false}
 							onChange={(e) => setToken(e.target.value)}
 						/>
-						<button type="button" className="settings-btn primary" disabled={busy || !token.trim()}>
+						<Button variant="primary" disabled={busy || !token.trim()}>
 							{busy ? "…" : t("github.account.save")}
-						</button>
+						</Button>
 					</form>
-					<span className="settings-desc">
+					<Desc>
 						{t("github.account.stored")}{" "}
-						<button
-							type="button"
-							className="font-semibold text-accent hover:underline"
-							onClick={() => providerAction("github", "open", { url: TOKEN_URL })}
-						>
+						<LinkButton onClick={() => providerAction("github", "open", { url: TOKEN_URL })}>
 							{t("github.account.create")}
-						</button>
-					</span>
+						</LinkButton>
+					</Desc>
 				</>
 			)}
-			{error && <span className="settings-error">{error}</span>}
-		</div>
+			{error && <Desc tone="error">{error}</Desc>}
+		</Block>
 	);
 }

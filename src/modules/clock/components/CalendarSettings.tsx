@@ -1,5 +1,8 @@
 import { type FormEvent, useState } from "react";
 import { CloseIcon } from "../../../components/icons";
+import { Button, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Row, RowText } from "../../../components/ui/card";
+import { Input, Select } from "../../../components/ui/form";
 import { command, providerAction, useProvider } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
@@ -65,14 +68,9 @@ function Reminder() {
 	const free = LEAD_OPTIONS.filter((n) => !leads.includes(n));
 
 	return (
-		<div className={cn("settings-block", !remind && "*:opacity-45")}>
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("calendar.remindMinutes.label")}</span>
-					<span className="settings-desc">{t("calendar.remindMinutes.desc")}</span>
-				</div>
-				<select
-					className="settings-select"
+		<Block className={cn(!remind && "*:opacity-45")}>
+			<Row label={t("calendar.remindMinutes.label")} desc={t("calendar.remindMinutes.desc")}>
+				<Select
 					value=""
 					disabled={!remind || !free.length}
 					onChange={(e) => setSetting(remindMinutes, leadList([...leads, Number(e.target.value)]))}
@@ -85,8 +83,8 @@ function Reminder() {
 							{label(n)}
 						</option>
 					))}
-				</select>
-			</div>
+				</Select>
+			</Row>
 			<ul className="flex list-none flex-wrap gap-1.5">
 				{leads.map((n) => (
 					<li
@@ -120,15 +118,11 @@ function Reminder() {
 				{ def: eventReminders, value: own },
 				{ def: remindSound, value: sound },
 			].map(({ def, value }) => (
-				<label key={def.key} className="settings-row">
-					<div className="settings-text">
-						<span className="settings-label">{t(def.label)}</span>
-						{def.description && <span className="settings-desc">{t(def.description)}</span>}
-					</div>
+				<Row as="label" label={t(def.label)} desc={def.description && t(def.description)} key={def.key}>
 					<Toggle checked={value} disabled={!remind} onChange={(v) => setSetting(def, v)} />
-				</label>
+				</Row>
 			))}
-		</div>
+		</Block>
 	);
 }
 
@@ -172,67 +166,47 @@ function GoogleAccount() {
 	};
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("calendar.google.title")}</span>
-					<span className={cn("settings-desc", google?.error === "unauthorized" && "text-warn")}>
-						{busy === "connect" ? t("calendar.google.waiting") : status}
-					</span>
-				</div>
+		<Block>
+			<Row
+				label={t("calendar.google.title")}
+				desc={busy === "connect" ? t("calendar.google.waiting") : status}
+				descTone={google?.error === "unauthorized" ? "warn" : undefined}
+			>
 				{busy === "connect" ? (
-					<button
-						type="button"
-						className="settings-btn"
-						onClick={() => providerAction(CALENDAR_PROVIDER, "cancelConnect")}
-					>
+					<Button onClick={() => providerAction(CALENDAR_PROVIDER, "cancelConnect")}>
 						{t("calendar.google.cancel")}
-					</button>
+					</Button>
 				) : google?.connected && google.error !== "unauthorized" ? (
-					<button
-						type="button"
-						className="settings-btn danger"
-						disabled={!!busy}
-						onClick={() => run("disconnectGoogle")}
-					>
+					<Button variant="danger" disabled={!!busy} onClick={() => run("disconnectGoogle")}>
 						{t("calendar.google.disconnect")}
-					</button>
+					</Button>
 				) : (
 					google?.hasClient && (
-						<button
-							type="button"
-							className="settings-btn primary"
-							disabled={!!busy}
-							onClick={() => run("connectGoogle", undefined, "connect")}
-						>
+						<Button variant="primary" disabled={!!busy} onClick={() => run("connectGoogle", undefined, "connect")}>
 							{t("calendar.google.connect")}
-						</button>
+						</Button>
 					)
 				)}
-			</div>
+			</Row>
 
 			{google && !google.hasClient && (
 				<>
-					<span className="settings-desc">
+					<Desc>
 						{t("calendar.google.clientHow")}{" "}
-						<button
-							type="button"
-							className="font-semibold text-accent hover:underline"
-							onClick={() => command("open_external", { url: CLOUD_CONSOLE_URL })}
-						>
+						<LinkButton onClick={() => command("open_external", { url: CLOUD_CONSOLE_URL })}>
 							{t("calendar.google.clientOpen")}
-						</button>
-					</span>
+						</LinkButton>
+					</Desc>
 					<form className="flex gap-2" onSubmit={saveClient}>
-						<input
-							className="settings-input flex-1"
+						<Input
+							className="flex-1"
 							value={clientId}
 							placeholder={t("calendar.google.clientId")}
 							spellCheck={false}
 							onChange={(e) => setClientId(e.target.value)}
 						/>
-						<input
-							className="settings-input flex-1"
+						<Input
+							className="flex-1"
 							type="password"
 							value={clientSecret}
 							placeholder={t("calendar.google.clientSecret")}
@@ -240,26 +214,21 @@ function GoogleAccount() {
 							spellCheck={false}
 							onChange={(e) => setClientSecret(e.target.value)}
 						/>
-						<button type="button" className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
+						<Button variant="primary" disabled={!!busy || !clientId.trim()}>
 							{t("calendar.google.clientSave")}
-						</button>
+						</Button>
 					</form>
 				</>
 			)}
 			{google?.hasClient && !google.builtinClient && !google.connected && (
-				<span className="settings-desc">
-					<button
-						type="button"
-						className="font-semibold text-accent hover:underline"
-						disabled={!!busy}
-						onClick={() => run("clearClient")}
-					>
+				<Desc>
+					<LinkButton disabled={!!busy} onClick={() => run("clearClient")}>
 						{t("calendar.google.clientRemove")}
-					</button>
-				</span>
+					</LinkButton>
+				</Desc>
 			)}
-			{error && <span className="settings-error">{error}</span>}
-		</div>
+			{error && <Desc tone="error">{error}</Desc>}
+		</Block>
 	);
 }
 
@@ -286,14 +255,11 @@ function IcalLinks() {
 
 	const feeds = state?.feeds ?? [];
 	return (
-		<div className="settings-block">
-			<div className="settings-text">
-				<span className="settings-label">{t("calendar.ics.title")}</span>
-				<span className="settings-desc">{t("calendar.ics.desc")}</span>
-			</div>
+		<Block>
+			<RowText label={t("calendar.ics.title")} desc={t("calendar.ics.desc")} />
 			<form className="flex gap-2" onSubmit={add}>
-				<input
-					className="settings-input flex-1"
+				<Input
+					className="flex-1"
 					type="password"
 					value={url}
 					placeholder={t("calendar.ics.placeholder")}
@@ -304,11 +270,11 @@ function IcalLinks() {
 						setError(null);
 					}}
 				/>
-				<button type="button" className="settings-btn primary" disabled={busy || !url.trim()}>
+				<Button variant="primary" disabled={busy || !url.trim()}>
 					{busy ? "…" : t("calendar.ics.add")}
-				</button>
+				</Button>
 			</form>
-			{error && <span className="settings-error">{error}</span>}
+			{error && <Desc tone="error">{error}</Desc>}
 			{feeds.length > 0 && (
 				<ul className="mt-0.5 flex list-none flex-col gap-1">
 					{feeds.map((f) => (
@@ -329,7 +295,7 @@ function IcalLinks() {
 					))}
 				</ul>
 			)}
-		</div>
+		</Block>
 	);
 }
 
@@ -342,11 +308,8 @@ function Calendars() {
 	return (
 		<>
 			<div className="mb-1 h-px bg-hairline" />
-			<div className="settings-block">
-				<div className="settings-text">
-					<span className="settings-label">{t("calendar.calendars.title")}</span>
-					<span className="settings-desc">{t("calendar.calendars.desc")}</span>
-				</div>
+			<Block>
+				<RowText label={t("calendar.calendars.title")} desc={t("calendar.calendars.desc")} />
 				<ul className="mt-0.5 flex list-none flex-col gap-1">
 					{calendars.map((c) => {
 						// From the setting, not `c.visible`: that one only catches up after
@@ -372,7 +335,7 @@ function Calendars() {
 						);
 					})}
 				</ul>
-			</div>
+			</Block>
 		</>
 	);
 }

@@ -1,3 +1,5 @@
+import { Block, Row } from "../../../components/ui/card";
+import { Chip, Chips } from "../../../components/ui/text";
 import { useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { type CodexState, PROVIDER } from "./useCodex";
@@ -9,18 +11,11 @@ export function CodexSettings() {
 	const found = !!state?.available;
 
 	return (
-		<div className="settings-block">
-			<div className="settings-row">
-				<div className="settings-text">
-					<span className="settings-label">{t("codex.integration.title")}</span>
-					<span className="settings-desc">{t("codex.integration.desc", { dir: "~/.codex/sessions" })}</span>
-				</div>
-			</div>
-			<div className="settings-chips">
-				<span className={`settings-chip ${found ? "ok" : ""}`}>
-					{found ? t("codex.integration.found") : t("codex.integration.missing")}
-				</span>
-			</div>
-		</div>
+		<Block>
+			<Row label={t("codex.integration.title")} desc={t("codex.integration.desc", { dir: "~/.codex/sessions" })}></Row>
+			<Chips>
+				<Chip ok={!!found}>{found ? t("codex.integration.found") : t("codex.integration.missing")}</Chip>
+			</Chips>
+		</Block>
 	);
 }

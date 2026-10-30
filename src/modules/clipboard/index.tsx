@@ -5,6 +5,7 @@
  * Backend: `src-tauri/src/providers/clipboard/`.
  */
 import { Glyph } from "../../components/Glyph";
+import { Block, Desc } from "../../components/ui/card";
 import { useProvider } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 import { useSetting } from "../../core/settings";
@@ -25,9 +26,9 @@ const MAX_ROWS = 4;
 function ClipboardSettings() {
 	const t = useT();
 	return (
-		<div className="settings-block">
-			<span className="settings-desc">{t("clipboard.privacy")}</span>
-		</div>
+		<Block>
+			<Desc>{t("clipboard.privacy")}</Desc>
+		</Block>
 	);
 }
 
