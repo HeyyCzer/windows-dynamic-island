@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { Badge } from "../../../components/Glyph";
+import { TextButton } from "../../../components/ui/button";
+import { Empty, SectionLabel } from "../../../components/ui/text";
 import { providerAction } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
 import { formatAgo, useNow } from "../../ai-agents/common/format";
@@ -22,24 +24,20 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
 	return (
 		<div className="flex h-full flex-col">
 			<div className="mb-1 flex items-center justify-between">
-				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">
-					{t("notifications.title")}
-				</span>
+				<SectionLabel>{t("notifications.title")}</SectionLabel>
 				{items.length > 0 && (
-					<button
-						type="button"
-						className="rounded-[10px] px-2.5 py-0.5 text-[12px] text-text-dim hover:bg-white/10 hover:text-text"
+					<TextButton
 						onClick={(e) => {
 							e.stopPropagation();
 							providerAction(NOTIFICATIONS_PROVIDER, "clear");
 						}}
 					>
 						{t("notifications.clear")}
-					</button>
+					</TextButton>
 				)}
 			</div>
 			{items.length === 0 ? (
-				<div className="m-auto text-[13px] text-text-faint">{t("notifications.empty")}</div>
+				<Empty>{t("notifications.empty")}</Empty>
 			) : (
 				<ul className="flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
 					{items.map((item) => (

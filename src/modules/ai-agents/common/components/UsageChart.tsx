@@ -1,3 +1,4 @@
+import { SectionLabel } from "../../../../components/ui/text";
 import { cn } from "../../../../core/cn";
 import { useLocale, useT } from "../../../../core/i18n";
 import { formatTokens } from "../format";
@@ -68,7 +69,7 @@ export function UsageChart({ usage, color }: { usage: UsageHistory; color: strin
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
 	return (
 		<div className="flex min-w-16 flex-col gap-px">
-			<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">{label}</span>
+			<SectionLabel>{label}</SectionLabel>
 			<span className="text-[17px] font-[650] tabular-nums">{value}</span>
 			{sub && <span className="text-[11px] text-text-faint">{sub}</span>}
 		</div>

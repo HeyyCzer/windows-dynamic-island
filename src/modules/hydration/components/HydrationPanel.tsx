@@ -1,4 +1,5 @@
 import { WaterDropIcon } from "../../../components/icons";
+import { SectionLabel } from "../../../components/ui/text";
 import { useT } from "../../../core/i18n";
 import { useNow } from "../../ai-agents/common/format";
 
@@ -50,9 +51,9 @@ export function HydrationPanel({
 				<WaterDropIcon size={21} />
 			</span>
 			<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-				<span className="text-[10.5px] font-bold tracking-[0.065em] text-text-faint uppercase">
+				<SectionLabel size="sm">
 					{due ? t("hydration.reminder") : paused ? t("hydration.paused") : t("hydration.next")}
-				</span>
+				</SectionLabel>
 				<strong className="text-[18px]/[1.2] tabular-nums">
 					{due
 						? t("hydration.titleDue")

@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect } from "react";
+import { SectionLabel } from "../../../components/ui/text";
 import { providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useLocale, useT } from "../../../core/i18n";
@@ -100,7 +101,7 @@ function Tile({
 }) {
 	return (
 		<div className="flex min-w-0 flex-col rounded-[14px] bg-card px-2.5 pt-2 pb-1.5">
-			<span className="text-[10.5px] font-bold tracking-[0.06em] text-text-faint uppercase">{label}</span>
+			<SectionLabel size="sm">{label}</SectionLabel>
 			<span
 				className={cn(
 					"mt-0.5 text-[22px]/[1.15] font-bold whitespace-nowrap tabular-nums",

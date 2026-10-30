@@ -1,5 +1,6 @@
 import { type KeyboardEvent, type MouseEvent, useEffect, useRef, useState } from "react";
 import { Glyph } from "../../../components/Glyph";
+import { IconButton } from "../../../components/ui/button";
 import { command, providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
@@ -117,36 +118,15 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
 				>
 					{counter}
 				</span>
-				<button
-					type="button"
-					className="size-7 flex-none grid place-items-center rounded-full text-text-dim enabled:hover:bg-white/10 enabled:hover:text-text disabled:cursor-default disabled:opacity-35"
-					title={t("find.prev")}
-					disabled={!count}
-					onMouseDown={keepFocus}
-					onClick={() => step("prev")}
-				>
+				<IconButton title={t("find.prev")} disabled={!count} onMouseDown={keepFocus} onClick={() => step("prev")}>
 					<Glyph name="chevron-up" size={12} />
-				</button>
-				<button
-					type="button"
-					className="size-7 flex-none grid place-items-center rounded-full text-text-dim enabled:hover:bg-white/10 enabled:hover:text-text disabled:cursor-default disabled:opacity-35"
-					title={t("find.next")}
-					disabled={!count}
-					onMouseDown={keepFocus}
-					onClick={() => step("next")}
-				>
+				</IconButton>
+				<IconButton title={t("find.next")} disabled={!count} onMouseDown={keepFocus} onClick={() => step("next")}>
 					<Glyph name="chevron-down" size={12} />
-				</button>
-				<button
-					type="button"
-					className="size-7 flex-none grid place-items-center rounded-full text-text-dim enabled:hover:bg-white/10 enabled:hover:text-text disabled:cursor-default disabled:opacity-35"
-					title={t("find.rescan")}
-					disabled={scanning}
-					onMouseDown={keepFocus}
-					onClick={scan}
-				>
+				</IconButton>
+				<IconButton title={t("find.rescan")} disabled={scanning} onMouseDown={keepFocus} onClick={scan}>
 					<Glyph name="refresh" size={12} />
-				</button>
+				</IconButton>
 			</div>
 			<div className={cn("truncate px-3.5 text-[11.5px] text-text-faint", state?.error && "text-danger")}>{hint}</div>
 		</div>

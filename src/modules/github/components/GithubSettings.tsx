@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { CloseIcon, IssueIcon } from "../../../components/icons";
-import { Button, LinkButton } from "../../../components/ui/button";
-import { Block, Desc, Row } from "../../../components/ui/card";
+import { Button, IconButton, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Divider, List, ListItem, Row } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/form";
 import { providerAction, useProvider } from "../../../core/bridge";
 import { useT } from "../../../core/i18n";
@@ -17,7 +17,7 @@ export function GithubSettings() {
 	return (
 		<>
 			<Repos />
-			<div className="mb-1 h-px bg-hairline" />
+			<Divider className="mb-1" />
 			<Account />
 		</>
 	);
@@ -42,7 +42,7 @@ function Repos() {
 
 	return (
 		<Block>
-			<Row label={t("github.repos.title")} desc={t("github.repos.desc")}></Row>
+			<Row label={t("github.repos.title")} desc={t("github.repos.desc")} />
 			<form className="flex gap-2" onSubmit={add}>
 				<Input
 					className="flex-1"
@@ -60,12 +60,11 @@ function Repos() {
 			</form>
 			{error && <Desc tone="error">{error}</Desc>}
 			{repos.length > 0 && (
-				<ul className="mt-0.5 flex list-none flex-col gap-1">
+				<List>
 					{repos.map((name) => {
 						const repo = state?.repos.find((r) => r.name.toLowerCase() === name.toLowerCase());
 						return (
-							<li key={name} className="flex h-8.5 items-center gap-2.5 rounded-[9px] bg-white/4 pr-1.5 pl-3">
-								<span className="min-w-0 flex-1 truncate text-[13px] font-[550]">{name}</span>
+							<ListItem key={name} name={name}>
 								{repo?.error ? (
 									<span className="flex items-center gap-1 text-[12px] font-medium text-danger">
 										{t(`github.error.${repo.error}`)}
@@ -78,9 +77,9 @@ function Repos() {
 										</span>
 									)
 								)}
-								<button
-									type="button"
-									className="grid size-6 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-[rgba(255,95,87,0.12)] hover:text-danger"
+								<IconButton
+									size="sm"
+									tone="danger"
 									title={t("github.repos.remove")}
 									onClick={() =>
 										setSetting(
@@ -90,11 +89,11 @@ function Repos() {
 									}
 								>
 									<CloseIcon size={12} />
-								</button>
-							</li>
+								</IconButton>
+							</ListItem>
 						);
 					})}
-				</ul>
+				</List>
 			)}
 		</Block>
 	);

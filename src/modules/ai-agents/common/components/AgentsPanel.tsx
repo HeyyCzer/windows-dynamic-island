@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { SectionLabel } from "../../../../components/ui/text";
 import { cn } from "../../../../core/cn";
 import { useT } from "../../../../core/i18n";
 import { useNow } from "../format";
@@ -38,7 +39,7 @@ export function AgentsPanel({
 				{/* biome-ignore lint/style/noNonNullAssertion: asking only holds sessions with a pending permission */}
 				<PermissionPrompt key={asking[0].session.permission!.id} item={asking[0]} now={now} more={asking.length - 1} />
 				<div className="flex min-h-0 flex-col gap-1.5">
-					<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">{t("agents.now")}</span>
+					<SectionLabel>{t("agents.now")}</SectionLabel>
 					<SessionList items={sessions} now={now} showAgent={agents.length > 1} />
 				</div>
 			</div>
@@ -75,7 +76,7 @@ export function AgentsPanel({
 			<AgentCard key={agent.id} agent={agent} snapshot={snapshots[index]} now={now} />
 			{usage?.daily.length ? <UsageChart usage={usage} color={agent.color} /> : null}
 			<div className="flex min-h-0 flex-col gap-1.5">
-				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">{t("agents.now")}</span>
+				<SectionLabel>{t("agents.now")}</SectionLabel>
 				<SessionList items={sessions} now={now} showAgent={agents.length > 1} />
 			</div>
 		</div>

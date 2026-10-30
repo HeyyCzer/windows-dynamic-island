@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
+import { SectionLabel } from "../../../../components/ui/text";
 import { command } from "../../../../core/bridge";
 import { useT } from "../../../../core/i18n";
 import { formatTokens } from "../format";
@@ -57,9 +58,7 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
 			</div>
 
 			<div className="flex flex-col rounded-[20px] bg-card px-4 py-3.5 shadow-[inset_0_0_0_1px_var(--hairline)] gap-1">
-				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">
-					{tr("agents.tokensToday")}
-				</span>
+				<SectionLabel>{tr("agents.tokensToday")}</SectionLabel>
 				<motion.span
 					key={formatTokens(total)}
 					className="text-[30px] font-bold tracking-[-0.02em] tabular-nums"

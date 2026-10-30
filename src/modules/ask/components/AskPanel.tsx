@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { type KeyboardEvent, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Glyph } from "../../../components/Glyph";
+import { IconButton, TextButton } from "../../../components/ui/button";
 import { command, providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { type Translate, useT } from "../../../core/i18n";
@@ -141,13 +142,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 				{running && state?.status && <span className="text-[12px] text-text-dim">{statusText(t, state.status)}</span>}
 				<span className="flex-1" />
 				{messages.length > 0 && !running && (
-					<button
-						type="button"
-						className="rounded-[10px] px-2.5 py-0.5 text-[12px] text-text-dim hover:bg-white/10 hover:text-text"
-						onClick={() => providerAction(ASK_PROVIDER, "new")}
-					>
-						{t("ask.new")}
-					</button>
+					<TextButton onClick={() => providerAction(ASK_PROVIDER, "new")}>{t("ask.new")}</TextButton>
 				)}
 			</div>
 
@@ -188,15 +183,14 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 						),
 					)}
 					{lastAnswer && (
-						<button
-							type="button"
-							className="-ml-2 self-start rounded-[10px] px-2.5 py-0.5 text-[12px] text-text-dim hover:bg-white/10 hover:text-text"
+						<TextButton
+							className="-ml-2 self-start"
 							onClick={() => {
 								navigator.clipboard.writeText(lastAnswer).then(() => setCopied(true));
 							}}
 						>
 							{copied ? t("ask.copied") : t("ask.copy")}
-						</button>
+						</TextButton>
 					)}
 				</div>
 			)}
@@ -229,14 +223,9 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
 			)}
 
 			<div className="flex items-end gap-1.5 rounded-[18px] bg-white/7 p-1.25" data-no-drag>
-				<button
-					type="button"
-					className="grid size-7 flex-none place-items-center rounded-full text-text-dim hover:bg-white/10 hover:text-text"
-					title={t("ask.screenshot")}
-					onClick={screenshot}
-				>
+				<IconButton title={t("ask.screenshot")} onClick={screenshot}>
 					<Glyph name="camera" size={14} />
-				</button>
+				</IconButton>
 				<textarea
 					ref={input}
 					rows={1}

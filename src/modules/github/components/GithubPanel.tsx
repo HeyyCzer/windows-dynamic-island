@@ -1,5 +1,6 @@
 import { IssueIcon, RefreshIcon } from "../../../components/icons";
-import { LinkButton } from "../../../components/ui/button";
+import { IconButton, LinkButton } from "../../../components/ui/button";
+import { SectionLabel } from "../../../components/ui/text";
 import { command, providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
@@ -26,21 +27,17 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 	return (
 		<div className="flex h-full flex-col gap-2">
 			<div className="flex h-5.5 flex-none items-center gap-2.5">
-				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">
-					{t("github.openIssues")}
-				</span>
+				<SectionLabel>{t("github.openIssues")}</SectionLabel>
 				<span className="flex-1 text-[11.5px] text-text-faint">{meta}</span>
-				<button
-					type="button"
-					className={cn(
-						"grid size-6 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
-						state?.loading && "[&_svg]:animate-spin-fast",
-					)}
+				<IconButton
+					size="sm"
+					tone="faint"
+					className={state?.loading ? "[&_svg]:animate-spin-fast" : undefined}
 					title={t("github.refresh")}
 					onClick={() => providerAction("github", "refresh")}
 				>
 					<RefreshIcon size={14} />
-				</button>
+				</IconButton>
 			</div>
 
 			{repos.length === 0 ? (

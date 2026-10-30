@@ -1,5 +1,6 @@
 import { type PointerEvent, useRef, useState } from "react";
 import { Glyph } from "../../../components/Glyph";
+import { TextButton } from "../../../components/ui/button";
 import { providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { type Translate, useT } from "../../../core/i18n";
@@ -40,13 +41,7 @@ export function ClipboardPanel({ state, hero }: { state: ClipboardState | undefi
 			<div className="flex items-center justify-between gap-3">
 				<span className="text-[12px] text-text-dim">{items.length ? t("clipboard.hint") : t("clipboard.empty")}</span>
 				{items.length > 0 && (
-					<button
-						type="button"
-						className="flex-none rounded-[10px] px-2.5 py-0.5 text-[12px] text-text-dim hover:bg-white/10 hover:text-text"
-						onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}
-					>
-						{t("clipboard.clear")}
-					</button>
+					<TextButton onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}>{t("clipboard.clear")}</TextButton>
 				)}
 			</div>
 			{hero && first ? (

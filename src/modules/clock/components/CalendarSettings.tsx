@@ -1,7 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { CloseIcon } from "../../../components/icons";
-import { Button, LinkButton } from "../../../components/ui/button";
-import { Block, Desc, Row, RowText } from "../../../components/ui/card";
+import { Button, IconButton, LinkButton } from "../../../components/ui/button";
+import { Block, Desc, Divider, List, ListItem, Row, RowText } from "../../../components/ui/card";
 import { Input, Select } from "../../../components/ui/form";
 import { command, providerAction, useProvider } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
@@ -42,9 +42,9 @@ export function CalendarSettings() {
 	return (
 		<>
 			<Reminder />
-			<div className="mb-1 h-px bg-hairline" />
+			<Divider className="mb-1" />
 			<GoogleAccount />
-			<div className="mb-1 h-px bg-hairline" />
+			<Divider className="mb-1" />
 			<IcalLinks />
 			<Calendars />
 		</>
@@ -96,9 +96,10 @@ function Reminder() {
 					>
 						{label(n)}
 						{leads.length > 1 && (
-							<button
-								type="button"
-								className="grid size-5 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-[rgba(255,95,87,0.12)] hover:text-danger"
+							<IconButton
+								size="sm"
+								tone="danger"
+								className="size-5"
 								title={t("calendar.remindMinutes.remove")}
 								disabled={!remind}
 								onClick={() =>
@@ -109,7 +110,7 @@ function Reminder() {
 								}
 							>
 								<CloseIcon size={10} />
-							</button>
+							</IconButton>
 						)}
 					</li>
 				))}
@@ -276,24 +277,23 @@ function IcalLinks() {
 			</form>
 			{error && <Desc tone="error">{error}</Desc>}
 			{feeds.length > 0 && (
-				<ul className="mt-0.5 flex list-none flex-col gap-1">
+				<List>
 					{feeds.map((f) => (
-						<li key={f.id} className="flex min-h-8.5 items-center gap-2.5 rounded-[9px] bg-white/4 pr-1.5 pl-3">
-							<span className="min-w-0 flex-1 truncate text-[13px] font-[550]">{f.name ?? f.host}</span>
+						<ListItem key={f.id} name={f.name ?? f.host}>
 							<span className={cn("text-[12px] whitespace-nowrap text-text-faint", f.error && "text-danger")}>
 								{f.error ? errorText(t, f.error) : f.name ? f.host : ""}
 							</span>
-							<button
-								type="button"
-								className="grid size-6 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-[rgba(255,95,87,0.12)] hover:text-danger"
+							<IconButton
+								size="sm"
+								tone="danger"
 								title={t("calendar.ics.remove")}
 								onClick={() => providerAction(CALENDAR_PROVIDER, "removeFeed", { id: f.id })}
 							>
 								<CloseIcon size={12} />
-							</button>
-						</li>
+							</IconButton>
+						</ListItem>
 					))}
-				</ul>
+				</List>
 			)}
 		</Block>
 	);
@@ -307,10 +307,10 @@ function Calendars() {
 
 	return (
 		<>
-			<div className="mb-1 h-px bg-hairline" />
+			<Divider className="mb-1" />
 			<Block>
 				<RowText label={t("calendar.calendars.title")} desc={t("calendar.calendars.desc")} />
-				<ul className="mt-0.5 flex list-none flex-col gap-1">
+				<List>
 					{calendars.map((c) => {
 						// From the setting, not `c.visible`: that one only catches up after
 						// the backend has fetched every calendar again.
@@ -334,7 +334,7 @@ function Calendars() {
 							</li>
 						);
 					})}
-				</ul>
+				</List>
 			</Block>
 		</>
 	);

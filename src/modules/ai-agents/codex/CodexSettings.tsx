@@ -12,7 +12,7 @@ export function CodexSettings() {
 
 	return (
 		<Block>
-			<Row label={t("codex.integration.title")} desc={t("codex.integration.desc", { dir: "~/.codex/sessions" })}></Row>
+			<Row label={t("codex.integration.title")} desc={t("codex.integration.desc", { dir: "~/.codex/sessions" })} />
 			<Chips>
 				<Chip ok={!!found}>{found ? t("codex.integration.found") : t("codex.integration.missing")}</Chip>
 			</Chips>

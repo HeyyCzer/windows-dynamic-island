@@ -1,5 +1,6 @@
 import { type PointerEvent, useRef } from "react";
 import { Glyph } from "../../../components/Glyph";
+import { TextButton } from "../../../components/ui/button";
 import { providerAction } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
@@ -20,13 +21,7 @@ export function ShelfPanel({ state }: { state: ShelfState | undefined }) {
 			<div className="flex items-center justify-between gap-3">
 				<span className="text-[12px] text-text-dim">{items.length ? t("shelf.hint") : t("shelf.empty")}</span>
 				{items.length > 0 && (
-					<button
-						type="button"
-						className="flex-none rounded-[10px] px-2.5 py-0.5 text-[12px] text-text-dim hover:bg-white/10 hover:text-text"
-						onClick={() => providerAction(SHELF_PROVIDER, "clear")}
-					>
-						{t("shelf.clear")}
-					</button>
+					<TextButton onClick={() => providerAction(SHELF_PROVIDER, "clear")}>{t("shelf.clear")}</TextButton>
 				)}
 			</div>
 			<div

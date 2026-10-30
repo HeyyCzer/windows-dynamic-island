@@ -8,6 +8,7 @@
  * ongoing activities stay until removed and are listed in the panel.
  */
 import { Badge, Glyph } from "../../components/Glyph";
+import { Empty } from "../../components/ui/text";
 import { useProvider } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, useSettings } from "../../core/settings";
@@ -76,7 +77,7 @@ export const activitiesModule: IslandModule = {
 					{ongoing.map((a) => (
 						<ActivityCard key={a.id} activity={a} compact />
 					))}
-					{!ongoing.length && <Empty />}
+					{!ongoing.length && <NothingYet />}
 				</div>
 			),
 			expandedSize: alert
@@ -89,7 +90,7 @@ export const activitiesModule: IslandModule = {
 };
 
 /** Pinned to the tab bar with nothing going on. */
-function Empty() {
+function NothingYet() {
 	const t = useT();
-	return <div className="m-auto text-[13px] text-text-faint">{t("activities.empty")}</div>;
+	return <Empty>{t("activities.empty")}</Empty>;
 }
