@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
     "tauri": "tauri",
     "app:dev": "tauri dev",
     "app:build": "tauri build",
@@ -22,6 +24,7 @@
     "react-router": "^8.4.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.4",
     "@tauri-apps/cli": "^2.12.0",
     "@types/bun": "^1.4.2",
     "@types/react": "^19.3.0",
