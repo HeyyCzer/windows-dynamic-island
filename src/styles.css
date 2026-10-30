@@ -1,3 +1,18 @@
+@import "tailwindcss";
+
+/* Design tokens as Tailwind colors. `inline` keeps them pointing at the vars, so a
+   local override (e.g. the music panel's `--accent`) still flows into utilities. */
+@theme inline {
+	--color-island: var(--island);
+	--color-text: var(--text);
+	--color-text-dim: var(--text-dim);
+	--color-text-faint: var(--text-faint);
+	--color-hairline: var(--hairline);
+	--color-card: var(--card);
+	--color-accent: var(--accent);
+	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+}
+
 :root {
 	--island: #000;
 	--text: #f5f5f7;
