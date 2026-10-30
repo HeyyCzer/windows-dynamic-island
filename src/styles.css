@@ -49,29 +49,37 @@
 	-webkit-font-smoothing: antialiased;
 }
 
-* {
-	box-sizing: border-box;
-}
+/* Resets live in `base`, so component and utility classes override them. */
+@layer base {
+	* {
+		box-sizing: border-box;
+	}
 
-html,
-body,
-#root {
-	margin: 0;
-	width: 100%;
-	height: 100%;
-	background: transparent;
-	overflow: hidden;
-	user-select: none;
-	cursor: default;
-}
+	/* Preflight sets 1.5; the UI was drawn with the browser's `normal`. */
+	html {
+		line-height: normal;
+	}
 
-button {
-	font: inherit;
-	color: inherit;
-	background: none;
-	border: 0;
-	padding: 0;
-	cursor: pointer;
+	html,
+	body,
+	#root {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+		background: transparent;
+		overflow: hidden;
+		user-select: none;
+		cursor: default;
+	}
+
+	button {
+		font: inherit;
+		color: inherit;
+		background: none;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
+	}
 }
 
 /* ---------------------------------------------------------------- island -- */
