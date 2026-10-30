@@ -50,11 +50,12 @@ function Integration() {
           <span className="settings-desc">{t("claude.integration.desc", { file: "~/.claude/settings.json" })}</span>
         </div>
         {outdated && (
-          <button className="settings-btn primary" disabled={busy} onClick={() => run("install")}>
+          <button type="button" className="settings-btn primary" disabled={busy} onClick={() => run("install")}>
             {busy ? "…" : t("claude.setup.update")}
           </button>
         )}
         <button
+          type="button"
           className={`settings-btn ${installed ? "danger" : "primary"}`}
           disabled={busy || !state}
           onClick={() => run(installed ? "uninstall" : "install")}
@@ -98,17 +99,17 @@ function SoundRow({ kind }: { kind: keyof typeof claudeSounds }) {
         <span className="settings-desc" title={file ?? undefined}>
           {name}
           {" · "}
-          <button className="claude-sound-link" onClick={() => providerAction("claude", "testSound", kind)}>
+          <button type="button" className="claude-sound-link" onClick={() => providerAction("claude", "testSound", kind)}>
             {t("claude.sound.test")}
           </button>
           {" · "}
-          <button className="claude-sound-link" onClick={pick}>
+          <button type="button" className="claude-sound-link" onClick={pick}>
             {t("claude.sound.choose")}
           </button>
           {file && (
             <>
               {" · "}
-              <button className="claude-sound-link" onClick={() => setSetting(defs.file, null)}>
+              <button type="button" className="claude-sound-link" onClick={() => setSetting(defs.file, null)}>
                 {t("claude.sound.reset")}
               </button>
             </>

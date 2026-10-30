@@ -30,6 +30,7 @@ export function Tabs({
 				const selected = current === module.id;
 				return (
 					<button
+						type="button"
 						key={module.id}
 						className={`tab ${selected ? "is-active" : ""}`}
 						title={t(module.title)}
@@ -45,6 +46,7 @@ export function Tabs({
 				);
 			})}
 			<button
+				type="button"
 				className={`tab tab-launcher ${current === LAUNCHER ? "is-active" : ""}`}
 				title={t("layout.launcher")}
 				onClick={(e) => {

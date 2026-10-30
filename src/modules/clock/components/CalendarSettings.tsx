@@ -81,6 +81,7 @@ function Reminder() {
             {label(n)}
             {leads.length > 1 && (
               <button
+                type="button"
                 className="cal-remove"
                 title={t("calendar.remindMinutes.remove")}
                 disabled={!remind}
@@ -157,16 +158,16 @@ function GoogleAccount() {
           </span>
         </div>
         {busy === "connect" ? (
-          <button className="settings-btn" onClick={() => providerAction(CALENDAR_PROVIDER, "cancelConnect")}>
+          <button type="button" className="settings-btn" onClick={() => providerAction(CALENDAR_PROVIDER, "cancelConnect")}>
             {t("calendar.google.cancel")}
           </button>
         ) : google?.connected && google.error !== "unauthorized" ? (
-          <button className="settings-btn danger" disabled={!!busy} onClick={() => run("disconnectGoogle")}>
+          <button type="button" className="settings-btn danger" disabled={!!busy} onClick={() => run("disconnectGoogle")}>
             {t("calendar.google.disconnect")}
           </button>
         ) : (
           google?.hasClient && (
-            <button className="settings-btn primary" disabled={!!busy} onClick={() => run("connectGoogle", undefined, "connect")}>
+            <button type="button" className="settings-btn primary" disabled={!!busy} onClick={() => run("connectGoogle", undefined, "connect")}>
               {t("calendar.google.connect")}
             </button>
           )
@@ -177,7 +178,7 @@ function GoogleAccount() {
         <>
           <span className="settings-desc">
             {t("calendar.google.clientHow")}{" "}
-            <button className="cal-link" onClick={() => command("open_external", { url: CLOUD_CONSOLE_URL })}>
+            <button type="button" className="cal-link" onClick={() => command("open_external", { url: CLOUD_CONSOLE_URL })}>
               {t("calendar.google.clientOpen")}
             </button>
           </span>
@@ -198,7 +199,7 @@ function GoogleAccount() {
               spellCheck={false}
               onChange={(e) => setClientSecret(e.target.value)}
             />
-            <button className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
+            <button type="button" className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
               {t("calendar.google.clientSave")}
             </button>
           </form>
@@ -206,7 +207,7 @@ function GoogleAccount() {
       )}
       {google?.hasClient && !google.builtinClient && !google.connected && (
         <span className="settings-desc">
-          <button className="cal-link" disabled={!!busy} onClick={() => run("clearClient")}>
+          <button type="button" className="cal-link" disabled={!!busy} onClick={() => run("clearClient")}>
             {t("calendar.google.clientRemove")}
           </button>
         </span>
@@ -257,7 +258,7 @@ function IcalLinks() {
             setError(null);
           }}
         />
-        <button className="settings-btn primary" disabled={busy || !url.trim()}>
+        <button type="button" className="settings-btn primary" disabled={busy || !url.trim()}>
           {busy ? "…" : t("calendar.ics.add")}
         </button>
       </form>
@@ -271,6 +272,7 @@ function IcalLinks() {
                 {f.error ? errorText(t, f.error) : f.name ? f.host : ""}
               </span>
               <button
+                type="button"
                 className="cal-remove"
                 title={t("calendar.ics.remove")}
                 onClick={() => providerAction(CALENDAR_PROVIDER, "removeFeed", { id: f.id })}

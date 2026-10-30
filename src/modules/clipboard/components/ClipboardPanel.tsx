@@ -36,7 +36,7 @@ export function ClipboardPanel({ state, hero }: { state: ClipboardState | undefi
       <div className="clip-head">
         <span className="clip-hint">{items.length ? t("clipboard.hint") : t("clipboard.empty")}</span>
         {items.length > 0 && (
-          <button className="clip-clear" onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}>
+          <button type="button" className="clip-clear" onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}>
             {t("clipboard.clear")}
           </button>
         )}
@@ -185,18 +185,18 @@ function Hero({ item }: { item: ClipItem }) {
         <span className="clip-title">{clipTitle(t, item)}</span>
         {a.done ? <span className="clip-done">✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}</span> : <Meta item={item} />}
         <div className="clip-hero-buttons">
-          <button className="clip-pill" title={t("clipboard.copy")} onClick={a.copy}>
+          <button type="button" className="clip-pill" title={t("clipboard.copy")} onClick={a.copy}>
             <Glyph name="copy" size={11} /> {t("clipboard.short.copy")}
           </button>
           {a.ask && (
-            <button className="clip-pill" title={t("clipboard.ask")} onClick={a.ask}>
+            <button type="button" className="clip-pill" title={t("clipboard.ask")} onClick={a.ask}>
               <Glyph name="chat" size={11} /> {t("clipboard.short.ask")}
             </button>
           )}
-          <button className="clip-pill" title={t("clipboard.keep")} onClick={a.keep}>
+          <button type="button" className="clip-pill" title={t("clipboard.keep")} onClick={a.keep}>
             <Glyph name="folder" size={11} /> {t("clipboard.short.keep")}
           </button>
-          <button className="clip-pill" title={t("clipboard.open")} onClick={a.open}>
+          <button type="button" className="clip-pill" title={t("clipboard.open")} onClick={a.open}>
             <Glyph name="open" size={11} /> {t("clipboard.open")}
           </button>
         </div>
@@ -208,6 +208,7 @@ function Hero({ item }: { item: ClipItem }) {
 function IconButton({ icon, label, onClick }: { icon: string; label: string; onClick: () => void }) {
   return (
     <button
+      type="button"
       className="clip-btn"
       title={label}
       onClick={(e) => {

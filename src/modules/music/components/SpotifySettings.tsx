@@ -67,16 +67,16 @@ export function SpotifySettings() {
           </span>
         </div>
         {busy === "connect" ? (
-          <button className="settings-btn" onClick={() => providerAction(MUSIC_PROVIDER, "spotifyCancel")}>
+          <button type="button" className="settings-btn" onClick={() => providerAction(MUSIC_PROVIDER, "spotifyCancel")}>
             {t("music.spotify.cancel")}
           </button>
         ) : status?.connected && !revoked ? (
-          <button className="settings-btn danger" disabled={!!busy} onClick={() => run("spotifyDisconnect")}>
+          <button type="button" className="settings-btn danger" disabled={!!busy} onClick={() => run("spotifyDisconnect")}>
             {t("music.spotify.disconnect")}
           </button>
         ) : (
           status?.hasClient && (
-            <button className="settings-btn primary" disabled={!!busy} onClick={() => run("spotifyConnect", undefined, "connect")}>
+            <button type="button" className="settings-btn primary" disabled={!!busy} onClick={() => run("spotifyConnect", undefined, "connect")}>
               {t("music.spotify.connect")}
             </button>
           )
@@ -87,7 +87,7 @@ export function SpotifySettings() {
         <>
           <span className="settings-desc">
             {t("music.spotify.clientHow", { redirect: REDIRECT })}{" "}
-            <button className="cal-link" onClick={() => command("open_external", { url: DASHBOARD_URL })}>
+            <button type="button" className="cal-link" onClick={() => command("open_external", { url: DASHBOARD_URL })}>
               {t("music.spotify.clientOpen")}
             </button>
           </span>
@@ -99,7 +99,7 @@ export function SpotifySettings() {
               spellCheck={false}
               onChange={(e) => setClientId(e.target.value)}
             />
-            <button className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
+            <button type="button" className="settings-btn primary" disabled={!!busy || !clientId.trim()}>
               {t("music.spotify.clientSave")}
             </button>
           </form>
@@ -107,7 +107,7 @@ export function SpotifySettings() {
       )}
       {status?.hasClient && !status.connected && (
         <span className="settings-desc">
-          <button className="cal-link" disabled={!!busy} onClick={() => run("spotifyClearClient")}>
+          <button type="button" className="cal-link" disabled={!!busy} onClick={() => run("spotifyClearClient")}>
             {t("music.spotify.clientRemove")}
           </button>
         </span>

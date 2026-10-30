@@ -49,6 +49,7 @@ export function ActivityCard({ activity: a, compact = false }: { activity: Activ
       </div>
       {!compact && a.expiresAt == null && (
         <button
+          type="button"
           className="activity-dismiss"
           title="×"
           onClick={(e) => {

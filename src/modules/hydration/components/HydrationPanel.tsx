@@ -46,18 +46,18 @@ export function HydrationPanel({
       <div className="hydration-actions">
         {due ? (
           <>
-            <button className="hydration-button secondary" onClick={() => onSnooze()}>{t("hydration.snooze.action")}</button>
-            <button className="hydration-button primary" onClick={() => onConfirm()}>{t("hydration.confirm")}</button>
+            <button type="button" className="hydration-button secondary" onClick={() => onSnooze()}>{t("hydration.snooze.action")}</button>
+            <button type="button" className="hydration-button primary" onClick={() => onConfirm()}>{t("hydration.confirm")}</button>
           </>
         ) : running ? (
-          <button className="hydration-button secondary" onClick={() => onPause()}>{t("hydration.pause")}</button>
+          <button type="button" className="hydration-button secondary" onClick={() => onPause()}>{t("hydration.pause")}</button>
         ) : paused ? (
           <>
-            <button className="hydration-button secondary" onClick={() => onStart()}>{t("hydration.reset")}</button>
-            <button className="hydration-button primary" onClick={() => onResume()}>{t("hydration.resume")}</button>
+            <button type="button" className="hydration-button secondary" onClick={() => onStart()}>{t("hydration.reset")}</button>
+            <button type="button" className="hydration-button primary" onClick={() => onResume()}>{t("hydration.resume")}</button>
           </>
         ) : (
-          <button className="hydration-button primary" onClick={() => onStart()}>{t("hydration.start")}</button>
+          <button type="button" className="hydration-button primary" onClick={() => onStart()}>{t("hydration.start")}</button>
         )}
       </div>
     </div>

@@ -34,6 +34,7 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
         </div>
         {snapshot.limits.length ? (
           <button
+            type="button"
             className="agents-limits"
             disabled={!agent.usageUrl}
             onClick={(e) => {

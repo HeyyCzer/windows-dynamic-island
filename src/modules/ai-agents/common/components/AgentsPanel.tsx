@@ -46,6 +46,7 @@ export function AgentsPanel({
         <div className="agents-tabs" role="tablist">
           {agents.map((a) => (
             <button
+              type="button"
               key={a.id}
               role="tab"
               aria-selected={a === agent}

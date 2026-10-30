@@ -56,7 +56,7 @@ function Repos() {
             setError(null);
           }}
         />
-        <button className="settings-btn primary" disabled={!input.trim()}>
+        <button type="button" className="settings-btn primary" disabled={!input.trim()}>
           {t("github.repos.add")}
         </button>
       </form>
@@ -79,6 +79,7 @@ function Repos() {
                   )
                 )}
                 <button
+                  type="button"
                   className="gh-remove"
                   title={t("github.repos.remove")}
                   onClick={() => setSetting(githubRepos, repos.filter((r) => r !== name))}
@@ -132,7 +133,7 @@ function Account() {
           <span className={`settings-desc ${state?.authError ? "gh-warn" : ""}`}>{status}</span>
         </div>
         {state?.auth === "token" && (
-          <button className="settings-btn danger" disabled={busy} onClick={() => run("clearToken")}>
+          <button type="button" className="settings-btn danger" disabled={busy} onClick={() => run("clearToken")}>
             {busy ? "…" : t("github.account.remove")}
           </button>
         )}
@@ -155,13 +156,13 @@ function Account() {
               spellCheck={false}
               onChange={(e) => setToken(e.target.value)}
             />
-            <button className="settings-btn primary" disabled={busy || !token.trim()}>
+            <button type="button" className="settings-btn primary" disabled={busy || !token.trim()}>
               {busy ? "…" : t("github.account.save")}
             </button>
           </form>
           <span className="settings-desc">
             {t("github.account.stored")}{" "}
-            <button className="gh-link" onClick={() => providerAction("github", "open", { url: TOKEN_URL })}>
+            <button type="button" className="gh-link" onClick={() => providerAction("github", "open", { url: TOKEN_URL })}>
               {t("github.account.create")}
             </button>
           </span>

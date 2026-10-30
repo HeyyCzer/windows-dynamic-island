@@ -19,7 +19,7 @@ export function ShelfPanel({ state }: { state: ShelfState | undefined }) {
       <div className="shelf-head">
         <span className="shelf-hint">{items.length ? t("shelf.hint") : t("shelf.empty")}</span>
         {items.length > 0 && (
-          <button className="shelf-clear" onClick={() => providerAction(SHELF_PROVIDER, "clear")}>
+          <button type="button" className="shelf-clear" onClick={() => providerAction(SHELF_PROVIDER, "clear")}>
             {t("shelf.clear")}
           </button>
         )}
@@ -76,6 +76,7 @@ function Tile({ item }: { item: ShelfItem }) {
       <span className="shelf-name">{item.name}</span>
       {askEnabled && (
         <button
+          type="button"
           className="shelf-btn ask"
           title={t("shelf.ask")}
           onClick={() => {
@@ -87,7 +88,7 @@ function Tile({ item }: { item: ShelfItem }) {
           <Glyph name="chat" size={10} />
         </button>
       )}
-      <button className="shelf-btn remove" title={t("shelf.remove")} onClick={() => shelfAction("remove", item.path)}>
+      <button type="button" className="shelf-btn remove" title={t("shelf.remove")} onClick={() => shelfAction("remove", item.path)}>
         ×
       </button>
     </div>

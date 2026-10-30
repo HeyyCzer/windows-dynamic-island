@@ -135,7 +135,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
         {running && state?.status && <span className="ask-status">{statusText(t, state.status)}</span>}
         <span className="ask-spacer" />
         {messages.length > 0 && !running && (
-          <button className="ask-text-btn" onClick={() => providerAction(ASK_PROVIDER, "new")}>
+          <button type="button" className="ask-text-btn" onClick={() => providerAction(ASK_PROVIDER, "new")}>
             {t("ask.new")}
           </button>
         )}
@@ -169,6 +169,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
           )}
           {lastAnswer && (
             <button
+              type="button"
               className="ask-text-btn ask-copy"
               onClick={() => {
                 navigator.clipboard.writeText(lastAnswer).then(() => setCopied(true));
@@ -187,6 +188,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
               {a.thumb ? <img src={a.thumb} alt="" /> : <Glyph name="folder" size={13} />}
               <span className="ask-chip-name">{a.label ?? a.name}</span>
               <button
+                type="button"
                 title={t("ask.remove")}
                 onClick={() => pendingAttachments.set((prev) => prev.filter((p) => p.path !== a.path))}
               >
@@ -198,7 +200,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
       )}
 
       <div className="ask-field" data-no-drag>
-        <button className="ask-icon-btn" title={t("ask.screenshot")} onClick={screenshot}>
+        <button type="button" className="ask-icon-btn" title={t("ask.screenshot")} onClick={screenshot}>
           <Glyph name="camera" size={14} />
         </button>
         <textarea
@@ -213,6 +215,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
           onBlur={() => island.keepOpen(false)}
         />
         <button
+          type="button"
           className={`ask-send ${running ? "is-stop" : ""}`}
           style={{ background: CLAUDE_ORANGE }}
           title={running ? t("ask.stop") : t("ask.send")}

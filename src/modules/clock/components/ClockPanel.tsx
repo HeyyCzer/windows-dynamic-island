@@ -109,6 +109,7 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
         <span className="clock-event-title">{e.title || t("calendar.untitled")}</span>
         {joinable && (
           <button
+            type="button"
             className="clock-event-join"
             onClick={(ev) => {
               ev.stopPropagation();
@@ -148,14 +149,14 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
         <div className="clock-cal-head">
           <span className="clock-cal-month">{monthLabel}</span>
           {(!onCurrentMonth || selected) && (
-            <button className="clock-cal-today" onClick={goToday}>
+            <button type="button" className="clock-cal-today" onClick={goToday}>
               {t("clock.today")}
             </button>
           )}
-          <button className="clock-cal-nav" title={t("clock.prev")} onClick={() => shift(-1)}>
+          <button type="button" className="clock-cal-nav" title={t("clock.prev")} onClick={() => shift(-1)}>
             ‹
           </button>
-          <button className="clock-cal-nav" title={t("clock.next")} onClick={() => shift(1)}>
+          <button type="button" className="clock-cal-nav" title={t("clock.next")} onClick={() => shift(1)}>
             ›
           </button>
         </div>
@@ -178,6 +179,7 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
             const marks = dots.get(d.toDateString());
             return (
               <button
+                type="button"
                 key={d.toDateString()}
                 className={classes}
                 onClick={() => {

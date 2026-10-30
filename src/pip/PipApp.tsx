@@ -83,6 +83,7 @@ export function PipApp() {
         <div className="pip-top">
           <Marquee text={music?.title ?? ""} className="pip-title" />
           <button
+            type="button"
             className="pip-btn"
             title={t("music.backToIsland")}
             onClick={() => {
@@ -92,19 +93,19 @@ export function PipApp() {
           >
             ⤡
           </button>
-          <button className="pip-btn" title={t("settings.close")} onClick={closePip}>
+          <button type="button" className="pip-btn" title={t("settings.close")} onClick={closePip}>
             ✕
           </button>
         </div>
         <div className="pip-bottom">
           <div className="pip-controls">
-            <button className="pip-btn" onClick={() => musicAction("previous")}>
+            <button type="button" className="pip-btn" onClick={() => musicAction("previous")}>
               <PrevIcon size={16} />
             </button>
-            <button className="pip-btn pip-play" onClick={() => musicAction("toggle")}>
+            <button type="button" className="pip-btn pip-play" onClick={() => musicAction("toggle")}>
               {music?.playing ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
             </button>
-            <button className="pip-btn" onClick={() => musicAction("next")}>
+            <button type="button" className="pip-btn" onClick={() => musicAction("next")}>
               <NextIcon size={16} />
             </button>
           </div>

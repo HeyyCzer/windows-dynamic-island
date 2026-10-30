@@ -36,6 +36,7 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
           <div className="style-picker">
             {STYLES.map((s) => (
               <button
+                type="button"
                 key={s.id}
                 className={`style-option ${style === s.id ? "is-active" : ""}`}
                 onClick={() => setSetting(appearanceSettings.style, s.id)}
@@ -115,6 +116,7 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
           <div className="segmented">
             {THICKNESSES.map((n) => (
               <button
+                type="button"
                 key={n}
                 className={thickness === n ? "is-active" : ""}
                 disabled={!rim.length}
@@ -180,6 +182,7 @@ function Swatch({
 }) {
   return (
     <button
+      type="button"
       className={`swatch ${selected ? "is-selected" : ""} ${small ? "is-small" : ""}`}
       title={title}
       aria-pressed={selected}

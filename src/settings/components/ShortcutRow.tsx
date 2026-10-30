@@ -81,11 +81,12 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
       </div>
       <div className="shortcut-actions">
         {chosen !== null && (
-          <button className="shortcut-reset" onClick={() => setSetting(def, null)}>
+          <button type="button" className="shortcut-reset" onClick={() => setSetting(def, null)}>
             {t("shortcuts.reset")}
           </button>
         )}
         <button
+          type="button"
           className={`shortcut-keys ${recording ? "is-recording" : ""} ${keys ? "" : "is-off"}`}
           onClick={() => {
             setError(null);
@@ -95,7 +96,7 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
           {label}
         </button>
         {keys && !recording && (
-          <button className="shortcut-clear" title={t("shortcuts.disable")} onClick={() => setSetting(def, "")}>
+          <button type="button" className="shortcut-clear" title={t("shortcuts.disable")} onClick={() => setSetting(def, "")}>
             <CloseIcon size={10} />
           </button>
         )}

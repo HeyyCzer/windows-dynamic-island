@@ -44,11 +44,12 @@ export function PermissionPrompt({ item, now, more }: { item: AgentSessionRef; n
         </pre>
       )}
       <div className="agents-permission-actions">
-        <button className="agents-permission-btn is-allow" disabled={!!busy} onClick={() => decide("allow")}>
+        <button type="button" className="agents-permission-btn is-allow" disabled={!!busy} onClick={() => decide("allow")}>
           {busy === "allow" ? "…" : t("agents.permission.allow")}
         </button>
         {request.always && (
           <button
+            type="button"
             className="agents-permission-btn is-always"
             disabled={!!busy}
             title={t("agents.permission.alwaysTitle", { rule: request.always })}
@@ -57,7 +58,7 @@ export function PermissionPrompt({ item, now, more }: { item: AgentSessionRef; n
             {busy === "always" ? "…" : t("agents.permission.always")}
           </button>
         )}
-        <button className="agents-permission-btn is-deny" disabled={!!busy} onClick={() => decide("deny")}>
+        <button type="button" className="agents-permission-btn is-deny" disabled={!!busy} onClick={() => decide("deny")}>
           {busy === "deny" ? "…" : t("agents.permission.deny")}
         </button>
         {error ? (

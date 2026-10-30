@@ -19,6 +19,7 @@ export function NotificationsSettings() {
         </div>
         {access === "noIdentity" && (
           <button
+            type="button"
             className="settings-btn primary"
             disabled={busy}
             onClick={async () => {
@@ -35,7 +36,7 @@ export function NotificationsSettings() {
           </button>
         )}
         {access === "denied" && (
-          <button className="settings-btn about-btn" onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openPrivacy")}>
+          <button type="button" className="settings-btn about-btn" onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openPrivacy")}>
             {t("notifications.access.openPrivacy")}
           </button>
         )}
@@ -49,7 +50,7 @@ export function NotificationsSettings() {
       {state?.error && (
         <>
           <span className="settings-error">{state.error}</span>
-          <button className="settings-btn about-btn" style={{ alignSelf: "flex-start" }} onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openDeveloper")}>
+          <button type="button" className="settings-btn about-btn" style={{ alignSelf: "flex-start" }} onClick={() => providerAction(NOTIFICATIONS_PROVIDER, "openDeveloper")}>
             {t("notifications.access.openDeveloper")}
           </button>
         </>

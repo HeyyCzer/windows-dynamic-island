@@ -53,6 +53,7 @@ export function MusicPanel({
         <div className="music-video">
           <YouTubeMirror videoId={video} positionMs={position} playing={music.playing} live={!music.durationMs} />
           <button
+            type="button"
             className="music-glass"
             onClick={(e) => {
               e.stopPropagation();
@@ -63,7 +64,7 @@ export function MusicPanel({
           </button>
         </div>
       ) : (
-        <button className="music-open" title={music.appName} onClick={openPlayer}>
+        <button type="button" className="music-open" title={music.appName} onClick={openPlayer}>
           <Artwork src={music.thumbnail} size={112} radius={20} trackKey={music.title} glow={accent} />
           {music.appIcon && !pinned && (
             <span className="music-app-badge">
@@ -88,7 +89,7 @@ export function MusicPanel({
       <div className="music-info">
         <div className="music-head">
           <div className="music-titles">
-            <button className="music-open music-open-title" title={music.appName} onClick={openPlayer}>
+            <button type="button" className="music-open music-open-title" title={music.appName} onClick={openPlayer}>
               <Marquee text={music.title} className="music-title" />
             </button>
             <Marquee text={subtitle} className="music-artist" />

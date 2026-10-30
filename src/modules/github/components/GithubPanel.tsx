@@ -27,6 +27,7 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
         <span className="gh-section-label">{t("github.openIssues")}</span>
         <span className="gh-meta">{meta}</span>
         <button
+          type="button"
           className={`gh-icon-btn ${state?.loading ? "is-spinning" : ""}`}
           title={t("github.refresh")}
           onClick={() => providerAction("github", "refresh")}
@@ -38,7 +39,7 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
       {repos.length === 0 ? (
         <div className="gh-empty">
           <span>{t("github.empty")}</span>
-          <button className="gh-link" onClick={() => command("open_settings")}>
+          <button type="button" className="gh-link" onClick={() => command("open_settings")}>
             {t("github.addInSettings")}
           </button>
         </div>
@@ -69,6 +70,7 @@ function RepoRow({ repo, fresh }: { repo: GithubRepo; fresh: boolean }) {
 
   return (
     <button
+      type="button"
       className={`gh-row ${fresh ? "is-new" : ""}`}
       onClick={() => open(fresh && repo.latest ? repo.latest.url : `https://github.com/${repo.name}/issues`)}
     >

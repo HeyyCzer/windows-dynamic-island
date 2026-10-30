@@ -78,6 +78,7 @@ function VolumeSlider({
     <div className={`volume-chip ${shown.muted ? "is-muted" : ""}`} onClick={(e) => e.stopPropagation()}>
 
       <button
+        type="button"
         className="volume-chip-icon"
         title={t(shown.muted ? "music.unmute" : "music.mute", { name })}
         onClick={() => change({ muted: !shown.muted })}

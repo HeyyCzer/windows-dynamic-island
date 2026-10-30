@@ -25,6 +25,7 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
         <span className="notif-heading">{t("notifications.title")}</span>
         {items.length > 0 && (
           <button
+            type="button"
             className="notif-clear"
             onClick={(e) => {
               e.stopPropagation();
