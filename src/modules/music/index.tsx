@@ -13,7 +13,6 @@ import { SpotifySettings } from "./components/SpotifySettings";
 import { useAccentColor } from "./hooks/useAccentColor";
 import { useMusic } from "./hooks/useMusic";
 import { musicSettings } from "./settings";
-import "./music.css";
 
 export const musicModule: IslandModule = {
 	id: "music",

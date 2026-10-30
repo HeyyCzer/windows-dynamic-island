@@ -17,7 +17,7 @@ export function Artwork({
 }) {
 	return (
 		<div
-			className="artwork"
+			className="relative flex-none overflow-hidden bg-[#1c1c1f] transition-shadow duration-600 ease-[ease]"
 			style={{
 				width: size,
 				height: size,
@@ -28,7 +28,7 @@ export function Artwork({
 			<AnimatePresence initial={false}>
 				<motion.div
 					key={trackKey ?? src ?? "none"}
-					className="artwork-img"
+					className="absolute inset-0 grid place-items-center bg-cover bg-center text-text-faint"
 					initial={{ opacity: 0, scale: 1.25, filter: "blur(6px)" }}
 					animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
 					exit={{ opacity: 0 }}

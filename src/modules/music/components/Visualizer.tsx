@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useTauriEvent } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { LEVEL_EVENT } from "../hooks/useMusic";
 
 const WEIGHTS = [0.6, 0.9, 1, 0.8, 0.55];
@@ -18,11 +19,13 @@ export function Visualizer({
 	color,
 	height = 22,
 	barWidth = 3,
+	className,
 }: {
 	playing: boolean;
 	color: string;
 	height?: number;
 	barWidth?: number;
+	className?: string;
 }) {
 	const bars = useRef<(HTMLSpanElement | null)[]>([]);
 	const raw = useRef(0);
@@ -66,9 +69,10 @@ export function Visualizer({
 	}, [playing, height, barWidth]);
 
 	return (
-		<div className="visualizer" style={{ height, gap: barWidth * 0.75 }}>
+		<div className={cn("flex items-center", className)} style={{ height, gap: barWidth * 0.75 }}>
 			{WEIGHTS.map((_, i) => (
 				<span
+					className="flex-none transition-[background] duration-600 ease-[ease]"
 					// biome-ignore lint/suspicious/noArrayIndexKey: fixed number of bars, never reordered
 					key={i}
 					ref={(el) => {

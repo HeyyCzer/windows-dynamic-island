@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { cn } from "../../../core/cn";
 import { createStore } from "../../../core/island";
 
 /** Videos whose owner disabled embedding (or that failed): back to the artwork. */
@@ -107,7 +108,7 @@ export function YouTubeMirror({
 		<iframe
 			ref={frame}
 			key={videoId}
-			className={`yt-mirror ${className ?? ""}`}
+			className={cn("pointer-events-none absolute inset-0 size-full border-0", className)}
 			src={src}
 			title="YouTube"
 			allow="autoplay; encrypted-media"

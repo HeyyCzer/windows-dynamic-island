@@ -1,11 +1,12 @@
 import { AnimatePresence, motion } from "motion/react";
 import type { ReactNode } from "react";
 import { NextIcon, PauseIcon, PlayIcon, PrevIcon } from "../../../components/icons";
+import { cn } from "../../../core/cn";
 import { type MusicState, musicAction } from "../hooks/useMusic";
 
 export function Controls({ music }: { music: MusicState }) {
 	return (
-		<div className="music-buttons">
+		<div className="flex items-center gap-3.5">
 			<CtrlButton disabled={!music.canPrevious} onClick={() => musicAction("previous")}>
 				<PrevIcon size={20} />
 			</CtrlButton>
@@ -43,7 +44,10 @@ function CtrlButton({
 }) {
 	return (
 		<motion.button
-			className={`music-ctrl ${big ? "big" : ""}`}
+			className={cn(
+				"grid size-9 place-items-center rounded-full text-text transition-[background,opacity] duration-200 hover:bg-white/10 disabled:pointer-events-none disabled:opacity-30",
+				big && "size-10.5",
+			)}
 			disabled={disabled}
 			whileHover={{ scale: 1.08 }}
 			whileTap={{ scale: 0.86 }}
