@@ -14,7 +14,7 @@ async function setVersion(path: string, pattern: RegExp) {
   await Bun.write(path, text.replace(pattern, `$1${pkg.version}$2`));
 }
 
-await setVersion("src-tauri/Cargo.toml", /(\[package\][^\[]*?\nversion = ")[^"]+(")/);
+await setVersion("src-tauri/Cargo.toml", /(\[package\][^[]*?\nversion = ")[^"]+(")/);
 await setVersion(
   "src-tauri/Cargo.lock",
   new RegExp(`(\\nname = "${crate}"\\r?\\nversion = ")[^"]+(")`),

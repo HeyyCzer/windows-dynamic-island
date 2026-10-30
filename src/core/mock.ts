@@ -321,9 +321,9 @@ function publishWindowsIsland(now: number) {
 	});
 	publishLocal("shelf", {
 		items: [
-			{ path: "C:\Users\me\Desktop\report.pdf", name: "report.pdf", isDir: false, ext: "pdf", thumb: null },
-			{ path: "C:\Users\me\Pictures", name: "Pictures", isDir: true, ext: "", thumb: null },
-			{ path: "C:\Users\me\Desktop\cover.png", name: "cover.png", isDir: false, ext: "png", thumb: art },
+			{ path: "C:\\Users\\me\\Desktop\\report.pdf", name: "report.pdf", isDir: false, ext: "pdf", thumb: null },
+			{ path: "C:\\Users\\me\\Pictures", name: "Pictures", isDir: true, ext: "", thumb: null },
+			{ path: "C:\\Users\\me\\Desktop\\cover.png", name: "cover.png", isDir: false, ext: "png", thumb: art },
 		],
 	});
 	// The volume OSD every 20s, to preview alerts.
@@ -380,7 +380,7 @@ function publishClipboard(now: number) {
 	];
 	publishLocal("clipboard", { items: history });
 	setTimeout(() => {
-		const shot = item(4, { kind: "image", thumb: art, width: 1920, height: 1080, path: "C:\shot.png", screenshot: true, source: "Snipping Tool", copiedAt: Date.now(), quiet: false });
+		const shot = item(4, { kind: "image", thumb: art, width: 1920, height: 1080, path: "C:\\shot.png", screenshot: true, source: "Snipping Tool", copiedAt: Date.now(), quiet: false });
 		publishLocal("clipboard", { items: [shot, ...history] });
 	}, 8_000);
 }
