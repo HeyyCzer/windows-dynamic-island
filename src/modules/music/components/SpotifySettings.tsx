@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from "react";
 import { command, providerAction, useProvider } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { MUSIC_PROVIDER } from "../hooks/useMusic";
 
@@ -77,7 +78,7 @@ export function SpotifySettings() {
 			<div className="settings-row">
 				<div className="settings-text">
 					<span className="settings-label">{t("music.spotify.title")}</span>
-					<span className={`settings-desc ${revoked || (status?.connected && status.error) ? "cal-warn" : ""}`}>
+					<span className={cn("settings-desc", (revoked || (status?.connected && status.error)) && "text-warn")}>
 						{description}
 					</span>
 				</div>
@@ -116,13 +117,17 @@ export function SpotifySettings() {
 				<>
 					<span className="settings-desc">
 						{t("music.spotify.clientHow", { redirect: REDIRECT })}{" "}
-						<button type="button" className="cal-link" onClick={() => command("open_external", { url: DASHBOARD_URL })}>
+						<button
+							type="button"
+							className="font-semibold text-accent hover:underline"
+							onClick={() => command("open_external", { url: DASHBOARD_URL })}
+						>
 							{t("music.spotify.clientOpen")}
 						</button>
 					</span>
-					<form className="cal-form" onSubmit={saveClient}>
+					<form className="flex gap-2" onSubmit={saveClient}>
 						<input
-							className="settings-input"
+							className="settings-input flex-1"
 							value={clientId}
 							placeholder={t("music.spotify.clientId")}
 							spellCheck={false}
@@ -136,7 +141,12 @@ export function SpotifySettings() {
 			)}
 			{status?.hasClient && !status.connected && (
 				<span className="settings-desc">
-					<button type="button" className="cal-link" disabled={!!busy} onClick={() => run("spotifyClearClient")}>
+					<button
+						type="button"
+						className="font-semibold text-accent hover:underline"
+						disabled={!!busy}
+						onClick={() => run("spotifyClearClient")}
+					>
 						{t("music.spotify.clientRemove")}
 					</button>
 				</span>
