@@ -17,12 +17,12 @@ export function TitleBar() {
       </div>
       <div className="titlebar-controls">
         <button type="button" aria-label={t("settings.minimize")} onClick={() => win()?.minimize()}>
-          <svg width="10" height="10" viewBox="0 0 10 10">
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
             <path d="M0 5h10" stroke="currentColor" strokeWidth="1" />
           </svg>
         </button>
         <button type="button" className="close" aria-label={t("settings.close")} onClick={() => win()?.close()}>
-          <svg width="10" height="10" viewBox="0 0 10 10">
+          <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden>
             <path d="M0 0l10 10M10 0L0 10" stroke="currentColor" strokeWidth="1" />
           </svg>
         </button>

@@ -25,7 +25,7 @@ export function StatusDot({ status, color, size = 14 }: { status: AgentStatus; c
   if (status === "done") {
     return (
       <span className="agents-dot is-done" style={{ width: size, height: size }}>
-        <svg width={size - 5} height={size - 5} viewBox="0 0 12 12">
+        <svg width={size - 5} height={size - 5} viewBox="0 0 12 12" aria-hidden>
           <path d="M2.5 6.5l2.2 2.2 4.8-5" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </span>
@@ -85,7 +85,7 @@ export function StatusGlyph({ agent, status, size = 20 }: { agent: AgentDefiniti
           animate={{ scale: 1 }}
           transition={{ type: "spring", stiffness: 500, damping: 18, delay: 0.1 }}
         >
-          <svg width="8" height="8" viewBox="0 0 12 12">
+          <svg width="8" height="8" viewBox="0 0 12 12" aria-hidden>
             <path d="M2.5 6.5l2.2 2.2 4.8-5" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </motion.span>
