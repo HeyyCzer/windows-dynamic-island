@@ -26,6 +26,7 @@ export function usePeek(entries: ModuleEntry[]) {
 
   const lastKeys = useRef(new Map<string, string | undefined>());
   const keySignature = entries.map((e) => `${e.module.id}=${e.view.activityKey ?? ""}`).join("|");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs only when an activity key changes, not on every new entries array
   useEffect(() => {
     for (const { module, view } of entries) {
       const seen = lastKeys.current.has(module.id);
@@ -33,7 +34,6 @@ export function usePeek(entries: ModuleEntry[]) {
       lastKeys.current.set(module.id, view.activityKey);
       if (seen && view.activityKey && view.activityKey !== prev) peek(module.id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [keySignature]);
 
   return { peekId, peek, endPeek };

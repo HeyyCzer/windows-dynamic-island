@@ -17,21 +17,21 @@ export function FindPanel({ state }: { state: FindState | undefined }) {
   const scanning = !!state?.scanning;
 
   // Leaving the page ends the search: the highlights go away.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: unmount only
   useEffect(
     () => () => {
       providerAction(FIND_PROVIDER, "clear");
       island.keepOpen(false, "find");
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
   // Global shortcut: take the keyboard.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs only when a focus request arrives
   useEffect(() => {
     if (!focusPending) return;
     focusRequest.set(false);
     takeKeyboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusPending]);
 
   // The highlights follow what's typed.

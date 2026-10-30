@@ -58,6 +58,7 @@ export const aiAgentsModule: IslandModule = {
 		};
 
 		// Static list → stable hook order.
+		// biome-ignore lint/correctness/useHookAtTopLevel: the agent list is static, so the hook order is stable
 		const all = agents.map((a) => a.useAgent());
 		// Agents not on this computer stay out of sight (Claude is always shown).
 		const shown = agents.flatMap((agent, i) => (i === 0 || all[i].available ? [{ agent, snapshot: all[i] }] : []));

@@ -6,6 +6,7 @@ export function Marquee({ text, className }: { text: string; className?: string 
   const inner = useRef<HTMLSpanElement>(null);
   const [overflow, setOverflow] = useState(0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when the text changes
   useLayoutEffect(() => {
     const measure = () => {
       if (!outer.current || !inner.current) return;

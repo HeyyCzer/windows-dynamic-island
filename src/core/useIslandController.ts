@@ -134,6 +134,7 @@ export function useIslandController(modules: IslandModule[]) {
 function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEntry[] {
   return inOrder(
     modules
+      // biome-ignore lint/correctness/useHookAtTopLevel: the module registry is static, so the hook order is stable
       .map((module) => ({ module, view: module.useView() }))
       .filter(({ module }) => readSetting(settings, moduleEnabled(module))),
     (e) => e.module.id,
@@ -143,9 +144,9 @@ function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEn
 
 /** The two active modules with the highest priority. */
 function useBusiest(entries: ModuleEntry[]) {
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on a signature so a new entries array with the same views keeps the memo
   const active = useMemo(
     () => entries.filter((e) => e.view.active).sort((a, b) => b.view.priority - a.view.priority),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [entries.map((e) => `${e.module.id}:${e.view.active}:${e.view.priority}`).join()],
   );
   // Looked up again so the views are this render's, not the memoized ones.
@@ -203,6 +204,7 @@ function useWheelTabs(
   select: (id: string) => void,
 ) {
   const lastWheel = useRef(0);
+  // biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the joined ids so a new array with the same tabs keeps the callback
   return useCallback(
     (e: WheelEvent) => {
       if (!enabled || Math.abs(e.deltaY) < 4) return;
@@ -215,7 +217,6 @@ function useWheelTabs(
       const next = tabIds[Math.min(tabIds.length - 1, Math.max(0, i + Math.sign(e.deltaY)))];
       if (next && next !== current) select(next);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [enabled, current, tabIds.join(), select],
   );
 }

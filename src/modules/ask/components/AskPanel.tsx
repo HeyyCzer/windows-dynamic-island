@@ -33,25 +33,26 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
   const running = !!state?.running;
 
   // On screen: no "Claude answered" alert, and the answer counts as read.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount/unmount only
   useEffect(() => {
     providerAction(ASK_PROVIDER, "viewing", true);
     return () => {
       providerAction(ASK_PROVIDER, "viewing", false);
       island.keepOpen(false);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Global shortcut / "ask about this file": take the keyboard.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs only when a focus request arrives
   useEffect(() => {
     if (!focusPending) return;
     focusRequest.set(false);
     takeKeyboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusPending]);
 
   // "Ask about this text" (clipboard): the text goes in, the question follows it.
   const draftPending = draftRequest.use();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs only when a draft request arrives
   useEffect(() => {
     // Read from the store, not the render: consumed once even if the effect runs twice.
     const text = draftRequest.get();
@@ -59,17 +60,18 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
     draftRequest.set(null);
     setDraft((prev) => `${prev.trim() ? `${prev.trimEnd()}\n\n` : ""}${text}\n\n`);
     takeKeyboard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftPending]);
 
   // Follow the newest text.
   const last = messages[messages.length - 1];
+  // biome-ignore lint/correctness/useExhaustiveDependencies: scroll down whenever a message is added or streams more text
   useLayoutEffect(() => {
     const el = scroller.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages.length, last?.text]);
 
   // The textarea grows with the question.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: resize whenever the draft changes
   useLayoutEffect(() => {
     const el = input.current;
     if (!el) return;
