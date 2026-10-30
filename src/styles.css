@@ -14,7 +14,17 @@
 	--color-ok: #34c759;
 	--color-warn: #ffbd2e;
 	--animate-hydration-pulse: hydration-pulse 1.5s ease-in-out infinite;
+	--animate-gh-pulse: gh-pulse 1.6s ease-in-out infinite;
+	--animate-spin-fast: spin 0.9s linear infinite;
 	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+}
+
+@keyframes gh-pulse {
+	50% {
+		box-shadow:
+			0 0 0 2px var(--island),
+			0 0 0 5px rgba(210, 153, 34, 0.35);
+	}
 }
 
 @keyframes hydration-pulse {

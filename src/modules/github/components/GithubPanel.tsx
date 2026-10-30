@@ -1,5 +1,6 @@
 import { IssueIcon, RefreshIcon } from "../../../components/icons";
 import { command, providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { formatAgo, useNow } from "../../ai-agents/common/format";
 import { formatCount, freshIssue } from "../repo";
@@ -22,13 +23,18 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 	else if (state?.updatedAt) meta = t("github.updated", { time: formatAgo(t, state.updatedAt, now) });
 
 	return (
-		<div className="gh-panel">
-			<div className="gh-header">
-				<span className="gh-section-label">{t("github.openIssues")}</span>
-				<span className="gh-meta">{meta}</span>
+		<div className="flex h-full flex-col gap-2">
+			<div className="flex h-5.5 flex-none items-center gap-2.5">
+				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">
+					{t("github.openIssues")}
+				</span>
+				<span className="flex-1 text-[11.5px] text-text-faint">{meta}</span>
 				<button
 					type="button"
-					className={`gh-icon-btn ${state?.loading ? "is-spinning" : ""}`}
+					className={cn(
+						"grid size-6 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
+						state?.loading && "[&_svg]:animate-spin-fast",
+					)}
 					title={t("github.refresh")}
 					onClick={() => providerAction("github", "refresh")}
 				>
@@ -37,14 +43,18 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 			</div>
 
 			{repos.length === 0 ? (
-				<div className="gh-empty">
+				<div className="flex flex-1 flex-col items-center justify-center gap-1.5 text-[13px] text-text-dim">
 					<span>{t("github.empty")}</span>
-					<button type="button" className="gh-link" onClick={() => command("open_settings")}>
+					<button
+						type="button"
+						className="font-semibold text-accent hover:underline"
+						onClick={() => command("open_settings")}
+					>
 						{t("github.addInSettings")}
 					</button>
 				</div>
 			) : (
-				<div className="gh-list">
+				<div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none]">
 					{repos.map((repo) => (
 						<RepoRow
 							key={repo.name}
@@ -71,20 +81,32 @@ function RepoRow({ repo, fresh }: { repo: GithubRepo; fresh: boolean }) {
 	return (
 		<button
 			type="button"
-			className={`gh-row ${fresh ? "is-new" : ""}`}
+			className={cn(
+				"flex h-10 flex-none items-center gap-3 rounded-xl px-2.5 text-left transition-colors duration-150 hover:bg-card",
+				fresh && "bg-[rgba(210,153,34,0.1)]",
+			)}
 			onClick={() => open(fresh && repo.latest ? repo.latest.url : `https://github.com/${repo.name}/issues`)}
 		>
-			<div className="gh-row-text">
-				<span className="gh-repo">
-					<span className="gh-owner">{owner}/</span>
+			<div className="flex min-w-0 flex-1 flex-col">
+				<span className="truncate text-[13px] font-[650]">
+					<span className="font-medium text-text-dim">{owner}/</span>
 					{name}
 				</span>
-				<span className={`gh-sub ${repo.error ? "is-error" : ""}`}>
-					{fresh && <span className="gh-new-tag">{t("github.newIssue")}</span>}
+				<span className={cn("truncate text-[11.5px] text-text-faint", repo.error && "text-danger")}>
+					{fresh && (
+						<span className="mr-1.5 rounded-[4px] bg-[#d29922] px-1.25 text-[10px] font-[750] text-black uppercase">
+							{t("github.newIssue")}
+						</span>
+					)}
 					{sub}
 				</span>
 			</div>
-			<span className={`gh-count ${repo.openIssues ? "" : "is-zero"}`}>
+			<span
+				className={cn(
+					"flex flex-none items-center gap-1.25 text-[13px] font-bold text-[#3fb950] tabular-nums",
+					!repo.openIssues && "text-text-faint",
+				)}
+			>
 				<IssueIcon size={13} />
 				{repo.openIssues == null ? "—" : formatCount(repo.openIssues)}
 			</span>

@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from "react";
 import { CloseIcon, IssueIcon } from "../../../components/icons";
 import { providerAction, useProvider } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { setSetting, useSetting } from "../../../core/settings";
 import { formatCount, parseRepo } from "../repo";
@@ -14,7 +15,7 @@ export function GithubSettings() {
 	return (
 		<>
 			<Repos />
-			<div className="gh-divider" />
+			<div className="mb-1 h-px bg-hairline" />
 			<Account />
 		</>
 	);
@@ -45,9 +46,9 @@ function Repos() {
 					<span className="settings-desc">{t("github.repos.desc")}</span>
 				</div>
 			</div>
-			<form className="gh-add" onSubmit={add}>
+			<form className="flex gap-2" onSubmit={add}>
 				<input
-					className="settings-input"
+					className="settings-input flex-1"
 					value={input}
 					placeholder={t("github.repos.placeholder")}
 					spellCheck={false}
@@ -62,17 +63,19 @@ function Repos() {
 			</form>
 			{error && <span className="settings-error">{error}</span>}
 			{repos.length > 0 && (
-				<ul className="gh-repo-list">
+				<ul className="mt-0.5 flex list-none flex-col gap-1">
 					{repos.map((name) => {
 						const repo = state?.repos.find((r) => r.name.toLowerCase() === name.toLowerCase());
 						return (
-							<li key={name} className="gh-repo-item">
-								<span className="gh-repo-name">{name}</span>
+							<li key={name} className="flex h-8.5 items-center gap-2.5 rounded-[9px] bg-white/4 pr-1.5 pl-3">
+								<span className="min-w-0 flex-1 truncate text-[13px] font-[550]">{name}</span>
 								{repo?.error ? (
-									<span className="gh-repo-status is-error">{t(`github.error.${repo.error}`)}</span>
+									<span className="flex items-center gap-1 text-[12px] font-medium text-danger">
+										{t(`github.error.${repo.error}`)}
+									</span>
 								) : (
 									repo?.openIssues != null && (
-										<span className="gh-repo-status">
+										<span className="flex items-center gap-1 text-[12px] font-[650] text-[#3fb950]">
 											<IssueIcon size={12} />
 											{formatCount(repo.openIssues)}
 										</span>
@@ -80,7 +83,7 @@ function Repos() {
 								)}
 								<button
 									type="button"
-									className="gh-remove"
+									className="grid size-6 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-[rgba(255,95,87,0.12)] hover:text-danger"
 									title={t("github.repos.remove")}
 									onClick={() =>
 										setSetting(
@@ -135,7 +138,7 @@ function Account() {
 			<div className="settings-row">
 				<div className="settings-text">
 					<span className="settings-label">{t("github.account.title")}</span>
-					<span className={`settings-desc ${state?.authError ? "gh-warn" : ""}`}>{status}</span>
+					<span className={cn("settings-desc", state?.authError && "text-warn")}>{status}</span>
 				</div>
 				{state?.auth === "token" && (
 					<button type="button" className="settings-btn danger" disabled={busy} onClick={() => run("clearToken")}>
@@ -146,14 +149,14 @@ function Account() {
 			{state?.auth !== "token" && (
 				<>
 					<form
-						className="gh-add"
+						className="flex gap-2"
 						onSubmit={(e) => {
 							e.preventDefault();
 							run("setToken", { token });
 						}}
 					>
 						<input
-							className="settings-input"
+							className="settings-input flex-1"
 							type="password"
 							value={token}
 							placeholder={t("github.account.placeholder")}
@@ -169,7 +172,7 @@ function Account() {
 						{t("github.account.stored")}{" "}
 						<button
 							type="button"
-							className="gh-link"
+							className="font-semibold text-accent hover:underline"
 							onClick={() => providerAction("github", "open", { url: TOKEN_URL })}
 						>
 							{t("github.account.create")}

@@ -14,7 +14,6 @@ import { GithubSettings } from "./components/GithubSettings";
 import { freshIssue } from "./repo";
 import { githubSettings } from "./settings";
 import type { GithubState } from "./types";
-import "./github.css";
 
 const ROW = 42;
 const MAX_VISIBLE_ROWS = 5;
