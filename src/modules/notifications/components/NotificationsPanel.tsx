@@ -20,13 +20,15 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
 	}, [unread]);
 
 	return (
-		<div className="notif-panel">
-			<div className="notif-head">
-				<span className="notif-heading">{t("notifications.title")}</span>
+		<div className="flex h-full flex-col">
+			<div className="mb-1 flex items-center justify-between">
+				<span className="text-[11px] font-bold tracking-[0.06em] text-text-faint uppercase">
+					{t("notifications.title")}
+				</span>
 				{items.length > 0 && (
 					<button
 						type="button"
-						className="notif-clear"
+						className="rounded-[10px] px-2.5 py-0.5 text-[12px] text-text-dim hover:bg-white/10 hover:text-text"
 						onClick={(e) => {
 							e.stopPropagation();
 							providerAction(NOTIFICATIONS_PROVIDER, "clear");
@@ -37,13 +39,13 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
 				)}
 			</div>
 			{items.length === 0 ? (
-				<div className="notif-empty">{t("notifications.empty")}</div>
+				<div className="m-auto text-[13px] text-text-faint">{t("notifications.empty")}</div>
 			) : (
-				<ul className="notif-list" data-scroll>
+				<ul className="flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
 					{items.map((item) => (
 						<li
 							key={item.id}
-							className="notif-row"
+							className="flex cursor-pointer items-start gap-3 rounded-xl px-2 py-1.5 hover:bg-white/5"
 							title={item.app ? t("notifications.open", { app: item.app }) : undefined}
 							onClick={(e) => {
 								e.stopPropagation();
@@ -51,12 +53,12 @@ export function NotificationsPanel({ state }: { state: NotificationsState | unde
 							}}
 						>
 							<Badge icon="bell" image={item.logo} color={NOTIFICATION_BLUE} size={32} radius={9} glyphSize={14} />
-							<div className="notif-texts">
-								{item.app && <span className="notif-app">{item.app}</span>}
-								<span className="notif-title">{item.title}</span>
-								{item.body && <span className="notif-body">{item.body}</span>}
+							<div className="flex min-w-0 flex-1 flex-col">
+								{item.app && <span className="text-[11px] font-semibold text-text-faint">{item.app}</span>}
+								<span className="truncate text-[13px] font-semibold">{item.title}</span>
+								{item.body && <span className="truncate text-[12px] text-text-dim">{item.body}</span>}
 							</div>
-							<span className="notif-time">{formatAgo(t, item.receivedAt, now)}</span>
+							<span className="flex-none text-[11px] text-text-faint">{formatAgo(t, item.receivedAt, now)}</span>
 						</li>
 					))}
 				</ul>

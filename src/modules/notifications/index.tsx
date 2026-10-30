@@ -11,7 +11,6 @@ import { useNow } from "../ai-agents/common/format";
 import { NotificationsPanel } from "./components/NotificationsPanel";
 import { NotificationsSettings } from "./components/NotificationsSettings";
 import { NOTIFICATION_BLUE, NOTIFICATIONS_PROVIDER, type NotificationsState } from "./types";
-import "./notifications.css";
 
 /** Unread notifications this recent keep a spot in the compact island. */
 const UNREAD_WINDOW_MS = 5 * 60_000;
@@ -40,10 +39,13 @@ export const notificationsModule: IslandModule = {
 				left: (
 					<>
 						<Badge icon="bell" image={latest.logo} color={NOTIFICATION_BLUE} size={24} radius={7} glyphSize={12} />
-						<Marquee text={latest.title} className="notif-compact-title" />
+						<Marquee text={latest.title} className="max-w-55 text-[13px] font-semibold" />
 					</>
 				),
-				right: unread.length > 1 ? <span className="notif-more">+{unread.length - 1}</span> : null,
+				right:
+					unread.length > 1 ? (
+						<span className="text-[12px] font-[650] text-[#0a84ff]">+{unread.length - 1}</span>
+					) : null,
 				width: 340,
 			},
 			expanded: <NotificationsPanel state={state} />,
