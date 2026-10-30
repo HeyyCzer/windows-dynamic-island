@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { cn } from "../core/cn";
 
 /** Single-line text that scrolls back and forth when it doesn't fit. */
 export function Marquee({ text, className }: { text: string; className?: string }) {
@@ -19,9 +20,17 @@ export function Marquee({ text, className }: { text: string; className?: string 
 	}, [text]);
 
 	return (
-		<div ref={outer} className={`marquee ${overflow ? "is-scrolling" : ""} ${className ?? ""}`}>
+		<div
+			ref={outer}
+			className={cn(
+				"overflow-hidden whitespace-nowrap",
+				overflow && "[mask-image:linear-gradient(90deg,transparent_0,#000_12px,#000_calc(100%-16px),transparent)]",
+				className,
+			)}
+		>
 			<span
 				ref={inner}
+				className={cn("inline-block", overflow && "animate-marquee px-3")}
 				style={
 					overflow
 						? ({

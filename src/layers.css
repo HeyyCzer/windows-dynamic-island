@@ -1,3 +1,0 @@
-/* Imported first: the bundle puts module CSS ahead of `styles.css`, and the first
-   mention of a layer fixes its order, so Tailwind's order is declared up front. */
-@layer theme, base, components, utilities;

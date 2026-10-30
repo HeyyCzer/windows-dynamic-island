@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import type { CSSProperties } from "react";
+import { RimRing } from "../../components/island/Rim";
 import { Block, Card, card, Desc, Row } from "../../components/ui/card";
 import { Segmented } from "../../components/ui/form";
 import {
@@ -158,12 +158,7 @@ function StylePreview({ style, rim }: { style: IslandStyle; rim: string[] }) {
 						: "top-2 w-20 rounded-[11px]",
 				)}
 			>
-				{style === "windows" && (
-					<span
-						className={`rim ${background ? "" : "is-classic"}`}
-						style={{ "--rim-bg": background, "--rim-w": "1.5px" } as CSSProperties}
-					/>
-				)}
+				{style === "windows" && <RimRing background={background} width={1.5} />}
 				{style === "windows" && <span className="text-[9.5px] font-[650] text-white">9:41</span>}
 			</div>
 		</div>

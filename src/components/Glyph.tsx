@@ -74,7 +74,7 @@ export function Glyph({
 	style?: CSSProperties;
 }) {
 	return (
-		<i className="glyph" aria-hidden style={{ fontSize: size, color, ...style }}>
+		<i className="font-glyph leading-none not-italic" aria-hidden style={{ fontSize: size, color, ...style }}>
 			{resolveGlyph(name)}
 		</i>
 	);
@@ -101,7 +101,7 @@ export function Badge({
 }) {
 	return (
 		<span
-			className="badge"
+			className="grid flex-none place-items-center overflow-hidden bg-cover bg-center"
 			style={{
 				width: size,
 				height: size,
