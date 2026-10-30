@@ -7,7 +7,7 @@ const placementSelect = tv({
 	variants: {
 		/** Inline in the modules list: smaller, dimmed while the tab is launcher-only. */
 		compact: {
-			true: "h-6.5 bg-position-[right_10px_center] pr-7 pl-2.5 text-[12px] font-semibold text-text-faint disabled:cursor-default disabled:opacity-35",
+			true: "font-semibold text-text-faint disabled:cursor-default",
 		},
 		inBar: { true: "" },
 	},
@@ -29,6 +29,7 @@ export function PlacementSelect({
 	const placement = placementOf(values, moduleId);
 	return (
 		<Select
+			size={compact ? "sm" : "md"}
 			className={placementSelect({ compact, inBar: placement !== "launcher" })}
 			disabled={disabled}
 			title={t("layout.place")}

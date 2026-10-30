@@ -1,3 +1,4 @@
+import { ChevronDownIcon } from "lucide-react";
 import type { ComponentProps } from "react";
 import { tv } from "tailwind-variants";
 
@@ -11,15 +12,34 @@ export function Input({ className, ...rest }: ComponentProps<"input">) {
 }
 
 const select = tv({
-	base: [
-		field,
-		focusRing,
-		"max-w-70 flex-none cursor-pointer appearance-none disabled:opacity-70 bg-(image:--select-chevron) bg-position-[right_12px_center] bg-no-repeat pr-8 pl-3 text-ellipsis [&_option]:bg-[#1c1c22] [&_option]:text-white",
-	],
+	slots: {
+		base: "relative inline-flex max-w-70 flex-none has-disabled:opacity-70",
+		field: [
+			field,
+			focusRing,
+			"min-w-0 cursor-pointer appearance-none pr-8 pl-3 text-ellipsis [&_option]:bg-[#1c1c22] [&_option]:text-white",
+		],
+		// 20px box: lucide draws the chevron 10px wide in its middle, like the old 10×6 image.
+		icon: "pointer-events-none absolute top-1/2 right-1.75 -translate-y-1/2 text-[#aaa]",
+	},
+	variants: {
+		/** Inline in a list row: shorter, tighter. */
+		size: {
+			sm: { base: "has-disabled:opacity-35", field: "h-6.5 pr-7 pl-2.5 text-[12px]", icon: "right-1.25" },
+			md: {},
+		},
+	},
+	defaultVariants: { size: "md" },
 });
 
-export function Select({ className, ...rest }: ComponentProps<"select">) {
-	return <select className={select({ class: className })} {...rest} />;
+export function Select({ size, className, ...rest }: Omit<ComponentProps<"select">, "size"> & { size?: "sm" | "md" }) {
+	const s = select({ size });
+	return (
+		<span className={s.base()}>
+			<select className={s.field({ class: className })} {...rest} />
+			<ChevronDownIcon size={20} strokeWidth={1.9} className={s.icon()} />
+		</span>
+	);
 }
 
 const numberField = tv({
