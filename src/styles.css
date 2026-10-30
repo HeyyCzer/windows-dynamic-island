@@ -10,6 +10,9 @@
 	--color-hairline: var(--hairline);
 	--color-card: var(--card);
 	--color-accent: var(--accent);
+	--color-danger: #ff6b63;
+	--color-ok: #34c759;
+	--color-warn: #ffbd2e;
 	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
 }
 
