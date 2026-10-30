@@ -151,6 +151,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
         <div className="ask-messages" ref={scroller} data-scroll>
           {messages.map((m, i) =>
             m.fromUser ? (
+              // biome-ignore lint/suspicious/noArrayIndexKey: messages are append-only and have no id
               <div key={i} className="ask-user">
                 {m.attachments.map((a) =>
                   a.isImage && a.thumb ? (
@@ -164,6 +165,7 @@ export function AskPanel({ state }: { state: AskState | undefined }) {
                 <span>{m.text}</span>
               </div>
             ) : (
+              // biome-ignore lint/suspicious/noArrayIndexKey: messages are append-only and have no id
               <div key={i} className={`ask-answer ${m.error ? "is-error" : ""}`}>
                 {m.text ? <Formatted text={m.text} /> : running && i === messages.length - 1 ? <span className="ask-dots">…</span> : null}
               </div>

@@ -5,6 +5,7 @@ export function ClaudeIcon({ size }: { size: number }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       {Array.from({ length: rays }, (_, i) => (
         <rect
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed number of rays, never reordered
           key={i}
           x="11"
           y="1.5"

@@ -162,6 +162,7 @@ export function ClockPanel({ calendar, highlight }: { calendar?: CalendarState; 
         </div>
         <div className="clock-cal-grid">
           {weekdays.map((w, i) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: weekday labels can repeat (narrow format), and the order is fixed
             <span key={`w${i}`} className="clock-cal-weekday">
               {w}
             </span>

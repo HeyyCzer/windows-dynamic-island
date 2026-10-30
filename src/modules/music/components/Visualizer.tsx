@@ -69,6 +69,7 @@ export function Visualizer({
 		<div className="visualizer" style={{ height, gap: barWidth * 0.75 }}>
 			{WEIGHTS.map((_, i) => (
 				<span
+					// biome-ignore lint/suspicious/noArrayIndexKey: fixed number of bars, never reordered
 					key={i}
 					ref={(el) => {
 						bars.current[i] = el;
