@@ -3,12 +3,12 @@ import { command, useTauriEvent } from "../../../core/bridge";
 
 /** Whether the video is pinned to its own window (picture-in-picture). */
 export function usePipOpen() {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    command<boolean>("is_pip_open").then((v) => setOpen(!!v));
-  }, []);
-  useTauriEvent<boolean>("pip://changed", setOpen);
-  return open;
+	const [open, setOpen] = useState(false);
+	useEffect(() => {
+		command<boolean>("is_pip_open").then((v) => setOpen(!!v));
+	}, []);
+	useTauriEvent<boolean>("pip://changed", setOpen);
+	return open;
 }
 
 export const openPip = () => command("open_pip");

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { rimBackground, type Appearance } from "../../core/appearance";
+import { type Appearance, rimBackground } from "../../core/appearance";
 
 /** The colored rim of the Windows Island style (a hairline when "classic"). */
 export function Rim({ look }: { look: Appearance }) {

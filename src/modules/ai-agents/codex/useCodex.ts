@@ -1,5 +1,5 @@
 import { useProvider } from "../../../core/bridge";
-import { useT, type MessageKey, type Translate } from "../../../core/i18n";
+import { type MessageKey, type Translate, useT } from "../../../core/i18n";
 import type { AgentSnapshot, AgentStatus, UsageLimit } from "../common/types";
 
 interface LimitWindow {

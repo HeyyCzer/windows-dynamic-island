@@ -4,26 +4,26 @@ import { moduleEnabled, useSetting } from "../../core/settings";
 
 /** Mirrors `Attachment` in `src-tauri/src/providers/ask/mod.rs`. */
 export interface Attachment {
-  path: string;
-  name: string;
-  isImage: boolean;
-  label: string | null;
-  thumb: string | null;
+	path: string;
+	name: string;
+	isImage: boolean;
+	label: string | null;
+	thumb: string | null;
 }
 
 export interface AskMessage {
-  fromUser: boolean;
-  text: string;
-  error: boolean;
-  attachments: Attachment[];
+	fromUser: boolean;
+	text: string;
+	error: boolean;
+	attachments: Attachment[];
 }
 
 export interface AskState {
-  available: boolean;
-  messages: AskMessage[];
-  running: boolean;
-  status: { kind: "thinking" | "writing" | "tool"; arg: string | null } | null;
-  unread: boolean;
+	available: boolean;
+	messages: AskMessage[];
+	running: boolean;
+	status: { kind: "thinking" | "writing" | "tool"; arg: string | null } | null;
+	unread: boolean;
 }
 
 export const ASK_PROVIDER = "ask";
@@ -42,17 +42,17 @@ export const focusRequest = createStore(false);
 export const draftRequest = createStore<string | null>(null);
 
 export function addAttachments(list: Attachment[]) {
-  pendingAttachments.set((prev) => [
-    ...prev,
-    ...list.filter((a) => !prev.some((p) => p.path.toLowerCase() === a.path.toLowerCase())),
-  ]);
+	pendingAttachments.set((prev) => [
+		...prev,
+		...list.filter((a) => !prev.some((p) => p.path.toLowerCase() === a.path.toLowerCase())),
+	]);
 }
 
 export async function attachFiles(paths: string[]) {
-  const list = await providerAction<Attachment[]>(ASK_PROVIDER, "attachments", paths);
-  if (list?.length) addAttachments(list);
+	const list = await providerAction<Attachment[]>(ASK_PROVIDER, "attachments", paths);
+	if (list?.length) addAttachments(list);
 }
 
 export function requestAskFocus() {
-  focusRequest.set(true);
+	focusRequest.set(true);
 }

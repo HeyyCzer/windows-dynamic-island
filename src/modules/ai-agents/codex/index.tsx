@@ -8,14 +8,14 @@ import { CodexSettings } from "./CodexSettings";
 import { useCodex } from "./useCodex";
 
 export const codexAgent: AgentDefinition = {
-  id: "codex",
-  name: "Codex",
-  color: "#8B9CFF",
-  Icon: CodexIcon,
-  useAgent: useCodex,
-  usageUrl: "https://chatgpt.com/codex/settings/usage",
-  openSession: (session) => {
-    if (session.cwd) providerAction("codex", "openProject", session.cwd);
-  },
-  SettingsSection: CodexSettings,
+	id: "codex",
+	name: "Codex",
+	color: "#8B9CFF",
+	Icon: CodexIcon,
+	useAgent: useCodex,
+	usageUrl: "https://chatgpt.com/codex/settings/usage",
+	openSession: (session) => {
+		if (session.cwd) providerAction("codex", "openProject", session.cwd);
+	},
+	SettingsSection: CodexSettings,
 };

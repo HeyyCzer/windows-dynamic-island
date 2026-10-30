@@ -16,66 +16,56 @@ import { Toggle } from "../components/Toggle";
  * Tauri handles file drops.)
  */
 export function ModulesPage({ values }: { values: Record<string, unknown> }) {
-  const t = useT();
-  const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
+	const t = useT();
+	const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
 
-  return (
-    <>
-      <h1 className="settings-title">{t("modules.title")}</h1>
-      <p className="settings-lead">{t("modules.desc")}</p>
-      <section className="settings-card">
-        <Reorder.Group
-          as="ul"
-          axis="y"
-          className="layout-list"
-          values={ordered.map((m) => m.id)}
-          onReorder={(ids: string[]) => setSetting(layoutSettings.order, ids)}
-        >
-          {ordered.map((m) => (
-            <ModuleRow
-              key={m.id}
-              module={m}
-              enabled={readSetting(values, moduleEnabled(m))}
-            />
-          ))}
-        </Reorder.Group>
-      </section>
-    </>
-  );
+	return (
+		<>
+			<h1 className="settings-title">{t("modules.title")}</h1>
+			<p className="settings-lead">{t("modules.desc")}</p>
+			<section className="settings-card">
+				<Reorder.Group
+					as="ul"
+					axis="y"
+					className="layout-list"
+					values={ordered.map((m) => m.id)}
+					onReorder={(ids: string[]) => setSetting(layoutSettings.order, ids)}
+				>
+					{ordered.map((m) => (
+						<ModuleRow key={m.id} module={m} enabled={readSetting(values, moduleEnabled(m))} />
+					))}
+				</Reorder.Group>
+			</section>
+		</>
+	);
 }
 
-function ModuleRow({
-  module,
-  enabled,
-}: {
-  module: IslandModule;
-  enabled: boolean;
-}) {
-  const t = useT();
-  const drag = useDragControls();
-  const navigate = useNavigate();
-  const open = () => navigate(`/modules/${module.id}`);
-  return (
-    <Reorder.Item
-      as="li"
-      value={module.id}
-      className={`layout-row ${enabled ? "" : "is-off"}`}
-      dragListener={false}
-      dragControls={drag}
-      whileDrag={{ scale: 1.02, boxShadow: "0 10px 24px -10px rgba(0,0,0,0.6)" }}
-    >
-      <span className="layout-grip" title={t("layout.drag")} onPointerDown={(e) => drag.start(e)}>
-        <GripIcon size={14} />
-      </span>
-      <button type="button" className="layout-open" title={t("modules.open")} onClick={open}>
-        <span className="layout-icon">{module.settingsIcon}</span>
-        <span className="layout-name">{t(module.title)}</span>
-      </button>
-      <PlacementSelect moduleId={module.id} disabled={!enabled} className="layout-place" />
-      <Toggle checked={enabled} onChange={(v) => setSetting(moduleEnabled(module), v)} />
-      <button type="button" className="layout-chevron" title={t("modules.open")} onClick={open}>
-        ›
-      </button>
-    </Reorder.Item>
-  );
+function ModuleRow({ module, enabled }: { module: IslandModule; enabled: boolean }) {
+	const t = useT();
+	const drag = useDragControls();
+	const navigate = useNavigate();
+	const open = () => navigate(`/modules/${module.id}`);
+	return (
+		<Reorder.Item
+			as="li"
+			value={module.id}
+			className={`layout-row ${enabled ? "" : "is-off"}`}
+			dragListener={false}
+			dragControls={drag}
+			whileDrag={{ scale: 1.02, boxShadow: "0 10px 24px -10px rgba(0,0,0,0.6)" }}
+		>
+			<span className="layout-grip" title={t("layout.drag")} onPointerDown={(e) => drag.start(e)}>
+				<GripIcon size={14} />
+			</span>
+			<button type="button" className="layout-open" title={t("modules.open")} onClick={open}>
+				<span className="layout-icon">{module.settingsIcon}</span>
+				<span className="layout-name">{t(module.title)}</span>
+			</button>
+			<PlacementSelect moduleId={module.id} disabled={!enabled} className="layout-place" />
+			<Toggle checked={enabled} onChange={(v) => setSetting(moduleEnabled(module), v)} />
+			<button type="button" className="layout-chevron" title={t("modules.open")} onClick={open}>
+				›
+			</button>
+		</Reorder.Item>
+	);
 }

@@ -1,13 +1,13 @@
 import { motion } from "motion/react";
 import { useMemo } from "react";
-import { modules } from "../modules";
-import { useHitRects } from "../core/useHitRects";
-import { useIslandController } from "../core/useIslandController";
-import { useIslandDrag } from "../core/useIslandDrag";
-import { IslandContext, type IslandApi } from "../core/island";
 import { useAppearance } from "../core/appearance";
 import { useTauriEvent } from "../core/bridge";
 import { useSyncLocale } from "../core/i18n";
+import { type IslandApi, IslandContext } from "../core/island";
+import { useHitRects } from "../core/useHitRects";
+import { useIslandController } from "../core/useIslandController";
+import { useIslandDrag } from "../core/useIslandDrag";
+import { modules } from "../modules";
 import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
@@ -91,17 +91,20 @@ export function Island() {
 						transition={transition}
 						onClick={() => resting && ctl.expand()}
 					>
-						<motion.span className="ear left" initial={false} animate={{ width: g.ear, height: g.ear }} transition={v.shellSpring} />
-						<motion.span className="ear right" initial={false} animate={{ width: g.ear, height: g.ear }} transition={v.shellSpring} />
+						<motion.span
+							className="ear left"
+							initial={false}
+							animate={{ width: g.ear, height: g.ear }}
+							transition={v.shellSpring}
+						/>
+						<motion.span
+							className="ear right"
+							initial={false}
+							animate={{ width: g.ear, height: g.ear }}
+							transition={v.shellSpring}
+						/>
 
-						<Surface
-							g={g}
-							big={big}
-							look={look}
-							transition={transition}
-							contentKey={content.key}
-							rim={rim}
-						>
+						<Surface g={g} big={big} look={look} transition={transition} contentKey={content.key} rim={rim}>
 							{content.node}
 						</Surface>
 

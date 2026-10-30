@@ -9,19 +9,16 @@ import pkg from "../package.json";
 const crate = "dynamic-island";
 
 async function setVersion(path: string, pattern: RegExp) {
-  const text = await Bun.file(path).text();
-  if (!pattern.test(text)) throw new Error(`version not found in ${path}`);
-  await Bun.write(path, text.replace(pattern, `$1${pkg.version}$2`));
+	const text = await Bun.file(path).text();
+	if (!pattern.test(text)) throw new Error(`version not found in ${path}`);
+	await Bun.write(path, text.replace(pattern, `$1${pkg.version}$2`));
 }
 
 await setVersion("src-tauri/Cargo.toml", /(\[package\][^[]*?\nversion = ")[^"]+(")/);
-await setVersion(
-  "src-tauri/Cargo.lock",
-  new RegExp(`(\\nname = "${crate}"\\r?\\nversion = ")[^"]+(")`),
-);
+await setVersion("src-tauri/Cargo.lock", new RegExp(`(\\nname = "${crate}"\\r?\\nversion = ")[^"]+(")`));
 
 const add = Bun.spawnSync(["git", "add", "src-tauri/Cargo.toml", "src-tauri/Cargo.lock"], {
-  stdio: ["inherit", "inherit", "inherit"],
+	stdio: ["inherit", "inherit", "inherit"],
 });
 if (add.exitCode !== 0) process.exit(add.exitCode ?? 1);
 

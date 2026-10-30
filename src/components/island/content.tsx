@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Appearance } from "../../core/appearance";
-import { LAUNCHER, type IslandController } from "../../core/useIslandController";
+import { type IslandController, LAUNCHER } from "../../core/useIslandController";
 import { IdleClock } from "../IdleClock";
 import type { Variant } from "./geometry";
 import { Launcher } from "./Launcher";

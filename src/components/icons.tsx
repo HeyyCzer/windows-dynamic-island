@@ -1,4 +1,4 @@
-import { useId, type SVGProps } from "react";
+import { type SVGProps, useId } from "react";
 
 type P = SVGProps<SVGSVGElement> & { size?: number };
 
@@ -47,14 +47,32 @@ export function AppLogo({ size = 16, ...rest }: P) {
 				</linearGradient>
 			</defs>
 			<rect x="64" y="64" width="896" height="896" rx="220" fill={`url(#${gradient})`} />
-			<rect x="212" y="400" width="600" height="224" rx="112" fill="#000" stroke="#8f94ff" strokeWidth="24" strokeOpacity=".7" />
+			<rect
+				x="212"
+				y="400"
+				width="600"
+				height="224"
+				rx="112"
+				fill="#000"
+				stroke="#8f94ff"
+				strokeWidth="24"
+				strokeOpacity=".7"
+			/>
 			<circle cx="324" cy="512" r="56" fill="#d97757" />
 		</svg>
 	);
 }
 
 export const InfoIcon = (p: P) => (
-	<svg aria-hidden {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+	<svg
+		aria-hidden
+		{...base(p)}
+		fill="none"
+		stroke="currentColor"
+		strokeWidth={2}
+		strokeLinecap="round"
+		strokeLinejoin="round"
+	>
 		<circle cx="12" cy="12" r="9.5" />
 		<path d="M12 16.5v-5M12 8h.01" />
 	</svg>
@@ -86,7 +104,15 @@ export const WaterDropIcon = (p: P) => (
 );
 
 export const GearIcon = (p: P) => (
-	<svg aria-hidden {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+	<svg
+		aria-hidden
+		{...base(p)}
+		fill="none"
+		stroke="currentColor"
+		strokeWidth={2}
+		strokeLinecap="round"
+		strokeLinejoin="round"
+	>
 		<path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
 		<path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z" />
 	</svg>
@@ -123,7 +149,15 @@ export const IssueIcon = (p: P) => (
 );
 
 export const RefreshIcon = (p: P) => (
-	<svg aria-hidden {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+	<svg
+		aria-hidden
+		{...base(p)}
+		fill="none"
+		stroke="currentColor"
+		strokeWidth={2}
+		strokeLinecap="round"
+		strokeLinejoin="round"
+	>
 		<path d="M20 12a8 8 0 1 1-2.34-5.66L20 8.5" />
 		<path d="M20 3.5v5h-5" />
 	</svg>
@@ -136,7 +170,15 @@ export const CloseIcon = (p: P) => (
 );
 
 export const PaletteIcon = (p: P) => (
-	<svg aria-hidden {...base(p)} fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+	<svg
+		aria-hidden
+		{...base(p)}
+		fill="none"
+		stroke="currentColor"
+		strokeWidth={2}
+		strokeLinecap="round"
+		strokeLinejoin="round"
+	>
 		<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.8-.9 1.8-1.9 0-.5-.2-.9-.5-1.3-.3-.3-.5-.8-.5-1.3 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3Z" />
 		<circle cx="7.5" cy="11" r="1" fill="currentColor" stroke="none" />
 		<circle cx="10" cy="7" r="1" fill="currentColor" stroke="none" />

@@ -10,25 +10,25 @@ const REMEMBER_TAB_MS = 5 * 60_000;
  * unless the island was opened on a specific one (`openOn`).
  */
 export function useTabMemory(attentionId: string | null) {
-  const [tab, setTab] = useState<string | null>(null);
-  const rememberUntil = useRef(0);
-  const attention = useRef(attentionId);
-  attention.current = attentionId;
+	const [tab, setTab] = useState<string | null>(null);
+	const rememberUntil = useRef(0);
+	const attention = useRef(attentionId);
+	attention.current = attentionId;
 
-  /** A tab asked for explicitly (a click, a shortcut): it stays while open. */
-  const openOn = useCallback((id: string) => {
-    setTab(id);
-    rememberUntil.current = Infinity;
-  }, []);
+	/** A tab asked for explicitly (a click, a shortcut): it stays while open. */
+	const openOn = useCallback((id: string) => {
+		setTab(id);
+		rememberUntil.current = Infinity;
+	}, []);
 
-  const onIslandOpen = useCallback(() => {
-    if (attention.current && rememberUntil.current !== Infinity) setTab(attention.current);
-    else if (Date.now() > rememberUntil.current) setTab(null);
-  }, []);
+	const onIslandOpen = useCallback(() => {
+		if (attention.current && rememberUntil.current !== Infinity) setTab(attention.current);
+		else if (Date.now() > rememberUntil.current) setTab(null);
+	}, []);
 
-  const onIslandClose = useCallback(() => {
-    rememberUntil.current = Date.now() + REMEMBER_TAB_MS;
-  }, []);
+	const onIslandClose = useCallback(() => {
+		rememberUntil.current = Date.now() + REMEMBER_TAB_MS;
+	}, []);
 
-  return { tab, setTab, openOn, onIslandOpen, onIslandClose };
+	return { tab, setTab, openOn, onIslandOpen, onIslandClose };
 }

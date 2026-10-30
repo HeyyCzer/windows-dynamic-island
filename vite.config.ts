@@ -1,6 +1,6 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import { readFileSync } from "node:fs";
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 import { locales } from "./vite-plugin-locales.ts";
 
 const { version } = JSON.parse(readFileSync("package.json", "utf8"));

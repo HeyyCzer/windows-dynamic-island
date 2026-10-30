@@ -14,7 +14,13 @@ const art2 =
 	);
 
 const tracks = [
-	{ title: "Midnight City (Extended Version)", artist: "M83", album: "Hurry Up, We're Dreaming", durationMs: 283_000, thumbnail: art },
+	{
+		title: "Midnight City (Extended Version)",
+		artist: "M83",
+		album: "Hurry Up, We're Dreaming",
+		durationMs: 283_000,
+		thumbnail: art,
+	},
 	{ title: "Blinding Lights", artist: "The Weeknd", album: "After Hours", durationMs: 200_000, thumbnail: art2 },
 ];
 
@@ -213,7 +219,12 @@ function publishGithub(now: number) {
 	publishLocal("github", {
 		repos: [
 			{ name: "HeyyCzer/windows-dynamic-island", openIssues: 7, latest: newest, error: null },
-			{ name: "tauri-apps/tauri", openIssues: 1284, latest: issue(14210, "[bug] Webview2 crash on resume", "tauri-apps/tauri"), error: null },
+			{
+				name: "tauri-apps/tauri",
+				openIssues: 1284,
+				latest: issue(14210, "[bug] Webview2 crash on resume", "tauri-apps/tauri"),
+				error: null,
+			},
 			{ name: "someone/private-thing", openIssues: null, latest: null, error: "notFound" },
 		],
 		auth: "gh",
@@ -253,9 +264,33 @@ function publishCalendar(now: number) {
 		google: { builtinClient: true, hasClient: true, connected: true, account: "me@example.com", error: null },
 		feeds: [{ id: "4f2a91", host: "calendar.google.com", name: "Feriados no Brasil", error: null }],
 		calendars: [
-			{ key: work, name: "me@example.com", color: "#039BE5", source: "google", defaultVisible: true, visible: true, error: null },
-			{ key: family, name: "Família", color: "#33B679", source: "google", defaultVisible: true, visible: true, error: null },
-			{ key: holidays, name: "Feriados no Brasil", color: "#FF9F0A", source: "ics", defaultVisible: true, visible: true, error: null },
+			{
+				key: work,
+				name: "me@example.com",
+				color: "#039BE5",
+				source: "google",
+				defaultVisible: true,
+				visible: true,
+				error: null,
+			},
+			{
+				key: family,
+				name: "Família",
+				color: "#33B679",
+				source: "google",
+				defaultVisible: true,
+				visible: true,
+				error: null,
+			},
+			{
+				key: holidays,
+				name: "Feriados no Brasil",
+				color: "#FF9F0A",
+				source: "ics",
+				defaultVisible: true,
+				visible: true,
+				error: null,
+			},
 		],
 		events: [
 			ev("a", work, "Daily stand-up", soon, soon + 15 * 60_000, { meetingUrl: "https://meet.google.com/abc-defg-hij" }),
@@ -275,7 +310,8 @@ function publishCalendar(now: number) {
 /** Activities, notifications, Ask Claude and the shelf (ported from Windows Island). */
 function publishWindowsIsland(now: number) {
 	publishLocal("activities", {
-		apiPort: 5199, hasBattery: true,
+		apiPort: 5199,
+		hasBattery: true,
 		items: [
 			{
 				id: "render",
@@ -300,8 +336,26 @@ function publishWindowsIsland(now: number) {
 		access: "allowed",
 		error: null,
 		items: [
-			{ id: 1, app: "WhatsApp", aumid: "", logo: null, title: "Ana", body: "Are we still on for tonight?", receivedAt: now - 60_000, read: true },
-			{ id: 2, app: "Outlook", aumid: "", logo: null, title: "Weekly sync", body: "Moved to 3 PM", receivedAt: now - 1_800_000, read: true },
+			{
+				id: 1,
+				app: "WhatsApp",
+				aumid: "",
+				logo: null,
+				title: "Ana",
+				body: "Are we still on for tonight?",
+				receivedAt: now - 60_000,
+				read: true,
+			},
+			{
+				id: 2,
+				app: "Outlook",
+				aumid: "",
+				logo: null,
+				title: "Weekly sync",
+				body: "Moved to 3 PM",
+				receivedAt: now - 1_800_000,
+				read: true,
+			},
 		],
 	});
 	publishLocal("ask", {
@@ -330,7 +384,8 @@ function publishWindowsIsland(now: number) {
 	setInterval(() => {
 		const level = 0.3 + Math.random() * 0.6;
 		publishLocal("activities", {
-			apiPort: 5199, hasBattery: true,
+			apiPort: 5199,
+			hasBattery: true,
 			items: [
 				{
 					id: "system.volume",
@@ -374,20 +429,46 @@ function publishClipboard(now: number) {
 		...fields,
 	});
 	const history = [
-		item(3, { preview: "netstat -ano | findstr :5199", chars: 28, source: "Visual Studio Code", copiedAt: now - 40_000 }),
+		item(3, {
+			preview: "netstat -ano | findstr :5199",
+			chars: 28,
+			source: "Visual Studio Code",
+			copiedAt: now - 40_000,
+		}),
 		item(2, { kind: "files", names: ["report.pdf", "cover.png"], source: "Windows Explorer", copiedAt: now - 300_000 }),
-		item(1, { preview: "https://github.com/HeyyCzer/windows-dynamic-island/issues/128", chars: 61, source: "Google Chrome", copiedAt: now - 900_000 }),
+		item(1, {
+			preview: "https://github.com/HeyyCzer/windows-dynamic-island/issues/128",
+			chars: 61,
+			source: "Google Chrome",
+			copiedAt: now - 900_000,
+		}),
 	];
 	publishLocal("clipboard", { items: history });
 	setTimeout(() => {
-		const shot = item(4, { kind: "image", thumb: art, width: 1920, height: 1080, path: "C:\\shot.png", screenshot: true, source: "Snipping Tool", copiedAt: Date.now(), quiet: false });
+		const shot = item(4, {
+			kind: "image",
+			thumb: art,
+			width: 1920,
+			height: 1080,
+			path: "C:\\shot.png",
+			screenshot: true,
+			source: "Snipping Tool",
+			copiedAt: Date.now(),
+			quiet: false,
+		});
 		publishLocal("clipboard", { items: [shot, ...history] });
 	}, 8_000);
 }
 
 /** System monitor: a minute of wobbling numbers. */
 function publishMonitor() {
-	const history = { cpu: [] as number[], memory: [] as number[], gpu: [] as number[], down: [] as number[], up: [] as number[] };
+	const history = {
+		cpu: [] as number[],
+		memory: [] as number[],
+		gpu: [] as number[],
+		down: [] as number[],
+		up: [] as number[],
+	};
 	const push = (list: number[], v: number) => {
 		list.push(v);
 		if (list.length > 60) list.shift();
@@ -437,7 +518,16 @@ function startDemo(now: number, nextTrack: () => void) {
 	const at = (ms: number, fn: () => void) => setTimeout(fn, 4_000 + ms);
 
 	const history = [
-		{ id: 2, app: "Outlook", aumid: "", logo: null, title: "Weekly sync", body: "Moved to 3 PM", receivedAt: now - 1_800_000, read: true },
+		{
+			id: 2,
+			app: "Outlook",
+			aumid: "",
+			logo: null,
+			title: "Weekly sync",
+			body: "Moved to 3 PM",
+			receivedAt: now - 1_800_000,
+			read: true,
+		},
 	];
 	claude(editing, finished);
 	activities([]);
@@ -447,7 +537,16 @@ function startDemo(now: number, nextTrack: () => void) {
 	publishLocal("clipboard", { items: [] });
 
 	at(2_500, () => {
-		const message = { id: 3, app: "WhatsApp", aumid: "", logo: null, title: "Ana", body: "Are we still on for tonight?", receivedAt: Date.now(), read: false };
+		const message = {
+			id: 3,
+			app: "WhatsApp",
+			aumid: "",
+			logo: null,
+			title: "Ana",
+			body: "Are we still on for tonight?",
+			receivedAt: Date.now(),
+			read: false,
+		};
 		publishLocal("notifications", { access: "allowed", error: null, items: [message, ...history] });
 		activities([
 			{
@@ -471,7 +570,16 @@ function startDemo(now: number, nextTrack: () => void) {
 	});
 	at(7_000, () => {
 		activities([]);
-		history.unshift({ id: 3, app: "WhatsApp", aumid: "", logo: null, title: "Ana", body: "Are we still on for tonight?", receivedAt: Date.now() - 5_000, read: true });
+		history.unshift({
+			id: 3,
+			app: "WhatsApp",
+			aumid: "",
+			logo: null,
+			title: "Ana",
+			body: "Are we still on for tonight?",
+			receivedAt: Date.now() - 5_000,
+			read: true,
+		});
 		publishLocal("notifications", { access: "allowed", error: null, items: history });
 	});
 	at(8_500, nextTrack);
@@ -483,7 +591,13 @@ function startDemo(now: number, nextTrack: () => void) {
 				activity: { kind: "run", arg: "bun test", permission: true },
 				tool: "Bash",
 				lastEventAt: Date.now(),
-				permission: { id: "p1", tool: "Bash", detail: "bun test --coverage", always: "Bash(bun test:*)", since: Date.now() },
+				permission: {
+					id: "p1",
+					tool: "Bash",
+					detail: "bun test --coverage",
+					always: "Bash(bun test:*)",
+					since: Date.now(),
+				},
 			},
 			editing,
 			finished,

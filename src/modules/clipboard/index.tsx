@@ -24,53 +24,53 @@ const ROW = 48;
 const MAX_ROWS = 4;
 
 function ClipboardSettings() {
-  const t = useT();
-  return (
-    <div className="settings-block">
-      <span className="settings-desc">{t("clipboard.privacy")}</span>
-    </div>
-  );
+	const t = useT();
+	return (
+		<div className="settings-block">
+			<span className="settings-desc">{t("clipboard.privacy")}</span>
+		</div>
+	);
 }
 
 export const clipboardModule: IslandModule = {
-  id: "clipboard",
-  title: "clipboard.title",
-  settingsIcon: <Glyph name="clipboard" size={14} />,
-  settings: Object.values(clipboardSettings),
-  SettingsSection: ClipboardSettings,
-  useView(): ModuleView {
-    const state = useProvider<ClipboardState>(CLIPBOARD_PROVIDER);
-    const showOnCopy = useSetting(clipboardSettings.showOnCopy);
-    const peekOnScreenshot = useSetting(clipboardSettings.peekOnScreenshot);
-    const items = state?.items ?? [];
-    const latest = items[0];
-    const fresh = !!latest && !latest.quiet && Date.now() - latest.copiedAt < HERO_MS;
-    // Re-render while something is fresh, so the pill and the hero go away on time.
-    const now = useNow(500, fresh);
-    const age = latest ? now - latest.copiedAt : Infinity;
+	id: "clipboard",
+	title: "clipboard.title",
+	settingsIcon: <Glyph name="clipboard" size={14} />,
+	settings: Object.values(clipboardSettings),
+	SettingsSection: ClipboardSettings,
+	useView(): ModuleView {
+		const state = useProvider<ClipboardState>(CLIPBOARD_PROVIDER);
+		const showOnCopy = useSetting(clipboardSettings.showOnCopy);
+		const peekOnScreenshot = useSetting(clipboardSettings.peekOnScreenshot);
+		const items = state?.items ?? [];
+		const latest = items[0];
+		const fresh = !!latest && !latest.quiet && Date.now() - latest.copiedAt < HERO_MS;
+		// Re-render while something is fresh, so the pill and the hero go away on time.
+		const now = useNow(500, fresh);
+		const age = latest ? now - latest.copiedAt : Infinity;
 
-    const flashing = showOnCopy && !!latest && !latest.quiet && age < FLASH_MS;
-    const hero = !!latest && latest.kind === "image" && !latest.quiet && age < HERO_MS;
-    const listed = hero ? items.length - 1 : items.length;
-    const rows = hero ? Math.min(listed, 1) : Math.min(Math.max(listed, 1), MAX_ROWS);
+		const flashing = showOnCopy && !!latest && !latest.quiet && age < FLASH_MS;
+		const hero = !!latest && latest.kind === "image" && !latest.quiet && age < HERO_MS;
+		const listed = hero ? items.length - 1 : items.length;
+		const rows = hero ? Math.min(listed, 1) : Math.min(Math.max(listed, 1), MAX_ROWS);
 
-    return {
-      active: flashing,
-      // A 3 s flash: above music and a working/finished agent, under an agent
-      // waiting for permission and the system alerts (volume…).
-      priority: 75,
-      hidden: items.length === 0,
-      accent: CLIPBOARD_YELLOW,
-      icon: <Glyph name="clipboard" size={14} color={CLIPBOARD_YELLOW} />,
-      compact: latest && {
-        left: <ClipboardCompactLeft item={latest} />,
-        right: <ClipboardCompactRight />,
-        width: 340,
-      },
-      expanded: <ClipboardPanel state={state} hero={hero} />,
-      expandedSize: { width: 560, height: 46 + (hero ? 124 : 0) + rows * ROW },
-      activityKey:
-        peekOnScreenshot && latest?.screenshot && !latest.quiet ? `shot:${latest.id}:${latest.copiedAt}` : undefined,
-    };
-  },
+		return {
+			active: flashing,
+			// A 3 s flash: above music and a working/finished agent, under an agent
+			// waiting for permission and the system alerts (volume…).
+			priority: 75,
+			hidden: items.length === 0,
+			accent: CLIPBOARD_YELLOW,
+			icon: <Glyph name="clipboard" size={14} color={CLIPBOARD_YELLOW} />,
+			compact: latest && {
+				left: <ClipboardCompactLeft item={latest} />,
+				right: <ClipboardCompactRight />,
+				width: 340,
+			},
+			expanded: <ClipboardPanel state={state} hero={hero} />,
+			expandedSize: { width: 560, height: 46 + (hero ? 124 : 0) + rows * ROW },
+			activityKey:
+				peekOnScreenshot && latest?.screenshot && !latest.quiet ? `shot:${latest.id}:${latest.copiedAt}` : undefined,
+		};
+	},
 };

@@ -21,16 +21,16 @@ import { shelfModule } from "./shelf";
  * `src-tauri/src/providers/<name>/`.
  */
 export const modules: IslandModule[] = [
-  musicModule,
-  aiAgentsModule,
-  askModule,
-  findModule,
-  notificationsModule,
-  activitiesModule,
-  shelfModule,
-  clipboardModule,
-  githubModule,
-  hydrationModule,
-  monitorModule,
-  clockModule,
+	musicModule,
+	aiAgentsModule,
+	askModule,
+	findModule,
+	notificationsModule,
+	activitiesModule,
+	shelfModule,
+	clipboardModule,
+	githubModule,
+	hydrationModule,
+	monitorModule,
+	clockModule,
 ];

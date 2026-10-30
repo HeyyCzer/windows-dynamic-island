@@ -20,54 +20,54 @@ import "./settings.css";
  * `MemoryRouter`, since the window has no URL.
  */
 export function SettingsApp() {
-  const values = useSettings();
-  const t = useT();
-  useSyncLocale();
+	const values = useSettings();
+	const t = useT();
+	useSyncLocale();
 
-  return (
-    <MemoryRouter>
-      <div className="settings">
-        <TitleBar />
-        <div className="settings-main">
-          <nav className="settings-nav">
-            <NavSection label={t("settings.section.app")} />
-            <NavItem to="/" icon={<GearIcon size={15} />} label={t("settings.general")} />
-            <NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
-            <NavSection label={t("settings.section.island")} />
-            {/* Stays highlighted on each module's own page too. */}
-            <NavItem to="/modules" end={false} icon={<GridIcon size={14} />} label={t("modules.title")} />
-            <div className="settings-nav-spacer" />
-            <NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
-          </nav>
-          <main className="settings-content">
-            <Page>
-              <Routes>
-                <Route index element={<GeneralPage values={values} />} />
-                <Route path="appearance" element={<AppearancePage values={values} />} />
-                <Route path="modules" element={<ModulesPage values={values} />} />
-                <Route path="modules/:id" element={<ModulePage values={values} />} />
-                <Route path="about" element={<AboutPage />} />
-              </Routes>
-            </Page>
-          </main>
-        </div>
-      </div>
-    </MemoryRouter>
-  );
+	return (
+		<MemoryRouter>
+			<div className="settings">
+				<TitleBar />
+				<div className="settings-main">
+					<nav className="settings-nav">
+						<NavSection label={t("settings.section.app")} />
+						<NavItem to="/" icon={<GearIcon size={15} />} label={t("settings.general")} />
+						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
+						<NavSection label={t("settings.section.island")} />
+						{/* Stays highlighted on each module's own page too. */}
+						<NavItem to="/modules" end={false} icon={<GridIcon size={14} />} label={t("modules.title")} />
+						<div className="settings-nav-spacer" />
+						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
+					</nav>
+					<main className="settings-content">
+						<Page>
+							<Routes>
+								<Route index element={<GeneralPage values={values} />} />
+								<Route path="appearance" element={<AppearancePage values={values} />} />
+								<Route path="modules" element={<ModulesPage values={values} />} />
+								<Route path="modules/:id" element={<ModulePage values={values} />} />
+								<Route path="about" element={<AboutPage />} />
+							</Routes>
+						</Page>
+					</main>
+				</div>
+			</div>
+		</MemoryRouter>
+	);
 }
 
 /** Fades each page in when the route changes. */
 function Page({ children }: { children: ReactNode }) {
-  const { pathname } = useLocation();
-  return (
-    <motion.div
-      key={pathname}
-      className="settings-page"
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-    >
-      {children}
-    </motion.div>
-  );
+	const { pathname } = useLocation();
+	return (
+		<motion.div
+			key={pathname}
+			className="settings-page"
+			initial={{ opacity: 0, y: 6 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ duration: 0.18, ease: "easeOut" }}
+		>
+			{children}
+		</motion.div>
+	);
 }

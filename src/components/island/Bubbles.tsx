@@ -23,7 +23,15 @@ export function AmbientBubbles({
 					entries
 						.filter((e) => e.view.ambient)
 						.map(({ module, view }) => (
-							<Bubble key={module.id} id={module.id} className="bubble ambient" from={40} scale={shrunk ? 0.84 : 1} layout {...bubble}>
+							<Bubble
+								key={module.id}
+								id={module.id}
+								className="bubble ambient"
+								from={40}
+								scale={shrunk ? 0.84 : 1}
+								layout
+								{...bubble}
+							>
 								{view.ambient}
 							</Bubble>
 						))}

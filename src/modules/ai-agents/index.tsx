@@ -10,6 +10,7 @@
  * append it to `agents` below.
  */
 import { SparkleIcon } from "../../components/icons";
+import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { claudeAgent } from "./claude";
 import { codexAgent } from "./codex";
@@ -19,7 +20,6 @@ import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
 import { agentSettings } from "./settings";
-import { useSetting } from "../../core/settings";
 import "./ai-agents.css";
 
 const agents: AgentDefinition[] = [claudeAgent, codexAgent];
@@ -42,11 +42,7 @@ export const aiAgentsModule: IslandModule = {
 	title: "agents.title",
 	settingsIcon: <SparkleIcon size={15} />,
 	settings: Object.values(agentSettings),
-	SettingsSection: () => (
-		<>
-			{agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}
-		</>
-	),
+	SettingsSection: () => <>{agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}</>,
 	useView(): ModuleView {
 		const peekOnWaiting = useSetting(agentSettings.peekOnWaiting);
 		const peekOnDone = useSetting(agentSettings.peekOnDone);
@@ -67,10 +63,7 @@ export const aiAgentsModule: IslandModule = {
 
 		const sessions: AgentSessionRef[] = visible
 			.flatMap((agent, i) => snapshots[i].sessions.map((session) => ({ agent, session })))
-			.sort(
-				(a, b) =>
-					RANK[a.session.status] - RANK[b.session.status] || b.session.lastEventAt - a.session.lastEventAt,
-			);
+			.sort((a, b) => RANK[a.session.status] - RANK[b.session.status] || b.session.lastEventAt - a.session.lastEventAt);
 
 		const hasDone = sessions.some((s) => s.session.status === "done");
 		const now = useNow(1000, hasDone);
@@ -106,13 +99,13 @@ export const aiAgentsModule: IslandModule = {
 			expandedSize: asking
 				? { width: 620, height: PERMISSION_PROMPT + Math.max(1, recent.length) * 30 }
 				: {
-					width: 620,
-					height:
-						236 +
-						Math.max(1, recent.length) * 30 +
-						(snapshots.some((s) => s.usage?.daily.length) ? USAGE_CHART : 0) +
-						(visible.length > 1 ? AGENT_TABS : 0),
-				},
+						width: 620,
+						height:
+							236 +
+							Math.max(1, recent.length) * 30 +
+							(snapshots.some((s) => s.usage?.daily.length) ? USAGE_CHART : 0) +
+							(visible.length > 1 ? AGENT_TABS : 0),
+					},
 			// Peek when an agent needs you, just finished or its limits reset (each is a setting).
 			activityKey:
 				hot && peekOn[hot.session.status]

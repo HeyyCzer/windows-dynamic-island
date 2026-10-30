@@ -1,8 +1,8 @@
 import { providerAction, useProvider } from "../../../core/bridge";
-import { useT, type MessageKey, type Translate } from "../../../core/i18n";
+import { type MessageKey, type Translate, useT } from "../../../core/i18n";
 import { useSetting } from "../../../core/settings";
-import { agentSettings } from "../settings";
 import type { AgentSession, AgentSnapshot, AgentStatus, UsageLimit } from "../common/types";
+import { agentSettings } from "../settings";
 
 /** Mirrors `ClaudeState` in `src-tauri/src/providers/claude/mod.rs`. */
 interface ClaudeState {
@@ -45,7 +45,7 @@ interface Activity {
 
 const PROVIDER = "claude";
 
-const refreshLimits = () => void providerAction(PROVIDER, "refreshLimits").catch(() => { });
+const refreshLimits = () => void providerAction(PROVIDER, "refreshLimits").catch(() => {});
 
 export function useClaude(): AgentSnapshot {
 	const state = useProvider<ClaudeState>(PROVIDER);
@@ -57,8 +57,20 @@ export function useClaude(): AgentSnapshot {
 	const { fiveHour, sevenDay } = state.limits ?? {};
 
 	const limits: UsageLimit[] = [];
-	if (fiveHour) limits.push({ id: "5h", label: t("agents.limit.fiveHour"), usedPct: fiveHour.usedPct, resetsAt: toMs(fiveHour.resetsAt) });
-	if (sevenDay) limits.push({ id: "7d", label: t("agents.limit.sevenDay"), usedPct: sevenDay.usedPct, resetsAt: toMs(sevenDay.resetsAt) });
+	if (fiveHour)
+		limits.push({
+			id: "5h",
+			label: t("agents.limit.fiveHour"),
+			usedPct: fiveHour.usedPct,
+			resetsAt: toMs(fiveHour.resetsAt),
+		});
+	if (sevenDay)
+		limits.push({
+			id: "7d",
+			label: t("agents.limit.sevenDay"),
+			usedPct: sevenDay.usedPct,
+			resetsAt: toMs(sevenDay.resetsAt),
+		});
 
 	const { hooks, statusline, serverOk, permissions } = state.integration;
 	const installed = hooks && statusline;
@@ -90,17 +102,17 @@ export function useClaude(): AgentSnapshot {
 		],
 		setup: !installed
 			? {
-				message: serverOk ? t("claude.setup.message") : t("claude.setup.serverDown"),
-				actionLabel: t("claude.setup.action"),
-				action: () => providerAction(PROVIDER, "install"),
-			}
-			: approveInIsland && !permissions
-				? {
-					// Installed by an older version: the permission hook gives up after 3 s.
-					message: t("claude.setup.outdated"),
-					actionLabel: t("claude.setup.update"),
+					message: serverOk ? t("claude.setup.message") : t("claude.setup.serverDown"),
+					actionLabel: t("claude.setup.action"),
 					action: () => providerAction(PROVIDER, "install"),
 				}
+			: approveInIsland && !permissions
+				? {
+						// Installed by an older version: the permission hook gives up after 3 s.
+						message: t("claude.setup.outdated"),
+						actionLabel: t("claude.setup.update"),
+						action: () => providerAction(PROVIDER, "install"),
+					}
 				: undefined,
 	};
 }

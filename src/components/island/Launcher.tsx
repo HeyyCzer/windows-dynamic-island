@@ -17,7 +17,12 @@ export function launcherSize(count: number) {
 export function Launcher({ entries, onSelect }: { entries: ModuleEntry[]; onSelect: (id: string) => void }) {
 	const t = useT();
 	return (
-		<div className="launcher" style={{ "--launcher-cols": LAUNCHER_COLS, "--tile-h": `${TILE_H}px`, "--tile-gap": `${TILE_GAP}px` } as CSSProperties}>
+		<div
+			className="launcher"
+			style={
+				{ "--launcher-cols": LAUNCHER_COLS, "--tile-h": `${TILE_H}px`, "--tile-gap": `${TILE_GAP}px` } as CSSProperties
+			}
+		>
 			{entries.map(({ module, view }, i) => (
 				<motion.button
 					key={module.id}

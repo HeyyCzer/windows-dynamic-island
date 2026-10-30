@@ -17,24 +17,24 @@ const PER_ROW = 5;
 const ROW = 100;
 
 export const shelfModule: IslandModule = {
-  id: "shelf",
-  title: "shelf.title",
-  settingsIcon: <Glyph name="folder" size={14} />,
-  useView(): ModuleView {
-    const state = useProvider<ShelfState>(SHELF_PROVIDER);
-    const dragging = draggingFiles.use();
-    const count = state?.items.length ?? 0;
-    const rows = Math.min(2, Math.max(1, Math.ceil(count / PER_ROW)));
+	id: "shelf",
+	title: "shelf.title",
+	settingsIcon: <Glyph name="folder" size={14} />,
+	useView(): ModuleView {
+		const state = useProvider<ShelfState>(SHELF_PROVIDER);
+		const dragging = draggingFiles.use();
+		const count = state?.items.length ?? 0;
+		const rows = Math.min(2, Math.max(1, Math.ceil(count / PER_ROW)));
 
-    return {
-      active: false,
-      priority: 0,
-      // Shows up once it holds something, or while files are dragged over the island.
-      hidden: count === 0 && !dragging,
-      accent: SHELF_BLUE,
-      icon: <Glyph name="folder" size={14} color={SHELF_BLUE} />,
-      expanded: <ShelfPanel state={state} />,
-      expandedSize: { width: 560, height: 54 + rows * ROW },
-    };
-  },
+		return {
+			active: false,
+			priority: 0,
+			// Shows up once it holds something, or while files are dragged over the island.
+			hidden: count === 0 && !dragging,
+			accent: SHELF_BLUE,
+			icon: <Glyph name="folder" size={14} color={SHELF_BLUE} />,
+			expanded: <ShelfPanel state={state} />,
+			expandedSize: { width: 560, height: 54 + rows * ROW },
+		};
+	},
 };
