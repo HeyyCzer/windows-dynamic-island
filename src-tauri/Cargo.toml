@@ -28,7 +28,7 @@ ureq = "3"
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 base64 = "0.23"
 log = "0.4"
-tauri-plugin-updater = "2"
+tauri-plugin-updater = { version = "2", default-features = false, features = ["rustls-tls", "system-proxy"] }
 tauri-plugin-global-shortcut = "2"
 png = "0.17"
 # Calendar: iCal recurrence + time zones, Google OAuth (PKCE).
