@@ -307,6 +307,12 @@ button {
 	}
 }
 
+/* the PiP window has no transparent corners */
+html:has([data-pip]),
+body:has([data-pip]) {
+	background: #000;
+}
+
 /* browser preview wallpaper (never applied inside Tauri) */
 body.preview {
 	background: radial-gradient(120% 90% at 80% 100%, #3b3a6b 0%, #16162a 55%, #0d0d17 100%);
