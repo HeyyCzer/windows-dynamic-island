@@ -47,9 +47,11 @@ const ptBr: Strings = {
   hero: {
     title: "Uma ilha para o topo da área de trabalho do Windows",
     lead: "Ela mostra o que está tocando, o que suas sessões do Claude Code estão fazendo e suas notificações, e fica fora do caminho no resto do tempo.",
-    download: "Baixar para Windows",
+    download: "Baixar de graça",
+    store: "Baixe na Microsoft",
+    storeBadge: "pt-br",
     github: "Ver o código-fonte",
-    note: "Gratuito e de código aberto, para Windows 10 e 11.",
+    note: "O download pelo GitHub é gratuito e de código aberto. A versão da Microsoft Store é paga: compre se quiser apoiar o projeto. Para Windows 10 e 11.",
   },
   demo: {
     title: "Um minuto com a ilha",

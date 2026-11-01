@@ -5,6 +5,7 @@ export type Lang = "en" | "pt-br";
 
 export const REPO = "https://github.com/HeyyCzer/windows-island";
 export const DOWNLOAD = `${REPO}/releases/latest`;
+export const STORE = "https://get.microsoft.com/installer/download/9nxff6h0lpdl?referrer=appbadge";
 
 /** Path of a page in the given language, with the GitHub Pages base. */
 export function href(lang: Lang, page: "" | "privacy" = ""): string {

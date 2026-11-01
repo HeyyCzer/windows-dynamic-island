@@ -2,7 +2,7 @@
 import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
 import Island from "./Island.astro";
-import { DOWNLOAD, REPO, href, strings, type Lang } from "../i18n";
+import { DOWNLOAD, REPO, STORE, href, strings, type Lang } from "../i18n";
 import pkg from "../../../package.json";
 
 import demo from "../../../docs/demo.gif";
@@ -42,6 +42,9 @@ const looks = [lookDynamic, lookClassic, lookMono, lookAurora];
       <p class="lead">{t.hero.lead}</p>
       <div class="cta">
         <a class="button primary" href={DOWNLOAD}>{t.hero.download}</a>
+        <a class="store" href={STORE} target="_self">
+          <img src={`https://get.microsoft.com/images/${t.hero.storeBadge}%20light.svg`} height="48" alt={t.hero.store} />
+        </a>
         <a class="button" href={REPO}>{t.hero.github}</a>
       </div>
       <p class="note">{t.hero.note}</p>
@@ -149,8 +152,20 @@ const looks = [lookDynamic, lookClassic, lookMono, lookAurora];
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
     gap: 12px;
     margin-top: 36px;
+  }
+
+  .store {
+    display: flex;
+    border-radius: 8px;
+  }
+
+  .store img {
+    display: block;
+    height: 48px;
+    width: auto;
   }
 
   .button {

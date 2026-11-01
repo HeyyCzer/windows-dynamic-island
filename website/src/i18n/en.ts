@@ -47,9 +47,11 @@ const en = {
   hero: {
     title: "An island for the top of your Windows desktop",
     lead: "It shows what's playing, what your Claude Code sessions are doing and your notifications, and stays out of the way the rest of the time.",
-    download: "Download for Windows",
+    download: "Download for free",
+    store: "Get it from Microsoft",
+    storeBadge: "en-us",
     github: "View the source",
-    note: "Free and open source, for Windows 10 and 11.",
+    note: "The GitHub download is free and open source. The Microsoft Store version is paid: buy it if you want to support the project. For Windows 10 and 11.",
   },
   demo: {
     title: "A minute with the island",
