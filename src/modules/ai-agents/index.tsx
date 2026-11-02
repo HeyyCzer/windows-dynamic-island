@@ -18,6 +18,7 @@ import { AgentCompactLeft, AgentCompactRight } from "./common/components/AgentCo
 import { AgentsPanel } from "./common/components/AgentsPanel";
 import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
+import { pickPrimary } from "./common/primary";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
 import { agentSettings } from "./settings";
 
@@ -80,7 +81,7 @@ export const aiAgentsModule: IslandModule = {
 			.filter((s) => s.session.status !== "idle" || now - s.session.lastEventAt < RECENT_MS)
 			.slice(0, 4);
 
-		const primary = visible[0];
+		const primary = pickPrimary(visible, snapshots);
 		const asking = sessions.some((s) => s.session.permission && s.agent.decide);
 
 		return {
