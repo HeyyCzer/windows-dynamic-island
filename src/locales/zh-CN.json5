@@ -1,0 +1,817 @@
+// 中文（简体）。与 en.json5（参考语言文件）结构及键名完全一致。
+// 占位符说明请参考各字段注释。
+{
+  language: {
+    // 语言选择器中显示的名称，使用语言自身书写
+    name: "简体中文",
+  },
+
+  // 设置窗口
+  settings: {
+    subtitle: "设置",
+    // 侧边栏分组
+    section: {
+      app: "应用",
+      island: "灵动岛",
+    },
+    general: "常规",
+    minimize: "最小化",
+    close: "关闭",
+    module: {
+      label: "在灵动岛中显示",
+      desc: "关闭以完全隐藏此模块。",
+    },
+    autostart: {
+      label: "开机自启动",
+      appOnly: "仅在完整应用版中可用。",
+      disabledByUser: "已在任务管理器中禁用。请在任务管理器的“启动应用”中重新启用。",
+    },
+    language: {
+      label: "语言",
+      desc: "默认跟随系统语言。",
+      // {language}: 检测到的系统语言名称
+      auto: "跟随系统 ({language})",
+    },
+    hideInFullscreen: {
+      label: "全屏时隐藏",
+      desc: "当有游戏、视频或应用全屏运行时隐藏灵动岛。",
+    },
+    expandOnHover: {
+      label: "悬停时展开",
+      desc: "关闭后，灵动岛仅在点击时展开。",
+    },
+    monitor: {
+      label: "显示器",
+      desc: "灵动岛所在的屏幕位置。自动模式将跟随 Windows 中设置的主显示器。",
+      // {name}: 主显示器名称
+      auto: "自动 ({name})",
+      // {n}: 显示器编号（针对无型号名称的显示器）
+      generic: "显示器 {n}",
+      primary: "主显示器",
+      missing: "显示器已断开（当前使用主显示器）",
+    },
+    avoidMaximized: {
+      label: "避开全屏应用",
+      desc: "当全屏应用（游戏、视频、演示文稿）可能遮挡灵动岛时，将其移至另一台显示器。",
+    },
+    returnToCenter: {
+      label: "返回屏幕居中",
+      desc: "可沿屏幕顶部左右拖动灵动岛。关闭后，灵动岛将停留在拖放位置。",
+    },
+    returnDelay: {
+      label: "返回延迟",
+      desc: "拖动灵动岛后滑动回屏幕中央的等待秒数。",
+    },
+    about: {
+      title: "关于",
+      // {version}: 应用版本号，例如 1.2.3
+      version: "版本 {version}",
+      source: "源代码",
+      license: "开源许可",
+      updates: {
+        label: "检查更新",
+        idle: "检查是否有新版本发布。",
+        checking: "正在检查更新…",
+        latest: "已是最新版本。",
+        // {version}: 新版本号，例如 1.2.3
+        ready: "版本 {version} 已准备好安装。",
+        dev: "开发版本不支持自动更新。",
+        portable: "便携版无法自动更新，请从 GitHub 下载新版本。",
+        store: "更新将通过 Microsoft Store 提供。",
+        error: "无法检查更新。",
+        check: "检查更新",
+        install: "重启并更新",
+      },
+    },
+  },
+
+  // 由后端渲染 (src-tauri/src/i18n.rs)
+  tray: {
+    // {version}: 新版本号，例如 1.2.3
+    update: "重启以更新至 v{version}",
+    settings: "设置…",
+    autostart: "开机自启动",
+    recenter: "恢复居中",
+    quit: "退出",
+    hide: "隐藏灵动岛",
+    show: "显示灵动岛",
+    hiddenTooltip: "Windows 灵动岛（已隐藏）：点击以显示",
+  },
+  window: {
+    settings: "Windows 灵动岛 — 设置",
+  },
+
+  // 灵动岛主界面
+  island: {
+    settings: "设置",
+  },
+
+  // 设置中的模块页面：所有模块的排列顺序与开关
+  modules: {
+    title: "模块",
+    desc: "拖动以调整标签页顺序。标签栏中的模块始终一键即达；其余模块位于启动器（网格按钮）中，若有正在运行的任务也会在标签栏显示。点击模块可进入其设置。",
+    open: "打开设置",
+  },
+
+  // 展开后的灵动岛标签页：标签栏与启动器
+  layout: {
+    launcher: "全部模块",
+    pinned: "固定在标签栏",
+    drag: "拖动以重新排序",
+    place: "模块标签页显示位置",
+    placeDesc: "它也始终会显示在启动器（网格按钮）中。",
+    inBar: "非空时显示在标签栏",
+    inBarAlways: "始终显示在标签栏",
+    inLauncher: "仅在启动器中显示",
+  },
+
+  // 音乐模块
+  music: {
+    title: "音乐",
+    nothingPlaying: "暂无播放内容",
+    autoExpand: {
+      label: "切歌时自动展开",
+      desc: "新曲目开始播放时，在灵动岛展开显示封面和曲名数秒。",
+    },
+    visualizer: {
+      label: "音频可视化频谱",
+      desc: "随音乐律动的动画音频条。",
+    },
+    video: {
+      label: "在灵动岛中播放 YouTube 视频",
+      desc: "在封面位置静音播放浏览器中的 YouTube 视频。每首曲目会自动搜索 youtube.com。",
+    },
+    // 在灵动岛中镜像显示的 YouTube 视频 / 固定为独立窗口
+    pin: "固定窗口",
+    pinned: "视频已固定 · 点击收回",
+    unpin: "将视频收回灵动岛",
+    backToIsland: "返回灵动岛",
+    // 音量滑块：播放器音量与系统总音量
+    computer: "电脑",
+    volume: "{name} 音量",
+    mute: "静音 {name}",
+    unmute: "取消静音 {name}",
+    // Spotify Connect: 远程控制在其他设备上播放的 Spotify 音量
+    spotify: {
+      title: "其他设备上的 Spotify",
+      none: "关联您的账号，以便在其他设备（手机、音响、另一台电脑）播放 Spotify 时调节音量。需要 Spotify Premium。",
+      connected: "已连接。当 Spotify 在其他设备播放时，其音量控制会显示在齿轮图标旁。",
+      revoked: "Spotify 授权已失效，请重新连接。",
+      waiting: "请在浏览器中完成登录…",
+      connect: "连接",
+      cancel: "取消",
+      disconnect: "断开连接",
+      noClient: "需要您自己的 Spotify 应用（免费）才能登录。",
+      clientHow: "前往 Spotify for Developers → Create app：勾选 Web API，将 {redirect} 添加为 Redirect URI，然后在此处粘贴 Client ID。",
+      clientOpen: "打开 Spotify for Developers",
+      clientId: "Client ID",
+      clientSave: "保存",
+      clientRemove: "移除已保存的 Client ID",
+      browserDone: "已连接！您可以关闭此标签页并返回灵动岛。",
+      browserDenied: "授权被拒绝。您可以关闭此标签页。",
+      error: {
+        premium: "Spotify 拒绝请求：调节设备音量需要 Premium 会员，且该账号必须在应用控制台的 User Management 中列出。",
+        noDevice: "当前账号下没有设备正在播放。",
+        unauthorized: "Spotify 登录失效，请重新连接。",
+        network: "无法连接到 Spotify。",
+        http: "Spotify 返回错误，请重试。",
+        rateLimited: "向 Spotify 发送的请求过多，请稍候再试。",
+        invalid: "Client ID 格式不正确（应为 32 位字母与数字）。",
+        timeout: "登录超时，请重试。",
+        denied: "授权未被允许。",
+        portBusy: "端口 43821 被其他应用占用，无法完成登录回调。",
+        noClient: "请先保存 Client ID。",
+      },
+    },
+  },
+
+  // 喝水提醒模块
+  hydration: {
+    title: "喝水提醒",
+    reminder: "该喝水了",
+    titleDue: "喝口水休息一下",
+    message: "稍作休息，补充水分，保持活力。",
+    next: "下次喝水提醒",
+    status: "下次提醒正在倒计时中。",
+    paused: "提醒已暂停",
+    pausedStatus: "剩余时间已保留，恢复后继续计时。",
+    confirm: "已喝水",
+    pause: "暂停",
+    start: "开始计时",
+    resume: "继续",
+    reset: "重新开始",
+    minutes: "{n} 分钟",
+    custom: "自定义",
+    autoStart: {
+      label: "自动开始计时",
+      desc: "每次灵动岛启动时自动开始新的喝水倒计时。",
+    },
+    showBubble: {
+      label: "显示倒计时气泡",
+      desc: "在灵动岛旁显示剩余时间气泡。",
+    },
+    interval: {
+      label: "提醒间隔",
+      desc: "两次喝水提醒之间的等待时间。",
+    },
+    snooze: {
+      label: "稍后提醒时长",
+      desc: "点击“稍后提醒”后的等待时间。",
+      action: "稍后提醒",
+    },
+  },
+
+  // AI 智能体模块
+  agents: {
+    title: "AI 智能体",
+    approveInIsland: {
+      label: "在灵动岛中审批权限请求",
+      desc: "直接在灵动岛中允许或拒绝 Claude Code 请求的权限。终端或 VS Code 中的审批同样继续有效。",
+    },
+    permission: {
+      // {project}: 会话项目目录, {tool}: 工具名称 (Bash, Edit…)
+      title: "{project} 请求使用 {tool}",
+      // {tool}: 工具名称
+      compact: "允许 {tool}？",
+      allow: "允许",
+      always: "总是允许",
+      // {rule}: 规则名称，例如 "Bash(npm test)"
+      alwaysTitle: "不再询问：{rule}",
+      deny: "拒绝",
+      // {n}: 其他等待审批的请求数
+      more: "+{n} 条等待中",
+      hint: "或在 Claude Code 中回答",
+    },
+    peekOnWaiting: {
+      label: "智能体需要注意时展开",
+      desc: "有权限请求或等待您回答的问题。",
+    },
+    peekOnDone: {
+      label: "智能体完成任务时展开",
+    },
+    peekOnLimitsReset: {
+      label: "限额重置时展开",
+      desc: "当订阅计划的请求限额重置并可再次使用时展开通知。",
+    },
+    status: {
+      working: "工作中",
+      waiting: "等待您操作",
+      done: "已完成",
+      limitsReset: "限额已重置，可以继续使用！",
+    },
+    now: "刚刚",
+    openProject: "在 VS Code 中打开",
+    // 本地转录记录中的 7 天使用情况
+    usage: {
+      today: "今天",
+      todayShort: "今天",
+      week: "7 天",
+      last5h: "最近 5 小时",
+      // {n}: 数量
+      response: "{n} 次回复",
+      responses: "{n} 次回复",
+    },
+    noSessions: "暂无近期会话",
+    contextUsed: "已使用上下文",
+    noLimits: "暂无限额数据",
+    tokensToday: "今日 Token 消耗",
+    tokens: {
+      input: "输入",
+      output: "输出",
+      cacheRead: "缓存读取",
+      cacheWrite: "缓存写入",
+    },
+    limit: {
+      fiveHour: "会话 · 5小时",
+      sevenDay: "周周期 · 7天",
+      // {time}: 例如 "2h 14m"
+      resetsIn: "{time} 后重置",
+    },
+    setup: {
+      busy: "正在启用…",
+      failed: "失败 — 请重试",
+    },
+  },
+
+  // GitHub 模块
+  github: {
+    title: "GitHub",
+    openIssues: "未解决 Issue",
+    refresh: "刷新",
+    loading: "正在更新…",
+    // {time}: 相对时间，例如 "5 min ago"
+    updated: "{time}更新",
+    // {time}: 具体时刻，例如 14:05
+    rateLimited: "请求超限，将在 {time} 解除",
+    empty: "暂无仓库",
+    addInSettings: "在设置中添加仓库",
+    newIssue: "新建",
+    noIssues: "没有未解决的 Issue",
+    showBubble: {
+      label: "侧边气泡",
+      desc: "在灵动岛旁显示未解决 Issue 总数。",
+    },
+    peekOnNew: {
+      label: "有新 Issue 时自动展开",
+      desc: "当有人提出新 Issue 时，展开灵动岛数秒以提示。",
+    },
+    error: {
+      notFound: "未找到仓库或无权访问",
+      unauthorized: "GitHub 拒绝了该 Token",
+      rateLimited: "已达到 API 速率限制",
+      network: "网络离线",
+      http: "GitHub 请求错误",
+    },
+    repos: {
+      title: "仓库列表",
+      desc: "输入 owner/repo 或粘贴 GitHub 链接。计数每 5 分钟自动刷新一次。",
+      placeholder: "owner/repo",
+      add: "添加",
+      remove: "移除",
+      invalid: "请使用 owner/repo 格式或 github.com 链接。",
+      duplicate: "该仓库已添加。",
+    },
+    account: {
+      title: "GitHub 账号",
+      // {login}: GitHub 用户名
+      token: "已使用 Token 登录为 {login}。",
+      gh: "使用 GitHub CLI 登录身份（{login}）。",
+      none: "未登录：仅能查看公开仓库，且速率限制较低。系统会自动检测 GitHub CLI 登录态。",
+      rejected: "保存的 Token 已被 GitHub 拒绝。",
+      placeholder: "Personal access token (个人访问令牌)",
+      save: "保存",
+      remove: "移除 Token",
+      stored: "安全保存在 Windows 凭据管理器中，绝不会写入设置文件。",
+      create: "创建 Token",
+    },
+  },
+
+  // 相对时间
+  time: {
+    now: "刚刚",
+    minutesAgo: "{n} 分钟前",
+    hoursAgo: "{n} 小时前",
+    daysAgo: "{n} 天前",
+    lessThanMinute: "< 1 分钟",
+  },
+
+  // Claude Code 智能体
+  claude: {
+    sound: {
+      done: "Claude 完成时的提示音",
+      permission: "Claude 请求权限时的提示音",
+      default: "默认提示音",
+      test: "播放试听",
+      choose: "选择音频文件…",
+      reset: "恢复默认",
+    },
+    limitsHint: {
+      loading: "正在加载套餐限额…",
+    },
+    setup: {
+      message: "通过 Claude Code 钩子实现实时状态与套餐限额监控（会自动先备份 settings.json）。",
+      serverDown: "本地服务不可用（端口 47823 是否被占用？）。",
+      action: "启用集成",
+      outdated: "请更新集成以在灵动岛中直接审批权限请求。",
+      update: "更新集成",
+    },
+    integration: {
+      title: "Claude Code 集成",
+      // {file}: Claude Code 设置文件路径
+      desc: "HTTP 钩子用于实时状态 + 状态栏用于限额监控。您原有的状态栏配置保持有效。每次更改都会为 {file} 创建备份。",
+      enable: "启用",
+      remove: "移除",
+      server: "本地服务 :47823",
+      permissions: "权限",
+      restart: "已打开的 Claude Code 会话需要重启以加载新钩子。",
+    },
+  },
+
+  // OpenAI Codex 智能体
+  codex: {
+    limitsHint: "套餐限额将在 Codex 下次回复后显示。",
+    // {time}: 时间窗口，例如 "5h" 或 "7d"
+    limitWindow: "周期 · {time}",
+    integration: {
+      title: "Codex",
+      // {dir}: Codex 会话存储目录
+      desc: "从 {dir} 中的 Codex 会话读取实时状态、Token 消耗和限额（支持 CLI、IDE 插件与桌面应用）。无需额外安装插件。",
+      found: "已检测到 Codex",
+      missing: "在此电脑上未找到 Codex",
+    },
+  },
+
+  // Claude 会话正在进行的活动
+  // 来源自 src-tauri/src/providers/claude/activity.rs; {arg} 为文件名、命令、搜索关键字等
+  activity: {
+    thinking: "思考中…",
+    run: "运行 {arg}",
+    read: "读取 {arg}",
+    edit: "编辑 {arg}",
+    write: "写入 {arg}",
+    grep: "搜索 “{arg}”",
+    glob: "查找 {arg}",
+    webSearch: "网络搜索 “{arg}”",
+    webFetch: "读取 {arg}",
+    subagent: "子智能体：{arg}",
+    todos: "更新任务列表",
+    skill: "技能 {arg}",
+    question: "等待您的回答",
+    plan: "方案已就绪",
+    tool: "{arg}",
+    message: "{arg}",
+    done: "已完成",
+    failed: "已失败",
+    interrupted: "已中断",
+    // {what}: 上述活动之一
+    permission: "权限请求：{what}",
+  },
+
+  // 外观页面（设置）：灵动岛样式与边框
+  appearance: {
+    title: "外观",
+    style: {
+      label: "样式",
+      desc: "灵动岛在屏幕上的展现风格。",
+      dynamic: "刘海模式 (Notch)",
+      dynamicDesc: "紧贴屏幕顶部边缘垂下，带有文字标签页。",
+      windows: "Windows 灵动岛 (Windows Island)",
+      windowsDesc: "悬浮胶囊形态，静止时显示时钟，带彩色光边且标签位于底部。",
+    },
+    windowsOnly: "仅在 Windows 灵动岛样式下可用。",
+    border: {
+      label: "边框",
+      desc: "灵动岛主体保持黑色，仅边缘光圈变换颜色。",
+    },
+    preset: {
+      none: "经典黑",
+      intelligence: "Apple 智能",
+      aurora: "极光",
+      sunset: "落日",
+      ocean: "海洋",
+      claude: "Claude",
+      neon: "霓虹",
+      mono: "银灰",
+      custom: "自定义",
+    },
+    custom: {
+      label: "自定义颜色",
+      start: "起始颜色",
+      end: "结束颜色",
+    },
+    thickness: {
+      label: "粗细",
+      "1": "细",
+      "2": "中",
+      "3": "粗",
+    },
+    animate: {
+      label: "动态渐变流光",
+      desc: "边缘色彩沿灵动岛缓缓转动流转（会稍微增加 CPU 占用）。",
+    },
+    glow: {
+      label: "光晕效果",
+      desc: "在边框颜色周围显示一层柔和的晕光。",
+    },
+    idleClock: {
+      label: "静止时钟",
+      desc: "灵动岛无活动任务时显示当前时间。",
+    },
+    hide: {
+      label: "隐藏灵动岛",
+      desc: "保持隐藏直到您手动唤出，重启后依然生效。点击系统托盘图标效果相同。",
+    },
+  },
+
+  // 实时活动模块（本地 API + 系统通知提示）
+  activities: {
+    title: "实时活动",
+    empty: "当前没有进行中的活动",
+    volume: {
+      label: "音量调节",
+      desc: "调节音量时显示电平指示条。",
+    },
+    battery: {
+      label: "电池状态",
+      desc: "电源插拔提示，以及低电量警告（20%、10%、5%）。",
+    },
+    bluetooth: {
+      label: "蓝牙耳机",
+      desc: "连接时显示耳机名称与剩余电量，并在低电量时发出提示。",
+    },
+    api: {
+      label: "第三方应用",
+      desc: "脚本和应用通过本地 API 推送的通知与实时活动。",
+    },
+    server: {
+      title: "本地 API",
+      desc: "本机上的任何应用或脚本均可推送通知与实时活动（下载进度、计时器、构建进度等）。",
+      down: "未在监听（端口是否已被占用？）",
+      routes: "路由接口：POST /notify, POST /activity, DELETE /activity/{id}, GET /status。设置环境变量 DYNAMIC_ISLAND_PORT 可更改端口。",
+    },
+  },
+
+  // Windows 系统通知模块
+  notifications: {
+    title: "通知中心",
+    clear: "清除全部",
+    empty: "暂无通知",
+    // {app}: 发送通知的应用
+    open: "打开 {app}",
+    access: {
+      title: "Windows 系统通知",
+      noIdentity: "Windows 仅允许已注册应用读取通知。启用此项将注册灵动岛一次并重启应用。",
+      denied: "访问被阻止：请前往 Windows 设置 → 隐私 → 通知 中授予权限。",
+      allowed: "来自 WhatsApp、Teams、Outlook 等应用的新通知将在灵动岛中呈现。",
+      unavailable: "当前系统不支持通知读取功能。",
+      enable: "启用",
+      enabling: "正在启用…",
+      on: "已开启",
+      openPrivacy: "打开系统设置",
+      how: "由于注册未包含商业数字签名，需要启用 Windows 开发者模式（设置 → 系统 → 开发者选项）。",
+      openDeveloper: "打开开发者设置",
+    },
+  },
+
+  // 全局快捷键（对应所唤出模块的设置页面）
+  shortcuts: {
+    label: "全局快捷键",
+    ask: "打开 Ask Claude",
+    find: "打开 屏幕查找",
+    desc: "在任何界面随时生效。点击并按下新快捷键；按 Esc 取消。",
+    press: "请按下快捷键组合…",
+    off: "已关闭",
+    reset: "恢复默认",
+    disable: "停用",
+    // {keys}: 例如 Ctrl+Alt+F
+    taken: "{keys} 已被其他应用占用，请选择其他快捷键组合。",
+    // {keys}: 例如 Ctrl+Alt+F; {action}: 另一个快捷键的名称
+    duplicate: "{keys} 已被分配给“{action}”。",
+  },
+
+  // Ask Claude 模块
+  ask: {
+    title: "Ask Claude",
+    hint: "快速提问与辅助解答。Claude 直接在此回复，使用您的 Claude Code 登录身份。",
+    // {keys}: 例如 Ctrl+Alt+Space
+    hotkey: "全局快捷键 {keys} 随时唤出。",
+    placeholder: "向 Claude 提问…",
+    send: "发送 (Enter)",
+    stop: "停止生成",
+    new: "开启新会话",
+    copy: "复制回复",
+    copied: "已复制 ✓",
+    remove: "删除",
+    screenshot: "附带当前活动窗口的截图",
+    notFound: "未在此电脑上找到 Claude Code。请安装 Claude Code CLI 或 VS Code 扩展后重试。",
+    answered: "Claude 已回复",
+    // {title}: 窗口标题
+    screenOf: "屏幕截图：{title}",
+    wholeScreen: "全屏截图",
+    defaultImage: "你从这张图里看到了什么？",
+    defaultFile: "请看一下这个文件。",
+    // {error}: 错误描述
+    attachmentFailed: "无法读取附件：{error}",
+    startFailed: "无法启动 Claude Code：{error}",
+    noAnswer: "Claude Code 未返回任何回复即退出。",
+    interrupted: "回复已中断。",
+    // {tools}: 工具名称
+    denied: "（执行此操作需要 {tools} 权限，请在 Claude Code 中允许。）",
+    status: {
+      thinking: "思考中…",
+      writing: "撰写中…",
+      webSearch: "正在搜索网页…",
+      webFetch: "正在读取网页…",
+      read: "正在读取文件…",
+      search: "正在搜索文件…",
+      // {tool}: 工具名称
+      tool: "正在使用 {tool}…",
+    },
+  },
+
+  // 暂存架模块
+  shelf: {
+    title: "暂存架",
+    empty: "拖拽文件到这里临时存放，随后可随时拖到任意目标位置。",
+    hint: "拖出即可使用 · 双击直接打开",
+    drop: "松开以暂存至此处",
+    clear: "清空",
+    ask: "就此文件向 Claude 提问",
+    remove: "从暂存架移除",
+  },
+
+  // 剪贴板模块
+  clipboard: {
+    title: "剪贴板",
+    copied: "已复制",
+    screenshot: "截图",
+    // {w}, {h}: 像素尺寸
+    picture: "图片 {w}×{h}",
+    // {n}: 文件数量
+    files: "{n} 个文件",
+    // {n}: 字符数
+    chars: "{n} 个字符",
+    empty: "复制任意内容后会在此处显示。",
+    hint: "点击再次复制 · 支持将图片和文件拖拽至外部",
+    clear: "清空记录",
+    copy: "再次复制",
+    copiedAgain: "已复制！",
+    ask: "就此内容向 Claude 提问",
+    keep: "保存到暂存架",
+    kept: "已暂存",
+    // 新截图旁的精简按钮标签
+    short: {
+      copy: "复制",
+      ask: "问 Claude",
+      keep: "暂存",
+    },
+    open: "打开",
+    remove: "移除",
+    // 从剪贴板保存图片的文件名（后接日期）
+    fileName: "剪贴板",
+    privacy: "文本仅保存在内存中，灵动岛关闭后即清除。绝不读取密码管理器复制的敏感内容。",
+    showOnCopy: {
+      label: "复制时即时预览",
+      desc: "复制内容时，在灵动岛短暂展示刚刚复制的信息。",
+    },
+    peekOnScreenshot: {
+      label: "截图时自动唤出",
+      desc: "使用快捷键截图（Win+Shift+S、Print Screen 等）时，在灵动岛中弹出显示该截图。",
+    },
+  },
+
+  // 屏幕查找模块 (src-tauri/src/providers/find)
+  find: {
+    title: "屏幕查找",
+    placeholder: "在屏幕上查找文字…",
+    // {n}: 当前匹配序号; {total}: 匹配总数
+    counter: "{n} / {total}",
+    prev: "上一个 (Shift+Enter)",
+    next: "下一个 (Enter)",
+    rescan: "重新扫描屏幕",
+    reading: "正在读取屏幕文字…",
+    none: "屏幕上未找到该文字。若内容已发生变化，请重新扫描 (↻)。",
+    hint: "Enter：下一个 · Shift+Enter：上一个 · Esc：关闭",
+    // {keys}: 全局快捷键，例如 "Ctrl+Alt+F"
+    hotkey: "全局快捷键 {keys} 随时唤出",
+    failed: "无法读取屏幕内容，请重试 (↻)。",
+    noOcr: "Windows 未安装当前语言的文字识别 (OCR) 组件。请前往“设置 → 时间和语言 → 语言和区域”添加对应语言包。",
+    moveCursor: {
+      label: "自动将鼠标移至匹配处",
+      desc: "按 Enter 自动将鼠标光标移动到下一个匹配项上方，便于立即点击。",
+    },
+  },
+
+  // 系统监控模块
+  monitor: {
+    title: "系统监控",
+    cpu: "CPU",
+    memory: "内存",
+    gpu: "GPU",
+    network: "网络",
+    // {used}, {total}: 容量大小，如 "9.8 GB"
+    memoryDetail: "{used} / {total}",
+    // {n}: 逻辑处理器数量
+    threads: "{n} 个线程",
+    unavailable: "不可用",
+    loading: "正在测量…",
+    showBubble: {
+      label: "侧边气泡",
+      desc: "在灵动岛旁显示 CPU 和内存使用率气泡。",
+    },
+    alerts: {
+      label: "高负载预警",
+      desc: "当 CPU 或内存满载持续 30 秒时发出警告，并提示占用最高的应用。",
+    },
+  },
+
+  // 时钟模块
+  clock: {
+    title: "时钟与日历",
+    today: "今天",
+    prev: "上个月",
+    next: "下个月",
+    // {n}: ISO 周数
+    week: "第 {n} 周",
+  },
+
+  // 日历：由时钟模块展示 Google 账号和 iCal 链接日程
+  // (src-tauri/src/providers/calendar)
+  calendar: {
+    allDay: "全天",
+    untitled: "（无标题）",
+    // {n}: 未列出的事件数量
+    more: "还有 +{n} 项",
+    free: "暂无日程安排",
+    join: "加入会议",
+    now: "现在",
+    remind: {
+      label: "近期日程提醒",
+      desc: "在日程开始前于灵动岛展示下一个事件，并附带加入线上会议的快捷按钮。",
+    },
+    remindMinutes: {
+      label: "提醒时间",
+      desc: "提前多久弹出提醒。每次提醒到达时都会展开灵动岛。",
+      atStart: "开始时",
+      // {n}: 分钟
+      before: "提前 {n} 分钟",
+      // {n}: 小时
+      hoursBefore: "提前 {n} 小时",
+      // {n}: 天数
+      daysBefore: "提前 {n} 天",
+      add: "添加时间…",
+      remove: "删除",
+    },
+    eventReminders: {
+      label: "沿用日程自带的提醒设置",
+      desc: "若日程事件已配置提醒，则优先遵循其自带的通知设置，而不是上面的默认时间。",
+    },
+    remindSound: {
+      label: "播放提示音",
+      desc: "每次发出日程提醒时，播放 Windows 日历自带的提醒提示音。",
+    },
+    google: {
+      title: "Google 日历",
+      none: "登录以查看您的 Google 日历日程。",
+      // {account}: 邮箱地址
+      connected: "已连接为 {account}。",
+      revoked: "Google 授权已失效，请重新连接。",
+      waiting: "请在浏览器中完成登录…",
+      connect: "连接",
+      cancel: "取消",
+      disconnect: "断开连接",
+      noClient: "当前构建版本未配置 Google 登录凭据。请粘贴“桌面应用”类型的 OAuth 客户端 ID 和客户端密钥。",
+      clientHow: "前往 Google Cloud → APIs & Services：启用 Google Calendar API，然后创建“桌面应用 (Desktop app)”类型的 OAuth 客户端 ID。",
+      clientOpen: "打开 Google Cloud 控制台",
+      clientId: "客户端 ID (Client ID)",
+      clientSecret: "客户端密钥 (Client secret)",
+      clientSave: "保存",
+      clientRemove: "移除已保存的 OAuth 客户端",
+      browserDone: "已连接！您可以关闭此标签页并返回灵动岛。",
+      browserDenied: "未授予访问权限，您可以关闭此标签页。",
+    },
+    ics: {
+      title: "iCal 订阅链接",
+      desc: "Google 日历获取方式：设置 → 您的日历 → “iCal 格式的私有地址”。Outlook 和 iCloud 日历链接同样受支持。安全存储于 Windows 凭据管理器中；数据可能存在数小时缓存延迟。",
+      placeholder: "https://…/basic.ics",
+      add: "添加",
+      remove: "删除",
+    },
+    calendars: {
+      title: "日历列表",
+      desc: "选择在灵动岛中显示的日历日程。",
+    },
+    error: {
+      unauthorized: "访问被拒绝",
+      notFound: "未找到日历",
+      invalid: "不是有效的日历链接",
+      network: "网络离线",
+      http: "服务器错误",
+      noClient: "缺少 OAuth 客户端凭据",
+      denied: "未授予授权权限",
+      timeout: "登录超时",
+      duplicate: "该日历已添加",
+      tooMany: "链接数量过多",
+    },
+  },
+
+  // 后端发出的系统警报 (src-tauri/src/providers/activities)
+  system: {
+    volume: {
+      title: "音量",
+      muted: "已静音",
+    },
+    battery: {
+      charging: "充电中",
+      onBattery: "使用电池中",
+      low: "电量不足",
+      // {n}: 百分比
+      lowDetail: "剩余电量 {n}%，请连接充电器。",
+      left: "剩余 {n}%",
+    },
+    bluetooth: {
+      connected: "已连接",
+      // {n}: 百分比
+      connectedBattery: "已连接 · 电量 {n}%",
+      disconnected: "已断开连接",
+      // {name}: 设备名称
+      low: "{name}：电量不足",
+    },
+    cpu: {
+      high: "CPU 满载警报",
+      // {app}: 应用名称, {n}: 占总 CPU 百分比
+      top: "{app} 占用了 {n}%",
+      // {n}: 百分比
+      detail: "持续 30 秒保持在 {n}%",
+    },
+    memory: {
+      high: "内存不足警报",
+      // {app}: 应用名称, {size}: 例如 "4.2 GB"
+      top: "{app} 占用了 {size}",
+      // {used}, {total}: 例如 "15.1 GB"
+      detail: "已使用 {used} / {total}",
+    },
+    // 上述数据大小中的小数点分隔符
+    decimal: ".",
+  },
+}
