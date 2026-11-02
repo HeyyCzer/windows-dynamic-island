@@ -1,0 +1,92 @@
+name: 🐛 Bug report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please search the [existing issues](https://github.com/HeyyCzer/windows-dynamic-island/issues) first to avoid duplicates.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: When I use Codex, the island shows the Claude icon instead.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. See ...
+    validations:
+      required: true
+  - type: dropdown
+    id: module
+    attributes:
+      label: Module
+      description: Which part of the island is affected?
+      options:
+        - AI Agents (Claude Code / Codex)
+        - Music
+        - Activities (battery, volume, Bluetooth…)
+        - Ask
+        - Calendar / Clock
+        - Clipboard
+        - Find
+        - GitHub
+        - Hydration
+        - Monitor
+        - Notifications
+        - Shelf
+        - Settings
+        - Island itself (position, animations, appearance…)
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in the settings window.
+      placeholder: v0.3.12
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installed from
+      options:
+        - Microsoft Store
+        - Installer (GitHub release)
+        - Portable (GitHub release)
+        - Built from source
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: Run `winver` to find it.
+      placeholder: Windows 11 24H2 (build 26100)
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / recordings
+      description: Drag and drop images or videos here, if they help.
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Logs, monitor setup (number of displays, scaling), other apps involved…
