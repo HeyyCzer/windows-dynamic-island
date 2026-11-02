@@ -179,21 +179,26 @@ jobs:
           path: src-tauri/target/store/*.msix
           if-no-files-found: error
 
+      # Store submission disabled: the product is priced per market in Partner
+      # Center, and msstore can't preserve that price ('Base') on update; it
+      # only accepts a single --priceId. Submit the msix artifact above from
+      # Partner Center instead.
+      #
       # Partner Center API access through the `msstore-ci` app registration in
       # Microsoft Entra (Partner Center, User management, Microsoft Entra
       # applications, role Manager). Its client secret expires: renew it there
       # and update AZURE_AD_APPLICATION_SECRET, or this step fails.
-      - uses: microsoft/microsoft-store-apppublisher@v1.4
-
-      - name: Submit to the Store
-        shell: pwsh
-        env:
-          TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
-          SELLER_ID: ${{ secrets.SELLER_ID }}
-          CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
-        run: |
-          msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
-          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed" }
-          msstore publish "${{ steps.pack.outputs.msix }}" --appId "${{ vars.STORE_PRODUCT_ID }}"
-          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed" }
+      # - uses: microsoft/microsoft-store-apppublisher@v1.4
+      #
+      # - name: Submit to the Store
+      #   shell: pwsh
+      #   env:
+      #     TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+      #     SELLER_ID: ${{ secrets.SELLER_ID }}
+      #     CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+      #     CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+      #   run: |
+      #     msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+      #     if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed" }
+      #     msstore publish "${{ steps.pack.outputs.msix }}" --appId "${{ vars.STORE_PRODUCT_ID }}"
+      #     if ($LASTEXITCODE -ne 0) { throw "msstore publish failed" }
