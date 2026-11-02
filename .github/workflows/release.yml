@@ -3,10 +3,23 @@ name: Release
 # Push a version tag (e.g. `bun run v patch && git push --follow-tags`) to build
 # the Windows installers and publish them as a GitHub release. Can also be run
 # by hand from the Actions tab; the release is named after the app version.
+#
+# In parallel, the `msix` job builds the Microsoft Store edition
+# (scripts/package-msix.ps1), keeps it as a workflow artifact (it never goes
+# into the release) and submits it to the Store for certification. Run by hand
+# with "Store only" ticked to rebuild and resubmit just the MSIX.
+#
+# Neither job saves the Rust cache: a tag's cache can't be restored by the next
+# tag. They restore the one cache.yml keeps warm on main instead.
 on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      store-only:
+        description: Store only (build the MSIX, no GitHub release)
+        type: boolean
+        default: false
 
 concurrency:
   group: release-${{ github.ref }}
@@ -14,6 +27,7 @@ concurrency:
 
 jobs:
   windows:
+    if: ${{ !inputs.store-only }}
     runs-on: windows-latest
     permissions:
       contents: write
@@ -32,7 +46,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
+          shared-key: release
           workspaces: src-tauri -> target
+          save-if: false
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -116,3 +132,68 @@ jobs:
           $zip = "Dynamic.Island_${version}_x64-portable.zip"
           Compress-Archive -Path $dir -DestinationPath $zip
           gh release upload "v$version" $zip --clobber
+
+  msix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Installs the toolchain pinned in src-tauri/rust-toolchain.toml.
+      - name: Install Rust
+        working-directory: src-tauri
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: store
+          workspaces: src-tauri -> target/store
+          save-if: false
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      # The package identity comes from the repository variables
+      # MSIX_IDENTITY_NAME, MSIX_PUBLISHER and MSIX_PUBLISHER_DISPLAY_NAME
+      # (Partner Center, Product identity).
+      - name: Build and pack
+        id: pack
+        shell: pwsh
+        env:
+          # OAuth client ("Desktop app") built in for Google Calendar sign-in.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+        run: |
+          ./scripts/package-msix.ps1 `
+            -IdentityName "${{ vars.MSIX_IDENTITY_NAME }}" `
+            -Publisher "${{ vars.MSIX_PUBLISHER }}" `
+            -PublisherDisplayName "${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}"
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "msix=$((Get-Item src-tauri/target/store/*.msix).FullName)" >> $env:GITHUB_OUTPUT
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msix-v${{ steps.pack.outputs.version }}
+          path: src-tauri/target/store/*.msix
+          if-no-files-found: error
+
+      # Partner Center API access through the `msstore-ci` app registration in
+      # Microsoft Entra (Partner Center, User management, Microsoft Entra
+      # applications, role Manager). Its client secret expires: renew it there
+      # and update AZURE_AD_APPLICATION_SECRET, or this step fails.
+      - uses: microsoft/microsoft-store-apppublisher@v1.4
+
+      - name: Submit to the Store
+        shell: pwsh
+        env:
+          TENANT_ID: ${{ secrets.AZURE_AD_TENANT_ID }}
+          SELLER_ID: ${{ secrets.SELLER_ID }}
+          CLIENT_ID: ${{ secrets.AZURE_AD_APPLICATION_CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.AZURE_AD_APPLICATION_SECRET }}
+        run: |
+          msstore reconfigure --tenantId $env:TENANT_ID --sellerId $env:SELLER_ID --clientId $env:CLIENT_ID --clientSecret $env:CLIENT_SECRET
+          if ($LASTEXITCODE -ne 0) { throw "msstore reconfigure failed" }
+          msstore publish "${{ steps.pack.outputs.msix }}" --appId "${{ vars.STORE_PRODUCT_ID }}"
+          if ($LASTEXITCODE -ne 0) { throw "msstore publish failed" }

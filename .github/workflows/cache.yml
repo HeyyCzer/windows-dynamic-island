@@ -1,0 +1,63 @@
+name: Rust cache
+
+# Keeps the Rust dependency cache warm on main for release.yml. A run can only
+# restore caches from its own ref or from main, so a cache saved by one tag is
+# never seen by the next; this one, saved on main, is. Each matrix entry builds
+# exactly what its release job builds, under the same `shared-key`, so the keys
+# match. Only dependency changes need a new cache (version bumps don't change
+# the key), so it only runs when those files change, and skips the build when
+# the cache for the current dependencies already exists.
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - src-tauri/Cargo.toml
+      - src-tauri/Cargo.lock
+      - src-tauri/rust-toolchain.toml
+      - .github/workflows/cache.yml
+  workflow_dispatch:
+
+concurrency:
+  group: rust-cache
+  cancel-in-progress: true
+
+jobs:
+  warm:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        include:
+          - key: release
+            target: target
+            args: ""
+          - key: store
+            target: target/store
+            args: --features store --config src-tauri/tauri.microsoftstore.conf.json
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # Installs the toolchain pinned in src-tauri/rust-toolchain.toml.
+      - name: Install Rust
+        working-directory: src-tauri
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        id: cache
+        with:
+          shared-key: ${{ matrix.key }}
+          workspaces: src-tauri -> ${{ matrix.target }}
+
+      - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      # Absolute: cargo runs from src-tauri/, so a relative path would nest.
+      # Through the Tauri CLI rather than plain cargo: it turns on features
+      # (e.g. `custom-protocol`) that change how the dependencies are built.
+      - name: Build
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          CARGO_TARGET_DIR: ${{ github.workspace }}/src-tauri/${{ matrix.target }}
+        run: bun tauri build --no-bundle ${{ matrix.args }}
