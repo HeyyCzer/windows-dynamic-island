@@ -1,16 +1,67 @@
-import type { ComponentProps, ReactNode } from "react";
+import { ChevronRightIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { type ComponentProps, type ReactNode, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
+import { cn } from "../../core/cn";
 
 /**
  * A settings card: rows and blocks stacked, a hairline above a row that
  * follows another row or a block. `data-row` / `data-block` mark them for that.
  */
+const stack =
+	"[&>[data-block]:first-child]:pt-3.5 [&>[data-block]+[data-row]]:border-t [&>[data-block]+[data-row]]:border-hairline [&>[data-row]+[data-row]]:border-t [&>[data-row]+[data-row]]:border-hairline";
+
 export const card = tv({
-	base: "rounded-xl bg-white/3.5 px-4.5 py-1 shadow-[inset_0_0_0_1px_var(--hairline)] [&>[data-block]:first-child]:pt-3.5 [&>[data-block]+[data-row]]:border-t [&>[data-block]+[data-row]]:border-hairline [&>[data-row]+[data-row]]:border-t [&>[data-row]+[data-row]]:border-hairline",
+	base: `rounded-xl bg-white/3.5 px-4.5 py-1 shadow-[inset_0_0_0_1px_var(--hairline)] ${stack}`,
 });
 
 export function Card({ className, ...rest }: ComponentProps<"section">) {
 	return <section className={card({ class: className })} {...rest} />;
+}
+
+/** A card that folds its rows and blocks under a clickable title. */
+export function Collapsible({
+	title,
+	icon,
+	defaultOpen = false,
+	children,
+}: {
+	title: ReactNode;
+	icon?: ReactNode;
+	defaultOpen?: boolean;
+	children: ReactNode;
+}) {
+	const [open, setOpen] = useState(defaultOpen);
+	return (
+		<section className={card()}>
+			<button
+				type="button"
+				aria-expanded={open}
+				className="flex min-h-13 w-full cursor-pointer items-center gap-2.5 py-3 text-left"
+				onClick={() => setOpen(!open)}
+			>
+				{icon}
+				<span className="flex-1 text-[14px] font-[550]">{title}</span>
+				<ChevronRightIcon
+					size={15}
+					className={cn("text-text-faint transition-transform duration-200", open && "rotate-90")}
+				/>
+			</button>
+			<AnimatePresence initial={false}>
+				{open && (
+					<motion.div
+						className="overflow-hidden"
+						initial={{ height: 0, opacity: 0 }}
+						animate={{ height: "auto", opacity: 1 }}
+						exit={{ height: 0, opacity: 0 }}
+						transition={{ duration: 0.2, ease: "easeOut" }}
+					>
+						<div className={cn("border-t border-hairline", stack)}>{children}</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</section>
+	);
 }
 
 const block = tv({ base: "flex flex-col gap-2 pb-3.5 **:data-row:cursor-default" });

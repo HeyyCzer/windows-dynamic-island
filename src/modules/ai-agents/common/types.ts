@@ -88,6 +88,8 @@ export interface AgentSnapshot {
 	/** Called (throttled by the backend) while the agent's card is on screen. Must be stable. */
 	refreshLimits?: () => void;
 	tokensToday?: TokenUsage;
+	/** Shown when `tokensToday` is missing (e.g. the agent doesn't report tokens). */
+	metricsHint?: string;
 	/** Tokens and responses per day (last 7, today last) and in the last 5 hours. */
 	usage?: UsageHistory;
 	model?: string | null;

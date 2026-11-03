@@ -71,8 +71,10 @@ export interface IslandModule {
 	 * (e.g. battery alerts on a desktop); the settings window leaves them out.
 	 */
 	useHiddenSettings?: () => string[];
-	/** Extra custom UI for the settings window (e.g. integration status). */
+	/** Extra custom UI for the settings window (e.g. integration status), shown in a card. */
 	SettingsSection?: ComponentType;
+	/** `SettingsSection` lays out its own cards instead of sitting in one. */
+	settingsSectionCards?: boolean;
 	/** Global shortcut that opens it, editable on its settings page. */
 	shortcut?: ShortcutId;
 }

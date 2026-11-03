@@ -6,23 +6,26 @@ import { SparklesIcon } from "lucide-react";
  *   common/   agent-agnostic types, formatting and UI (cards, session list…)
  *   claude/   Claude Code integration (one `AgentDefinition`)
  *   codex/    OpenAI Codex integration
+ *   antigravity/  Google Antigravity (plan quota only)
  *
  * To support another agent, add a folder exporting an `AgentDefinition` and
  * append it to `agents` below.
  */
 import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
+import { antigravityAgent } from "./antigravity";
 import { claudeAgent } from "./claude";
 import { codexAgent } from "./codex";
 import { AgentCompactLeft, AgentCompactRight } from "./common/components/AgentCompact";
 import { AgentsPanel } from "./common/components/AgentsPanel";
+import { AgentsSettings } from "./common/components/AgentsSettings";
 import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
 import { pickPrimary } from "./common/primary";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
 import { agentSettings } from "./settings";
 
-const agents: AgentDefinition[] = [claudeAgent, codexAgent];
+const agents: AgentDefinition[] = [claudeAgent, codexAgent, antigravityAgent];
 
 /** How long a finished turn keeps the island's attention. */
 const DONE_VISIBLE_MS = 8_000;
@@ -42,7 +45,8 @@ export const aiAgentsModule: IslandModule = {
 	title: "agents.title",
 	settingsIcon: <SparklesIcon size={15} />,
 	settings: Object.values(agentSettings),
-	SettingsSection: () => <>{agents.map((a) => a.SettingsSection && <a.SettingsSection key={a.id} />)}</>,
+	SettingsSection: () => <AgentsSettings agents={agents} />,
+	settingsSectionCards: true,
 	useView(): ModuleView {
 		const peekOnWaiting = useSetting(agentSettings.peekOnWaiting);
 		const peekOnDone = useSetting(agentSettings.peekOnDone);

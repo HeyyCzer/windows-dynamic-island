@@ -13,7 +13,7 @@ const LIMITS_REFRESH_MS = 2 * 60_000;
 export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; snapshot: AgentSnapshot; now: number }) {
 	const tr = useT();
 	const t = snapshot.tokensToday;
-	const total = t ? t.input + t.output + t.cacheRead + t.cacheWrite : 0;
+	const total = t ? formatTokens(t.input + t.output + t.cacheRead + t.cacheWrite) : "--";
 	const responses = snapshot.usage?.daily.at(-1)?.responses ?? t?.messages;
 
 	// The card is only mounted while the panel is visible.
@@ -60,17 +60,21 @@ export function AgentCard({ agent, snapshot, now }: { agent: AgentDefinition; sn
 			<div className="flex flex-col rounded-[20px] bg-card px-4 py-3.5 shadow-[inset_0_0_0_1px_var(--hairline)] gap-1">
 				<SectionLabel>{tr("agents.tokensToday")}</SectionLabel>
 				<motion.span
-					key={formatTokens(total)}
+					key={total}
 					className="text-[30px] font-bold tracking-[-0.02em] tabular-nums"
 					initial={{ opacity: 0.4 }}
 					animate={{ opacity: 1 }}
 				>
-					{formatTokens(total)}
+					{total}
 				</motion.span>
-				{responses != null && (
-					<span className="text-[11px] text-text-faint">
-						{tr(responses === 1 ? "agents.usage.response" : "agents.usage.responses", { n: responses })}
-					</span>
+				{t ? (
+					responses != null && (
+						<span className="text-[11px] text-text-faint">
+							{tr(responses === 1 ? "agents.usage.response" : "agents.usage.responses", { n: responses })}
+						</span>
+					)
+				) : (
+					<span className="text-[11px] text-text-faint">{snapshot.metricsHint ?? tr("agents.noSessions")}</span>
 				)}
 				{t && (
 					<dl className="mt-1 grid grid-cols-[auto_auto] gap-x-3 gap-y-0.5 text-[11.5px] [&_dd]:text-right [&_dd]:text-text-dim [&_dd]:tabular-nums [&_dt]:text-text-faint">

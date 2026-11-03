@@ -101,22 +101,36 @@ fn file_description(path: &Path) -> Option<String> {
 
 /// The exe of a running process by its lowercase stem (`spotify`), if any.
 pub fn find_exe(stem: &str) -> Option<PathBuf> {
+    find_processes(stem, true).into_iter().next().map(|(_, path)| path)
+}
+
+/// Pid and exe of every running process with this lowercase stem.
+pub fn processes_named(stem: &str) -> Vec<(u32, PathBuf)> {
+    find_processes(stem, false)
+}
+
+/// Matches by name in the process snapshot, only opening the matching ones.
+fn find_processes(stem: &str, first_only: bool) -> Vec<(u32, PathBuf)> {
+    let mut found = vec![];
     unsafe {
-        let snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0).ok()?;
+        let Ok(snapshot) = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) else {
+            return found;
+        };
         let mut entry = PROCESSENTRY32W { dwSize: size_of::<PROCESSENTRY32W>() as u32, ..Default::default() };
         let mut more = Process32FirstW(snapshot, &mut entry).is_ok();
-        let mut found = None;
-        while more && found.is_none() {
+        while more && !(first_only && !found.is_empty()) {
             let len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(entry.szExeFile.len());
             let name = String::from_utf16_lossy(&entry.szExeFile[..len]);
-            if exe_stem(Path::new(&name)) == stem {
-                found = exe_path(entry.th32ProcessID);
+            if exe_stem(Path::new(&name)) == stem
+                && let Some(path) = exe_path(entry.th32ProcessID)
+            {
+                found.push((entry.th32ProcessID, path));
             }
             more = Process32NextW(snapshot, &mut entry).is_ok();
         }
         let _ = CloseHandle(snapshot);
-        found
     }
+    found
 }
 
 /// An exe's icon as a PNG data URL (cached: it never changes for a given file).

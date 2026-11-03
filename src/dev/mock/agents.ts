@@ -199,3 +199,47 @@ export const codex = agentMock({
 		},
 	],
 });
+
+const ANTIGRAVITY_STATES = ["connected", "not-running", "service-unavailable", "not installed"] as const;
+const DEFAULT_ANTIGRAVITY = String.raw`C:\Users\me\AppData\Local\Programs\Antigravity\Antigravity.exe`;
+const antigravityLimits = [
+	{ id: "antigravity-0-5h", label: "Gemini Models", window: "5h", usedPct: 38, resetsAt: now + 2 * 3600_000 },
+	{ id: "antigravity-0-weekly", label: "Gemini Models", window: "weekly", usedPct: 12, resetsAt: now + 5 * 86400_000 },
+];
+let antigravityMode: (typeof ANTIGRAVITY_STATES)[number] = "connected";
+
+const antigravityState = provider("antigravity", {
+	available: true,
+	exe: DEFAULT_ANTIGRAVITY,
+	defaultExe: DEFAULT_ANTIGRAVITY,
+	connected: true,
+	error: null as string | null,
+	limits: antigravityLimits,
+});
+
+const setAntigravity = (mode: string) => {
+	antigravityMode = mode as typeof antigravityMode;
+	const connected = mode === "connected";
+	antigravityState.set((s) => ({
+		...s,
+		available: mode !== "not installed",
+		connected,
+		error: connected || mode === "not installed" ? null : mode,
+		limits: connected ? antigravityLimits : [],
+	}));
+};
+
+export const antigravity = defineMock({
+	label: "Antigravity",
+	start: () => antigravityState.publish(),
+	controls: [
+		{ kind: "select", label: "State", options: ANTIGRAVITY_STATES, value: () => antigravityMode, set: setAntigravity },
+	],
+	actions: {
+		antigravity: {
+			launch: () => setAntigravity("connected"),
+			pickExe: () => String.raw`D:\Apps\Antigravity\Antigravity.exe`,
+			setExe: (exe) => antigravityState.set((s) => ({ ...s, exe: (exe as string | null) ?? DEFAULT_ANTIGRAVITY })),
+		},
+	},
+});

@@ -6,7 +6,7 @@
  */
 import { handleLocalCalls } from "../../core/bridge";
 import { activities } from "./activities";
-import { claude, codex } from "./agents";
+import { antigravity, claude, codex } from "./agents";
 import { ask } from "./ask";
 import { calendarMock } from "./calendar";
 import { clipboard } from "./clipboard";
@@ -25,6 +25,7 @@ export const mocks: Mock[] = [
 	music,
 	claude.mock,
 	codex.mock,
+	antigravity,
 	activities,
 	notifications,
 	clipboard,
