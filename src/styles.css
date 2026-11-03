@@ -1,4 +1,5 @@
-@import "tailwindcss";
+@import "tailwindcss" source("./");
+@source not "./core/plugins/widgets";
 
 /* Design tokens as Tailwind colors. `inline` keeps them pointing at the vars, so a
    local override (e.g. the music panel's `--accent`) still flows into utilities. */

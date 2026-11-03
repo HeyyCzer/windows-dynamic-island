@@ -1,7 +1,7 @@
-import { InfoIcon, LayoutGridIcon, PaletteIcon, SettingsIcon } from "lucide-react";
+import { InfoIcon, LayoutGridIcon, PaletteIcon, SettingsIcon, StoreIcon } from "lucide-react";
 import { motion } from "motion/react";
-import type { ReactNode } from "react";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import { type ReactNode, useEffect } from "react";
+import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router";
 import { useSyncLocale, useT } from "../core/i18n";
 import { useSettings } from "../core/settings";
 import { NavItem, NavSection } from "./components/NavItem";
@@ -9,8 +9,10 @@ import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
 import { AppearancePage } from "./pages/AppearancePage";
 import { GeneralPage } from "./pages/GeneralPage";
+import { MarketplacePage } from "./pages/MarketplacePage";
 import { ModulePage } from "./pages/ModulePage";
 import { ModulesPage } from "./pages/ModulesPage";
+import { PluginPage } from "./pages/PluginPage";
 
 /**
  * Settings window: frameless, with a sidebar in two groups — the app itself
@@ -20,38 +22,69 @@ import { ModulesPage } from "./pages/ModulesPage";
  */
 export function SettingsApp() {
 	const values = useSettings();
-	const t = useT();
 	useSyncLocale();
 
 	return (
 		<MemoryRouter>
-			<div className="flex h-full flex-col" data-settings>
-				<TitleBar />
-				<div className="flex min-h-0 flex-1">
-					<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
-						<NavSection label={t("settings.section.app")} />
-						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
-						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
-						<NavSection label={t("settings.section.island")} />
-						{/* Stays highlighted on each module's own page too. */}
-						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
-						<div className="flex-1" />
-						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
-					</nav>
-					<main className="min-w-0 flex-1 overflow-y-auto rounded-tl-xl bg-[#121217] shadow-[inset_1px_1px_0_var(--hairline)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-3 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-white/12 [&::-webkit-scrollbar-thumb]:bg-clip-padding">
-						<Page>
-							<Routes>
-								<Route index element={<GeneralPage values={values} />} />
-								<Route path="appearance" element={<AppearancePage values={values} />} />
-								<Route path="modules" element={<ModulesPage values={values} />} />
-								<Route path="modules/:id" element={<ModulePage values={values} />} />
-								<Route path="about" element={<AboutPage />} />
-							</Routes>
-						</Page>
-					</main>
-				</div>
-			</div>
+			<SettingsContent values={values} />
 		</MemoryRouter>
+	);
+}
+
+function SettingsContent({ values }: { values: Record<string, unknown> }) {
+	const t = useT();
+	const { pathname } = useLocation();
+	const navigate = useNavigate();
+	useEffect(() => {
+		const checkNavigate = () => {
+			try {
+				const target = localStorage.getItem("settings_navigate");
+				if (target) {
+					localStorage.removeItem("settings_navigate");
+					navigate(target);
+				}
+			} catch {}
+		};
+		checkNavigate();
+		window.addEventListener("storage", checkNavigate);
+		return () => window.removeEventListener("storage", checkNavigate);
+	}, [navigate]);
+	const marketplaceActive = pathname === "/marketplace" || pathname.startsWith("/plugins");
+
+	return (
+		<div className="flex h-full flex-col" data-settings>
+			<TitleBar />
+			<div className="flex min-h-0 flex-1">
+				<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
+					<NavSection label={t("settings.section.app")} />
+					<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
+					<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
+					<NavSection label={t("settings.section.island")} />
+					<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
+					<NavItem
+						to="/marketplace"
+						active={marketplaceActive}
+						icon={<StoreIcon size={14} />}
+						label={t("marketplace.title")}
+					/>
+					<div className="flex-1" />
+					<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
+				</nav>
+				<main className="min-w-0 flex-1 overflow-x-hidden overflow-y-auto rounded-tl-xl bg-[#121217] shadow-[inset_1px_1px_0_var(--hairline)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-3 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-white/12 [&::-webkit-scrollbar-thumb]:bg-clip-padding">
+					<Page>
+						<Routes>
+							<Route index element={<GeneralPage values={values} />} />
+							<Route path="appearance" element={<AppearancePage values={values} />} />
+							<Route path="modules" element={<ModulesPage values={values} />} />
+							<Route path="modules/:id" element={<ModulePage values={values} />} />
+							<Route path="marketplace" element={<MarketplacePage />} />
+							<Route path="plugins/:id" element={<PluginPage values={values} />} />
+							<Route path="about" element={<AboutPage />} />
+						</Routes>
+					</Page>
+				</main>
+			</div>
+		</div>
 	);
 }
 

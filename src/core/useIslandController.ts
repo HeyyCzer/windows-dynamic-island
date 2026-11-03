@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
+import { usePluginModuleEntries } from "./plugins/registry";
 import {
 	generalSettings,
 	ISLAND_HIDDEN_KEY,
@@ -132,15 +133,17 @@ export function useIslandController(modules: IslandModule[]) {
  * settings. The registry is static, so calling each module's hook in order is
  * stable; disabled modules still run their hook (rules of hooks) but are dropped.
  */
-function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEntry[] {
-	return inOrder(
-		modules
+function useModuleEntries(builtinModules: IslandModule[], settings: Settings): ModuleEntry[] {
+	const pluginEntries = usePluginModuleEntries();
+	const builtinEntries = inOrder(
+		builtinModules
 			// biome-ignore lint/correctness/useHookAtTopLevel: the module registry is static, so the hook order is stable
 			.map((module) => ({ module, view: module.useView() }))
 			.filter(({ module }) => readSetting(settings, moduleEnabled(module))),
 		(e) => e.module.id,
 		readSetting(settings, layoutSettings.order),
 	);
+	return [...builtinEntries, ...pluginEntries];
 }
 
 /** The two active modules with the highest priority. */

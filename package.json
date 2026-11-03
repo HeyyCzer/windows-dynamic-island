@@ -7,6 +7,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "tsc -b && vite build",
+		"plugins:build": "bun scripts/build-plugins.ts",
 		"lint": "biome check --error-on-warnings .",
 		"lint:fix": "biome check --write .",
 		"tauri": "tauri",

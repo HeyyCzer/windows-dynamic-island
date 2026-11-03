@@ -6,6 +6,7 @@
 
 use std::path::PathBuf;
 use std::sync::Mutex;
+use std::time::Duration;
 
 use serde_json::{Map, Value};
 use tauri::{AppHandle, Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
@@ -124,10 +125,61 @@ pub fn open_repo() {
 /// Open a web page in the default browser (island links, e.g. usage pages).
 #[tauri::command]
 pub fn open_external(url: String) -> Result<(), String> {
-    if !url.starts_with("https://") {
-        return Err("only https links".into());
+    let lower = url.trim().to_lowercase();
+    if lower.starts_with("javascript:") || lower.starts_with("vbscript:") || lower.starts_with("data:") {
+        return Err("disallowed protocol".into());
     }
     open_url(&url);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn everything_query(
+    query: String,
+    port: Option<u16>,
+    count: Option<usize>,
+    sort: Option<String>,
+    ascending: Option<bool>,
+) -> Result<Value, String> {
+    let p = port.unwrap_or(8080);
+    let c = count.unwrap_or(15);
+    let encoded: String = url::form_urlencoded::byte_serialize(query.trim().as_bytes()).collect();
+    let sort_param = sort.as_deref().unwrap_or("date_modified");
+    let asc_param = if ascending.unwrap_or(false) { "1" } else { "0" };
+    let agent: ureq::Agent = ureq::Agent::config_builder()
+        .http_status_as_error(false)
+        .timeout_global(Some(Duration::from_millis(2000)))
+        .build()
+        .into();
+    let ports = if p == 8080 { vec![8080, 80] } else { vec![p, 8080, 80] };
+    let mut last_err = String::new();
+    for port_num in ports {
+        let url = format!("http://127.0.0.1:{port_num}/?search={encoded}&json=1&count={c}&path_column=1&size_column=1&date_modified_column=1&sort={sort_param}&ascending={asc_param}");
+        match agent.get(&url).call() {
+            Ok(mut response) => {
+                if let Ok(body) = response.body_mut().read_to_string()
+                    && let Ok(value) = serde_json::from_str::<Value>(&body)
+                {
+                    return Ok(value);
+                }
+            }
+            Err(error) => last_err = error.to_string(),
+        }
+    }
+    Err(if last_err.is_empty() { "Everything HTTP connection failed".into() } else { last_err })
+}
+
+#[tauri::command]
+pub fn open_in_folder(path: String) -> Result<(), String> {
+    #[cfg(windows)]
+    unsafe {
+        use windows::Win32::UI::Shell::ShellExecuteW;
+        use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+        use windows::core::{HSTRING, PCWSTR, w};
+        let clean = path.replace('/', "\\");
+        let arg = format!("/select,\"{clean}\"");
+        ShellExecuteW(None, w!("open"), w!("explorer.exe"), &HSTRING::from(arg), PCWSTR::null(), SW_SHOWNORMAL);
+    }
     Ok(())
 }
 

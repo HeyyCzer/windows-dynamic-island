@@ -73,6 +73,23 @@ export function command<T = unknown>(cmd: string, args?: Record<string, unknown>
 	return invoke<T>(cmd, args);
 }
 
+export function openExternal(url: string): Promise<void> {
+	if (isTauri) {
+		return command("open_external", { url })
+			.then(() => undefined)
+			.catch((error) => console.error("Could not open external target", error));
+	}
+	window.open(url, "_blank");
+	return Promise.resolve();
+}
+
+export function openInFolder(path: string): Promise<void> {
+	if (!isTauri) return Promise.resolve();
+	return command("open_in_folder", { path })
+		.then(() => undefined)
+		.catch((error) => console.error("Could not open containing folder", error));
+}
+
 /** Subscribe to a backend event for the component's lifetime. */
 export function useTauriEvent<T>(event: string, handler: (payload: T) => void) {
 	const ref = useRef(handler);

@@ -1,0 +1,206 @@
+/* NavoPathStyle.md graphite tokens: fine rules, neutral ink and stone controls. */
+.navopath-widget,
+.navopath-calendar {
+	--navo-ink: #d9d6cf;
+	--navo-secondary: #b1aea7;
+	--navo-muted: #898781;
+	--navo-rule: #2a2a2a;
+	--navo-boundary: #555452;
+	--navo-accent: #a9a49b;
+	--navo-raised: #191919;
+	--navo-alert: #b58f88;
+	color: var(--navo-ink);
+	font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
+	font-size: 12px;
+	text-wrap: pretty;
+}
+.navopath-widget {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+	gap: 8px;
+	padding: 2px 4px;
+}
+.navopath-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding-bottom: 8px;
+	border-bottom: 1px solid var(--navo-rule);
+}
+.navopath-logo {
+	width: 30px;
+	height: 30px;
+	object-fit: contain;
+	flex-shrink: 0;
+}
+.navopath-heading {
+	min-width: 0;
+	flex: 1;
+}
+.navopath-heading h2 {
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: -0.02em;
+}
+.navopath-heading p {
+	font-size: 11px;
+	color: var(--navo-secondary);
+}
+.navopath-widget button,
+.navopath-calendar button {
+	cursor: pointer;
+	transition:
+		background 160ms,
+		color 160ms;
+}
+.navopath-widget button:hover:not(:disabled),
+.navopath-calendar button:hover:not(:disabled) {
+	background: var(--navo-raised);
+	color: var(--navo-ink);
+}
+.navopath-widget button:active:not(:disabled),
+.navopath-calendar button:active:not(:disabled) {
+	background: var(--navo-rule);
+}
+.navopath-widget button:disabled,
+.navopath-calendar button:disabled {
+	color: var(--navo-muted);
+	cursor: default;
+}
+.navopath-widget :focus-visible,
+.navopath-calendar :focus-visible {
+	outline: 2px solid var(--navo-accent);
+	outline-offset: 2px;
+}
+.navopath-icon-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: var(--navo-control-size, 30px);
+	height: var(--navo-control-size, 30px);
+	flex-shrink: 0;
+	color: var(--navo-secondary);
+	border-radius: 6px;
+}
+.navopath-open {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 30px;
+	padding: 0 10px;
+	border: 1px solid var(--navo-boundary);
+	border-radius: 6px;
+	font-size: 11px;
+	white-space: nowrap;
+}
+.navopath-meta {
+	display: flex;
+	justify-content: space-between;
+	gap: 8px;
+	font-size: 11px;
+	color: var(--navo-secondary);
+	font-variant-numeric: tabular-nums;
+}
+.navopath-task-list {
+	min-height: 0;
+	flex: 1;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.navopath-task-list ul {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.navopath-task-list li {
+	display: flex;
+	align-items: center;
+	min-height: var(--navo-row-size, 34px);
+	gap: 6px;
+	border-bottom: 1px solid var(--navo-rule);
+}
+.navopath-checkbox {
+	color: var(--navo-accent);
+}
+.navopath-task-title {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.navopath-task-date {
+	flex-shrink: 0;
+	color: var(--navo-secondary);
+	font-family: Consolas, monospace;
+	font-size: 10px;
+}
+.navopath-empty {
+	padding: 16px 2px;
+	color: var(--navo-secondary);
+}
+.navopath-error {
+	color: var(--navo-alert);
+	font-size: 11px;
+	line-height: 1.5;
+}
+.navopath-add {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	border: 1px solid var(--navo-boundary);
+	border-radius: 6px;
+	padding: 1px 4px 1px 10px;
+}
+.navopath-add input {
+	min-width: 0;
+	flex: 1;
+	color: var(--navo-ink);
+	background: transparent;
+	font-size: 12px;
+}
+.navopath-add input::placeholder {
+	color: var(--navo-muted);
+}
+@media (max-width: 480px) {
+	.navopath-header {
+		gap: 4px;
+	}
+	.navopath-open {
+		padding: 0 6px;
+	}
+	.navopath-task-date {
+		display: none;
+	}
+}
+
+.navopath-calendar {
+	--navo-control-size: 26px;
+	--navo-row-size: 30px;
+}
+.navopath-calendar-heading {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 4px 8px;
+}
+.navopath-calendar-date {
+	grid-column: 1 / -1;
+	display: flex;
+	gap: 8px;
+	white-space: nowrap;
+}
+.navopath-calendar-brand {
+	display: inline-flex;
+	align-items: center;
+	justify-self: end;
+	gap: 6px;
+	min-height: 26px;
+	border-radius: 4px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--navo-secondary);
+}

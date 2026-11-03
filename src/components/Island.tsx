@@ -5,10 +5,12 @@ import { useTauriEvent } from "../core/bridge";
 import { cn } from "../core/cn";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
+import { useInstalledPlugins } from "../core/plugins/registry";
+import { PluginBackgrounds } from "../core/plugins/runtime";
 import { useHitRects } from "../core/useHitRects";
 import { useIslandController } from "../core/useIslandController";
 import { useIslandDrag } from "../core/useIslandDrag";
-import { modules } from "../modules";
+import { builtinModules } from "../modules";
 import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
@@ -20,7 +22,8 @@ import { Surface } from "./island/Surface";
 import { useIslandFileDrop } from "./island/useIslandFileDrop";
 
 export function Island() {
-	const ctl = useIslandController(modules);
+	const plugins = useInstalledPlugins();
+	const ctl = useIslandController(builtinModules);
 	const { mode, primary, secondary, focused } = ctl;
 	const look = useAppearance();
 	const windows = look.style === "windows";
@@ -61,6 +64,7 @@ export function Island() {
 
 	return (
 		<IslandContext.Provider value={api}>
+			<PluginBackgrounds plugins={plugins} />
 			<div className="pointer-events-none fixed inset-0 flex items-start justify-center">
 				{/* The tray's black hole: the island spins into its own center and comes back out. */}
 				<motion.div

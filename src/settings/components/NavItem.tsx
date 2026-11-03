@@ -19,37 +19,43 @@ export function NavItem({
 	label,
 	off,
 	end = true,
+	active,
 }: {
 	to: string;
 	icon: ReactNode;
 	label: string;
 	off?: boolean;
 	end?: boolean;
+	active?: boolean;
 }) {
 	return (
 		<NavLink
 			to={to}
 			end={end}
-			className={({ isActive }) =>
-				cn(
+			className={({ isActive: navActive }) => {
+				const current = active ?? navActive;
+				return cn(
 					"relative flex h-9 cursor-pointer items-center gap-2.75 rounded-[9px] px-3 text-left text-[13.5px] font-[550] text-text-dim no-underline transition-colors duration-150 [-webkit-user-drag:none] hover:bg-white/3.5 hover:text-text",
-					isActive && "text-text",
-				)
-			}
+					current && "text-text",
+				);
+			}}
 		>
-			{({ isActive }) => (
-				<>
-					{isActive && (
-						<motion.span
-							layoutId="nav-pill"
-							className="absolute inset-0 rounded-[inherit] bg-white/7 shadow-[inset_0_0_0_1px_var(--hairline)] before:absolute before:inset-y-2.5 before:left-0 before:w-0.75 before:rounded-full before:bg-accent"
-							transition={{ type: "spring", stiffness: 500, damping: 38 }}
-						/>
-					)}
-					<span className="relative grid w-4 place-items-center">{icon}</span>
-					<span className={cn("relative truncate", off && "opacity-50")}>{label}</span>
-				</>
-			)}
+			{({ isActive: navActive }) => {
+				const current = active ?? navActive;
+				return (
+					<>
+						{current && (
+							<motion.span
+								layoutId="nav-pill"
+								className="absolute inset-0 rounded-[inherit] bg-white/7 shadow-[inset_0_0_0_1px_var(--hairline)] before:absolute before:inset-y-2.5 before:left-0 before:w-0.75 before:rounded-full before:bg-accent"
+								transition={{ type: "spring", stiffness: 500, damping: 38 }}
+							/>
+						)}
+						<span className="relative grid w-4 place-items-center">{icon}</span>
+						<span className={cn("relative truncate", off && "opacity-50")}>{label}</span>
+					</>
+				);
+			}}
 		</NavLink>
 	);
 }

@@ -1,3 +1,4 @@
+import { createPluginModule, getInstalledPlugins, useInstalledPlugins } from "../core/plugins/registry";
 import type { IslandModule } from "../core/types";
 import { activitiesModule } from "./activities";
 import { aiAgentsModule } from "./ai-agents";
@@ -13,14 +14,9 @@ import { notificationsModule } from "./notifications";
 import { shelfModule } from "./shelf";
 
 /**
- * Every module the island knows about, in tab order.
- *
- * Each module is a self-contained folder (`src/modules/<name>/`) with its own
- * components, hooks and CSS, exporting an `IslandModule` (see `core/types.ts`).
- * If it needs data from the OS, add a matching provider in
- * `src-tauri/src/providers/<name>/`.
+ * Built-in core modules.
  */
-export const modules: IslandModule[] = [
+export const builtinModules: IslandModule[] = [
 	musicModule,
 	aiAgentsModule,
 	askModule,
@@ -34,3 +30,25 @@ export const modules: IslandModule[] = [
 	monitorModule,
 	clockModule,
 ];
+
+/**
+ * Returns all built-in modules plus all enabled installed plugins.
+ */
+export function getAllModules(): IslandModule[] {
+	const pluginModules = getInstalledPlugins()
+		.filter((p) => p.enabled)
+		.map(createPluginModule);
+	return [...builtinModules, ...pluginModules];
+}
+
+/**
+ * React hook that returns all modules and automatically re-renders
+ * whenever a plugin is installed, enabled, or uninstalled.
+ */
+export function useAllModules(): IslandModule[] {
+	const plugins = useInstalledPlugins();
+	const pluginModules = plugins.filter((p) => p.enabled).map(createPluginModule);
+	return [...builtinModules, ...pluginModules];
+}
+
+export const modules: IslandModule[] = getAllModules();

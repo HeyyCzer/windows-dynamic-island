@@ -3,8 +3,10 @@ mod display;
 mod file_drop;
 mod hub;
 mod i18n;
+mod navopath;
 mod pip;
 mod portable;
+mod plugins;
 mod providers;
 mod screen;
 mod settings;
@@ -12,6 +14,7 @@ mod sound;
 mod store;
 mod tray;
 mod updater;
+mod vpn;
 mod window;
 
 use std::sync::Arc;
@@ -91,6 +94,15 @@ pub fn run() {
             settings::set_autostart,
             settings::open_repo,
             settings::open_external,
+            settings::open_in_folder,
+            settings::everything_query,
+            navopath::navopath_mcp_request,
+            vpn::vpn_request,
+            plugins::plugin_catalog,
+            plugins::plugin_download,
+            plugins::plugin_import,
+            plugins::plugin_load,
+            plugins::plugin_remove,
             updater::check_update,
             updater::install_update,
             i18n::set_locale,
