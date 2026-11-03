@@ -448,9 +448,15 @@
       dynamic: "刘海模式 (Notch)",
       dynamicDesc: "紧贴屏幕顶部边缘垂下，带有文字标签页。",
       windows: "Windows 灵动岛 (Windows Island)",
-      windowsDesc: "悬浮胶囊形态，静止时显示时钟，带彩色光边且标签位于底部。",
+      windowsDesc: "悬浮胶囊形态，静止时显示时钟并带彩色光边，模块切换图标位置可调整。",
     },
     windowsOnly: "仅在 Windows 灵动岛样式下可用。",
+    tabsPosition: {
+      label: "模块切换图标位置",
+      desc: "选择展开的灵动岛中模块图标的显示位置。",
+      top: "顶部",
+      bottom: "底部",
+    },
     border: {
       label: "边框",
       desc: "灵动岛主体保持黑色，仅边缘光圈变换颜色。",

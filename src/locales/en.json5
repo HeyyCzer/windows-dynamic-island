@@ -452,9 +452,15 @@
       dynamic: "Notch",
       dynamicDesc: "Hangs from the top edge like a notch, tabs with names.",
       windows: "Windows Island",
-      windowsDesc: "A floating pill with a clock at rest, a colored rim and tabs at the bottom.",
+      windowsDesc: "A floating pill with a clock at rest, a colored rim and configurable module switcher position.",
     },
     windowsOnly: "Available in the Windows Island style.",
+    tabsPosition: {
+      label: "Module switcher position",
+      desc: "Choose where the module icons appear in the expanded island.",
+      top: "Top",
+      bottom: "Bottom",
+    },
     border: {
       label: "Border",
       desc: "The island stays black; only its rim changes color.",

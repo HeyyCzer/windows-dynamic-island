@@ -1,0 +1,42 @@
+name: Template
+
+# Checks that pull requests and issues follow their templates; see
+# .github/scripts/check-template.cjs. Runs again whenever the description is edited,
+# or by hand (Actions → Template → Run workflow) for a given PR or issue number.
+#
+# `pull_request_target` so PRs from forks can be labeled and commented on. The checkout
+# is the base branch (for the script), never the PR's code.
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+  issues:
+    types: [opened, edited, reopened]
+  workflow_dispatch:
+    inputs:
+      number:
+        description: PR or issue number
+        required: true
+        type: number
+
+concurrency:
+  group: template-${{ github.event.pull_request.number || github.event.issue.number || inputs.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/scripts
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const check = require("./.github/scripts/check-template.cjs");
+            await check({ github, context, core });
