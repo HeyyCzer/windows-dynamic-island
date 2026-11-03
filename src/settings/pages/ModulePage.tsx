@@ -58,11 +58,14 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
 				<Card>
 					<ShortcutRow id={moduleShortcutId(module)} values={values} />
 				</Card>
-				{Section && (
-					<Card>
+				{Section &&
+					(module.settingsSectionCards ? (
 						<Section />
-					</Card>
-				)}
+					) : (
+						<Card>
+							<Section />
+						</Card>
+					))}
 			</motion.div>
 		</>
 	);

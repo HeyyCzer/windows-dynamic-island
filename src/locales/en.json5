@@ -380,7 +380,7 @@
       update: "Update integration",
     },
     integration: {
-      title: "Claude Code integration",
+      title: "Integration",
       // {file}: path of Claude Code's settings file
       desc: "HTTP hooks for live status + statusline for plan limits. Your current statusline keeps working. A backup of {file} is created on every change.",
       enable: "Enable",
@@ -397,11 +397,30 @@
     // {time}: window length, e.g. "5h" or "7d"
     limitWindow: "Window · {time}",
     integration: {
-      title: "Codex",
+      title: "Integration",
       // {dir}: folder Codex keeps its sessions in
       desc: "Live status, tokens and plan limits read from Codex's sessions in {dir} (CLI, IDE extension and app). Nothing to install.",
       found: "Codex found",
       missing: "Codex not found on this computer",
+    },
+  },
+
+  antigravity: {
+    notRunning: "Open Antigravity and sign in to see its plan quota.",
+    launch: "Open Antigravity",
+    serviceUnavailable: "Antigravity is starting or its quota couldn't be read. Retrying automatically.",
+    metricsUnavailable: "Antigravity shares its quota, but no token or session statistics.",
+    window: {
+      fiveHour: "5h",
+      weekly: "Weekly",
+      quota: "Quota",
+    },
+    integration: {
+      title: "Integration",
+      desc: "Plan quota read from the running app. Only processes from this install are inspected.",
+      choose: "Browse…",
+      found: "Antigravity found",
+      missing: "Antigravity not found at this path",
     },
   },
 
@@ -440,9 +459,15 @@
       dynamic: "Notch",
       dynamicDesc: "Hangs from the top edge like a notch, tabs with names.",
       windows: "Windows Island",
-      windowsDesc: "A floating pill with a clock at rest, a colored rim and tabs at the bottom.",
+      windowsDesc: "A floating pill with a clock at rest, a colored rim and configurable module switcher position.",
     },
     windowsOnly: "Available in the Windows Island style.",
+    tabsPosition: {
+      label: "Module switcher position",
+      desc: "Choose where the module icons appear in the expanded island.",
+      top: "Top",
+      bottom: "Bottom",
+    },
     border: {
       label: "Border",
       desc: "The island stays black; only its rim changes color.",

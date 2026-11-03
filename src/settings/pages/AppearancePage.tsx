@@ -134,6 +134,20 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 				<ToggleRow def={appearanceSettings.animate} value={readSetting(values, appearanceSettings.animate)} />
 				<ToggleRow def={appearanceSettings.glow} value={readSetting(values, appearanceSettings.glow)} />
 				<ToggleRow def={appearanceSettings.idleClock} value={readSetting(values, appearanceSettings.idleClock)} />
+				<Row
+					label={t("appearance.tabsPosition.label")}
+					desc={windows ? t("appearance.tabsPosition.desc") : t("appearance.windowsOnly")}
+				>
+					<Segmented
+						options={[
+							{ value: "top", label: t("appearance.tabsPosition.top") },
+							{ value: "bottom", label: t("appearance.tabsPosition.bottom") },
+						]}
+						value={readSetting(values, appearanceSettings.tabsPosition)}
+						disabled={!windows}
+						onChange={(value) => setSetting(appearanceSettings.tabsPosition, value)}
+					/>
+				</Row>
 			</motion.section>
 
 			<Card>

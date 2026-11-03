@@ -62,37 +62,5 @@ pub fn bundled(app: &AppHandle, name: &str, bytes: &[u8]) -> Option<PathBuf> {
 /// Windows' "Open" dialog for an audio file; `None` when cancelled. Blocks
 /// until the user picks.
 pub fn pick() -> Option<String> {
-    #[cfg(windows)]
-    {
-        // A thread of its own: the dialog needs a single-threaded apartment.
-        std::thread::spawn(|| unsafe { pick_on_this_thread() }).join().ok().flatten()
-    }
-    #[cfg(not(windows))]
-    None
-}
-
-#[cfg(windows)]
-unsafe fn pick_on_this_thread() -> Option<String> {
-    use windows::Win32::System::Com::{
-        CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, CoCreateInstance, CoInitializeEx, CoTaskMemFree,
-    };
-    use windows::Win32::UI::Shell::Common::COMDLG_FILTERSPEC;
-    use windows::Win32::UI::Shell::{FileOpenDialog, IFileOpenDialog, SIGDN_FILESYSPATH};
-    use windows::core::w;
-
-    unsafe {
-        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
-        let dialog: IFileOpenDialog = CoCreateInstance(&FileOpenDialog, None, CLSCTX_INPROC_SERVER).ok()?;
-        let filters = [COMDLG_FILTERSPEC {
-            pszName: w!("Audio (MP3, WAV, WMA)"),
-            pszSpec: w!("*.mp3;*.wav;*.wma"),
-        }];
-        dialog.SetFileTypes(&filters).ok()?;
-        // Err when cancelled.
-        dialog.Show(None).ok()?;
-        let name = dialog.GetResult().ok()?.GetDisplayName(SIGDN_FILESYSPATH).ok()?;
-        let path = name.to_string().ok();
-        CoTaskMemFree(Some(name.0 as _));
-        path
-    }
+    crate::dialog::pick_file("Audio (MP3, WAV, WMA)", "*.mp3;*.wav;*.wma")
 }

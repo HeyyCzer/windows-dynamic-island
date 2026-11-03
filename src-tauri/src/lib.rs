@@ -1,4 +1,5 @@
 mod autostart;
+mod dialog;
 mod display;
 mod file_drop;
 mod hub;

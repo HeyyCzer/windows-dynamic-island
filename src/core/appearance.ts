@@ -42,6 +42,7 @@ export const THICKNESSES = [1, 2, 3] as const;
 
 export interface Appearance {
 	style: IslandStyle;
+	tabsPosition: "top" | "bottom";
 	/** Gradient stops; empty = classic hairline. */
 	rim: string[];
 	thickness: number;
@@ -58,8 +59,10 @@ export function borderColors(border: string, custom: string[]): string[] {
 export function useAppearance(): Appearance {
 	const s = useSettings();
 	const style = readSetting(s, appearanceSettings.style) === "windows" ? "windows" : "dynamic";
+	const tabsPosition = readSetting(s, appearanceSettings.tabsPosition) === "top" ? "top" : "bottom";
 	return {
 		style,
+		tabsPosition,
 		rim: borderColors(readSetting(s, appearanceSettings.border), readSetting(s, appearanceSettings.customColors)),
 		thickness: Math.min(3, Math.max(1, Number(readSetting(s, appearanceSettings.thickness)) || 2)),
 		animate: readSetting(s, appearanceSettings.animate),

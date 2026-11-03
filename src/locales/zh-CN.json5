@@ -376,7 +376,7 @@
       update: "更新集成",
     },
     integration: {
-      title: "Claude Code 集成",
+      title: "集成",
       // {file}: Claude Code 设置文件路径
       desc: "HTTP 钩子用于实时状态 + 状态栏用于限额监控。您原有的状态栏配置保持有效。每次更改都会为 {file} 创建备份。",
       enable: "启用",
@@ -393,11 +393,30 @@
     // {time}: 时间窗口，例如 "5h" 或 "7d"
     limitWindow: "周期 · {time}",
     integration: {
-      title: "Codex",
+      title: "集成",
       // {dir}: Codex 会话存储目录
       desc: "从 {dir} 中的 Codex 会话读取实时状态、Token 消耗和限额（支持 CLI、IDE 插件与桌面应用）。无需额外安装插件。",
       found: "已检测到 Codex",
       missing: "在此电脑上未找到 Codex",
+    },
+  },
+
+  antigravity: {
+    notRunning: "请打开 Antigravity 并登录，以查看套餐额度。",
+    launch: "打开 Antigravity",
+    serviceUnavailable: "Antigravity 正在启动，或暂时无法读取额度；正在自动重试。",
+    metricsUnavailable: "Antigravity 提供额度数据，不提供 Token 或会话统计。",
+    window: {
+      fiveHour: "5 小时",
+      weekly: "每周",
+      quota: "额度",
+    },
+    integration: {
+      title: "集成",
+      desc: "从正在运行的应用读取套餐额度。仅检查此安装目录下的进程。",
+      choose: "浏览…",
+      found: "已检测到 Antigravity",
+      missing: "在此路径未找到 Antigravity",
     },
   },
 
@@ -436,9 +455,15 @@
       dynamic: "刘海模式 (Notch)",
       dynamicDesc: "紧贴屏幕顶部边缘垂下，带有文字标签页。",
       windows: "Windows 灵动岛 (Windows Island)",
-      windowsDesc: "悬浮胶囊形态，静止时显示时钟，带彩色光边且标签位于底部。",
+      windowsDesc: "悬浮胶囊形态，静止时显示时钟并带彩色光边，模块切换图标位置可调整。",
     },
     windowsOnly: "仅在 Windows 灵动岛样式下可用。",
+    tabsPosition: {
+      label: "模块切换图标位置",
+      desc: "选择展开的灵动岛中模块图标的显示位置。",
+      top: "顶部",
+      bottom: "底部",
+    },
     border: {
       label: "边框",
       desc: "灵动岛主体保持黑色，仅边缘光圈变换颜色。",
