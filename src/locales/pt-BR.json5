@@ -405,9 +405,15 @@
       dynamic: "Notch",
       dynamicDesc: "Pendurada na borda de cima, como um notch, com abas nomeadas.",
       windows: "Windows Island",
-      windowsDesc: "Uma pílula flutuante com relógio em repouso, borda colorida e abas embaixo.",
+      windowsDesc: "Uma pílula flutuante com relógio em repouso, borda colorida e posição dos módulos configurável.",
     },
     windowsOnly: "Disponível no estilo Windows Island.",
+    tabsPosition: {
+      label: "Posição dos ícones de módulos",
+      desc: "Escolha onde os ícones aparecem na ilha expandida.",
+      top: "Em cima",
+      bottom: "Embaixo",
+    },
     border: {
       label: "Borda",
       desc: "A ilha continua preta; só a borda muda de cor.",

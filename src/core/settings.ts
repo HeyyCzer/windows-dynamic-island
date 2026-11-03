@@ -218,6 +218,12 @@ export const appearanceSettings = {
 		description: "appearance.style.desc",
 		default: "dynamic",
 	} as SettingDef<IslandStyle>,
+	tabsPosition: {
+		key: "appearance.tabsPosition",
+		label: "appearance.tabsPosition.label",
+		description: "appearance.tabsPosition.desc",
+		default: "bottom" as "top" | "bottom",
+	} as SettingDef<"top" | "bottom">,
 	/** A preset id from `core/appearance.ts`, "none" (classic hairline) or "custom". */
 	border: {
 		key: "appearance.border",
