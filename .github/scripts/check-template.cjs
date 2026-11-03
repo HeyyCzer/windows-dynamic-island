@@ -10,11 +10,22 @@ const MARKER = "<!-- template-check -->";
 // The repo owner may skip the templates.
 const EXEMPT = ["OWNER"];
 
+/** `text` without HTML comments, repeated until none is left (removing one can form another, as in `<!<!-- -->-- -->`). */
+function stripComments(text) {
+	let previous;
+	let current = text;
+	do {
+		previous = current;
+		current = current.replace(/<!--[\s\S]*?-->/g, "");
+	} while (current !== previous);
+	return current;
+}
+
 /** Text under each `## `/`### ` heading, by heading; HTML comments dropped. */
 function sections(body) {
 	const map = new Map();
 	let current = null;
-	for (const line of (body ?? "").replace(/<!--[\s\S]*?-->/g, "").replace(/\r/g, "").split("\n")) {
+	for (const line of stripComments(body ?? "").replace(/\r/g, "").split("\n")) {
 		const heading = line.match(/^#{2,3}\s+(.*?)\s*$/);
 		if (heading) {
 			current = heading[1].toLowerCase();

@@ -17,6 +17,9 @@ on:
       - .github/workflows/cache.yml
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: rust-cache
   cancel-in-progress: true
