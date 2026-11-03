@@ -254,12 +254,16 @@
       desc: "当订阅计划的请求限额重置并可再次使用时展开通知。",
     },
     status: {
+      connected: "已连接",
+      disconnected: "未连接",
+      idle: "就绪",
       working: "工作中",
       waiting: "等待您操作",
       done: "已完成",
       limitsReset: "限额已重置，可以继续使用！",
     },
     now: "刚刚",
+    launchApp: "打开应用",
     openProject: "在 VS Code 中打开",
     // 本地转录记录中的 7 天使用情况
     usage: {
@@ -274,6 +278,14 @@
     noSessions: "暂无近期会话",
     contextUsed: "已使用上下文",
     noLimits: "暂无限额数据",
+    antigravity: {
+      fiveHour: "5 小时",
+      weekly: "每周",
+      quota: "额度",
+      notRunning: "请启动 Antigravity 并登录，以连接本地服务。",
+      serviceUnavailable: "本地服务正在启动，或暂时无法读取额度；正在自动重试。",
+      metricsUnavailable: "Antigravity 提供额度数据，不提供 Token 或会话统计。",
+    },
     tokensToday: "今日 Token 消耗",
     tokens: {
       input: "输入",

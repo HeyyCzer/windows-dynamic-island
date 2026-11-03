@@ -20,9 +20,10 @@ import { StatusGlyph } from "./common/components/StatusGlyph";
 import { useNow } from "./common/format";
 import { pickPrimary } from "./common/primary";
 import type { AgentDefinition, AgentSessionRef, AgentStatus } from "./common/types";
+import { geminiAgent } from "./gemini";
 import { agentSettings } from "./settings";
 
-const agents: AgentDefinition[] = [claudeAgent, codexAgent];
+const agents: AgentDefinition[] = [claudeAgent, codexAgent, geminiAgent];
 
 /** How long a finished turn keeps the island's attention. */
 const DONE_VISIBLE_MS = 8_000;
@@ -101,7 +102,7 @@ export const aiAgentsModule: IslandModule = {
 				: {
 						width: 620,
 						height:
-							236 +
+							274 +
 							Math.max(1, recent.length) * 30 +
 							(snapshots.some((s) => s.usage?.daily.length) ? USAGE_CHART : 0) +
 							(visible.length > 1 ? AGENT_TABS : 0),

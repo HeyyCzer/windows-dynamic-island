@@ -236,12 +236,16 @@
       desc: "Quando o limite de requisições do plano redefinir e poder ser usado novamente.",
     },
     status: {
+      connected: "Conectado",
+      disconnected: "Desconectado",
+      idle: "Pronto",
       working: "Trabalhando",
       waiting: "Aguardando você",
       done: "Concluído",
 	  limitsReset: "Limites resetados, você pode usar novamente!"
     },
     now: "Agora",
+    launchApp: "Abrir aplicativo",
     openProject: "Abrir no VS Code",
     usage: {
       today: "Hoje",
@@ -254,6 +258,14 @@
     noSessions: "Nenhuma sessão recente",
     contextUsed: "Contexto usado",
     noLimits: "Sem dados de limite ainda",
+    antigravity: {
+      fiveHour: "5 horas",
+      weekly: "Semanal",
+      quota: "Cota",
+      notRunning: "Inicie o Antigravity e entre na conta para conectar ao serviço local.",
+      serviceUnavailable: "O serviço local está iniciando ou não foi possível ler a cota. Tentando novamente automaticamente.",
+      metricsUnavailable: "O Antigravity fornece dados de cota, mas não estatísticas de tokens ou sessões.",
+    },
     tokensToday: "Tokens hoje",
     tokens: {
       input: "Entrada",

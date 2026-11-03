@@ -1,3 +1,4 @@
+import { ExternalLinkIcon } from "lucide-react";
 import { useState } from "react";
 import { SectionLabel } from "../../../../components/ui/text";
 import { cn } from "../../../../core/cn";
@@ -25,12 +26,28 @@ export function AgentsPanel({
 	const asking = sessions.filter((s) => s.session.permission && s.agent.decide);
 	// Picked tab, else the agent of the busiest session.
 	const [picked, setPicked] = useState<string | null>(null);
+
 	const index = Math.max(
 		0,
 		agents.findIndex((a) => a.id === (picked ?? sessions[0]?.agent.id)),
 	);
 	const agent = agents[index];
 	const usage = snapshots[index]?.usage;
+
+	const agentSession = sessions.find((s) => s.agent.id === agent.id)?.session;
+	const statusKey = agentSession?.status ?? "idle";
+	const statusText =
+		snapshots[index]?.connection === "disconnected"
+			? t("agents.status.disconnected")
+			: snapshots[index]?.connection === "connected"
+				? t("agents.status.connected")
+				: statusKey === "working"
+					? t("agents.status.working")
+					: statusKey === "waiting"
+						? t("agents.status.waiting")
+						: statusKey === "done"
+							? t("agents.status.done")
+							: t("agents.status.idle");
 
 	// Something to answer: just that, and the sessions.
 	if (asking.length) {
@@ -47,34 +64,64 @@ export function AgentsPanel({
 	}
 
 	return (
-		<div className="flex h-full flex-col gap-3">
-			{agents.length > 1 && (
-				<div className="-mb-0.5 flex gap-1.5" role="tablist">
-					{agents.map((a) => (
+		<div className="flex h-full flex-col gap-2.5">
+			{/* Top Bar: Agents Tab List & Status/App Launch Action */}
+			<div className="flex items-center justify-between gap-2">
+				{agents.length > 1 && (
+					<div className="flex gap-1.5" role="tablist">
+						{agents.map((a) => (
+							<button
+								type="button"
+								key={a.id}
+								role="tab"
+								aria-selected={a === agent}
+								className={cn(
+									"inline-flex h-6 cursor-pointer items-center gap-1.5 rounded-full bg-white/5 px-2.5 text-[12px] font-[650] text-text-faint transition-colors duration-150 hover:bg-white/9 hover:text-text-dim",
+									a === agent &&
+										"bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] text-(--agent) hover:bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] hover:text-(--agent)",
+								)}
+								style={{ "--agent": a.color } as React.CSSProperties}
+								onClick={(e) => {
+									e.stopPropagation();
+									setPicked(a.id);
+								}}
+							>
+								<a.Icon size={14} />
+								{a.name}
+							</button>
+						))}
+					</div>
+				)}
+
+				<div className="ml-auto flex items-center gap-2">
+					<span className="flex items-center gap-1.5 rounded-full bg-white/6 px-2 py-0.5 text-[11px] font-medium text-text-dim">
+						<span
+							className={cn("size-1.5 rounded-full", statusKey === "working" && "animate-pulse")}
+							style={{ background: agent.color }}
+						/>
+						{statusText}
+					</span>
+					{agent.launchApp && (
 						<button
 							type="button"
-							key={a.id}
-							role="tab"
-							aria-selected={a === agent}
-							className={cn(
-								"inline-flex h-6 cursor-pointer items-center gap-1.5 rounded-full bg-white/5 px-2.5 text-[12px] font-[650] text-text-faint transition-colors duration-150 hover:bg-white/9 hover:text-text-dim",
-								a === agent &&
-									"bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] text-(--agent) hover:bg-[color-mix(in_srgb,var(--agent)_18%,transparent)] hover:text-(--agent)",
-							)}
-							style={{ "--agent": a.color } as React.CSSProperties}
+							className="flex h-6 cursor-pointer items-center gap-1 rounded-full bg-white/8 px-2 text-[11px] font-semibold text-text-dim hover:bg-white/14 hover:text-text transition-colors"
 							onClick={(e) => {
 								e.stopPropagation();
-								setPicked(a.id);
+								agent.launchApp?.();
 							}}
+							title={t("agents.launchApp")}
 						>
-							<a.Icon size={14} />
-							{a.name}
+							<ExternalLinkIcon size={11} />
+							<span>{t("agents.launchApp")}</span>
 						</button>
-					))}
+					)}
 				</div>
-			)}
+			</div>
+
 			<AgentCard key={agent.id} agent={agent} snapshot={snapshots[index]} now={now} />
+
 			{usage?.daily.length ? <UsageChart usage={usage} color={agent.color} /> : null}
+
 			<div className="flex min-h-0 flex-col gap-1.5">
 				<SectionLabel>{t("agents.now")}</SectionLabel>
 				<SessionList items={sessions} now={now} showAgent={agents.length > 1} />

@@ -10,6 +10,7 @@
 //!   3. add a matching frontend module in `src/modules/<name>/`.
 
 pub mod activities;
+pub mod antigravity;
 pub mod ask;
 pub mod claude;
 pub mod calendar;
@@ -58,6 +59,7 @@ pub fn registry() -> Vec<Arc<dyn Provider>> {
         Arc::new(clipboard::ClipboardProvider::default()),
         Arc::new(claude::ClaudeProvider::default()),
         Arc::new(codex::CodexProvider),
+        Arc::new(antigravity::AntigravityProvider::default()),
         Arc::new(github::GithubProvider::default()),
         Arc::new(monitor::MonitorProvider::default()),
         Arc::new(calendar::CalendarProvider::default()),

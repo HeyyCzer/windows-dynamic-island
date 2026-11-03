@@ -258,12 +258,16 @@
       desc: "When the request limit of the plan resets and can be used again.",
     },
     status: {
+      connected: "Connected",
+      disconnected: "Disconnected",
+      idle: "Ready",
       working: "Working",
       waiting: "Waiting for you",
       done: "Done",
 	  limitsReset: "Limits reset, you can use it again!"
     },
     now: "Now",
+    launchApp: "Open app",
     openProject: "Open in VS Code",
     // 7-day usage from the local transcripts
     usage: {
@@ -278,6 +282,14 @@
     noSessions: "No recent sessions",
     contextUsed: "Context used",
     noLimits: "No limit data yet",
+    antigravity: {
+      fiveHour: "5 hours",
+      weekly: "Weekly",
+      quota: "Quota",
+      notRunning: "Start Antigravity and sign in to connect its local service.",
+      serviceUnavailable: "The local service is starting or its quota could not be read. Retrying automatically.",
+      metricsUnavailable: "Antigravity provides quota data, but no token or session statistics.",
+    },
     tokensToday: "Tokens today",
     tokens: {
       input: "Input",
