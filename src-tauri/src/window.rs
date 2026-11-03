@@ -173,6 +173,8 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut ignoring: Option<bool> = None;
         let mut hovering = false;
         let mut fullscreen = false;
+        let mut hide_in_fullscreen = true;
+        let mut was_interactive = true;
         let mut tick = 0u32;
         let mut last_fg = 0isize;
         let mut button_down = false;
@@ -187,6 +189,11 @@ pub fn spawn_hit_test(app: AppHandle) {
             // Fullscreen check is cheaper to run a few times per second.
             let mut fullscreen_left = false;
             if tick.is_multiple_of(12) {
+                hide_in_fullscreen = app
+                    .state::<crate::settings::Settings>()
+                    .get("island.hideInFullscreen")
+                    .and_then(|value| value.as_bool())
+                    .unwrap_or(true);
                 let fs = fullscreen_app_active(&win);
                 if fs != fullscreen {
                     fullscreen = fs;
@@ -202,13 +209,16 @@ pub fn spawn_hit_test(app: AppHandle) {
             let fg = foreground_window();
             let fg_changed = fg != last_fg;
             last_fg = fg;
-            if !fullscreen {
-                ensure_topmost(&win, fg_changed || fullscreen_left);
+            let island_interactive = !fullscreen || !hide_in_fullscreen;
+            let interaction_changed = island_interactive != was_interactive;
+            was_interactive = island_interactive;
+            if island_interactive {
+                ensure_topmost(&win, fg_changed || fullscreen_left || interaction_changed);
             }
 
             let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
             let over_island = cursor_inside(&app, &win, 0.0);
-            let inside = !fullscreen && (dragging || over_island);
+            let inside = island_interactive && (dragging || over_island);
 
             // A drag that started in another app (files from Explorer…). The
             // island is a thin target and the drop target must be under the
@@ -220,7 +230,7 @@ pub fn spawn_hit_test(app: AppHandle) {
                 pressed_inside = over_island;
             }
             button_down = down;
-            let drop_zone = !fullscreen && down && !pressed_inside && cursor_inside(&app, &win, DROP_MARGIN);
+            let drop_zone = island_interactive && down && !pressed_inside && cursor_inside(&app, &win, DROP_MARGIN);
             let dragging_in = down && !pressed_inside && (file_drag || drop_zone);
             if dragging_in != file_drag {
                 file_drag = dragging_in;
