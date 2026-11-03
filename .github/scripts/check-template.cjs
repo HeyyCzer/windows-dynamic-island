@@ -89,9 +89,20 @@ function checkIssue(body) {
 	return { problems, template: `ISSUE_TEMPLATE/${form.file}`, kind: "issue template" };
 }
 
+/** The PR or issue to check: from the event, or `number` when run by hand. */
+async function target(github, context) {
+	if (context.eventName !== "workflow_dispatch") {
+		const item = context.payload.pull_request ?? context.payload.issue;
+		return { item, isPull: !!context.payload.pull_request };
+	}
+	const issue_number = Number(context.payload.inputs.number);
+	// Issues and pull requests share the numbering, and this endpoint serves both.
+	const { data } = await github.rest.issues.get({ ...context.repo, issue_number });
+	return { item: data, isPull: !!data.pull_request };
+}
+
 module.exports = async ({ github, context, core }) => {
-	const item = context.payload.pull_request ?? context.payload.issue;
-	const isPull = !!context.payload.pull_request;
+	const { item, isPull } = await target(github, context);
 	if (item.user.type === "Bot" || EXEMPT.includes(item.author_association)) {
 		core.info(`Skipped: opened by ${item.user.login} (${item.author_association}).`);
 		return;
