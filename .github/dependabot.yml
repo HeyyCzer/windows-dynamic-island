@@ -9,6 +9,17 @@ updates:
     directory: "/src-tauri" # Location of package manifests
     schedule:
       interval: "weekly"
+    groups:
+      # windows-rs crates share types across versions; they must move together.
+      windows:
+        patterns:
+          - "windows"
+          - "windows-*"
+    ignore:
+      # Tauri pins these too; a breaking bump (0.x minor) only duplicates them in the build.
+      # Revisit when Tauri itself upgrades.
+      - dependency-name: "sha2"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "bun" # See documentation for possible values
     directory: "/" # Location of package manifests
     schedule:
