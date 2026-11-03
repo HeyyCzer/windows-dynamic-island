@@ -3,6 +3,7 @@ import { Navigate, useParams } from "react-router";
 import { Card, Row } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
 import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
+import { moduleShortcutId } from "../../core/shortcuts";
 import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
 import { BackLink, Title } from "../components/Heading";
@@ -54,11 +55,9 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
 						))}
 					</Card>
 				)}
-				{module.shortcut && (
-					<Card>
-						<ShortcutRow id={module.shortcut} values={values} />
-					</Card>
-				)}
+				<Card>
+					<ShortcutRow id={moduleShortcutId(module)} values={values} />
+				</Card>
 				{Section &&
 					(module.settingsSectionCards ? (
 						<Section />

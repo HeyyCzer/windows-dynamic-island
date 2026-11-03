@@ -564,6 +564,7 @@
 
   // Global shortcuts (settings page of the module they open)
   shortcuts: {
+    title: "Keyboard shortcuts",
     label: "Keyboard shortcut",
     ask: "Open Ask Claude",
     find: "Open Find on screen",

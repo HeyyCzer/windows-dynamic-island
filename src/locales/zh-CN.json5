@@ -560,6 +560,7 @@
 
   // 全局快捷键（对应所唤出模块的设置页面）
   shortcuts: {
+    title: "快捷键",
     label: "全局快捷键",
     ask: "打开 Ask Claude",
     find: "打开 屏幕查找",

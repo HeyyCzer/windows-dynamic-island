@@ -97,6 +97,7 @@ export function useIslandController(modules: IslandModule[]) {
 	const enabled = (id: string) => entries.some((e) => e.module.id === id);
 	useTauriEvent("island://ask", () => enabled("ask") && expand("ask"));
 	useTauriEvent("island://find", () => enabled("find") && expand("find"));
+	useTauriEvent<string>("island://open-module", (id) => enabled(id) && expand(id));
 	useTauriEvent<boolean>("island://hover", hover.onPointer);
 
 	const onWheel = useWheelTabs(
