@@ -960,7 +960,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "drag",
- "getrandom 0.3.4",
+ "getrandom 0.4.3",
  "json5",
  "log",
  "png 0.17.16",
