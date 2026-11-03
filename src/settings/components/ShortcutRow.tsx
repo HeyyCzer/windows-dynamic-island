@@ -12,14 +12,25 @@ import {
 	SHORTCUTS_PROVIDER,
 	type ShortcutId,
 	type ShortcutsState,
-	shortcutSettings,
+	shortcutSetting,
+	shortcutStateIds,
 	showKeys,
 } from "../../core/shortcuts";
 
 /** A global shortcut: click, then press the new combination (Esc cancels). */
-export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<string, unknown> }) {
+export function ShortcutRow({
+	id,
+	values,
+	actionLabel,
+	actionNames,
+}: {
+	id: ShortcutId;
+	values: Record<string, unknown>;
+	actionLabel?: string;
+	actionNames?: Record<string, string>;
+}) {
 	const t = useT();
-	const def = shortcutSettings[id];
+	const def = shortcutSetting(id);
 	const status = useProvider<ShortcutsState>(SHORTCUTS_PROVIDER)?.[id];
 	const chosen = readSetting(values, def);
 	const [recording, setRecording] = useState(false);
@@ -38,11 +49,16 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 			if (e.code === "Escape" && !modifiersOf(e).length) return stop();
 			const combo = comboOf(e);
 			if (!combo) return setHeld(modifiersOf(e));
-			const other = (Object.keys(shortcutSettings) as ShortcutId[]).find(
-				(o) => o !== id && (readSetting(values, shortcutSettings[o]) ?? shortcutSettings[o].fallback) === combo,
+			const other = shortcutStateIds(values).find(
+				(o) => o !== id && (readSetting(values, shortcutSetting(o)) ?? shortcutSetting(o).fallback) === combo,
 			);
 			if (other)
-				setError(t("shortcuts.duplicate", { keys: showKeys(combo), action: t(shortcutSettings[other].label) }));
+				setError(
+					t("shortcuts.duplicate", {
+						keys: showKeys(combo),
+						action: actionNames?.[other] ?? t(shortcutSetting(other).label),
+					}),
+				);
 			else {
 				setError(null);
 				setSetting(def, combo);
@@ -59,9 +75,9 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 			setHeld([]);
 			providerAction(SHORTCUTS_PROVIDER, "resume");
 		};
-	}, [recording, id, def, values, t]);
+	}, [recording, id, def, values, t, actionNames]);
 
-	const keys = chosen ?? def.fallback;
+	const keys = chosen ?? (def.fallback || null);
 	const label = recording
 		? held.length
 			? `${showKeys(held.join("+"))}+…`
@@ -73,7 +89,7 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 
 	return (
 		<Row
-			label={t("shortcuts.label")}
+			label={actionLabel ?? t("shortcuts.label")}
 			desc={error ?? (taken ? t("shortcuts.taken", { keys: showKeys(taken) }) : t("shortcuts.desc"))}
 			descTone={error || taken ? "error" : undefined}
 		>

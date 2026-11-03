@@ -324,6 +324,7 @@ export type MessageKey =
 	| "notifications.access.openPrivacy"
 	| "notifications.access.how"
 	| "notifications.access.openDeveloper"
+	| "shortcuts.title"
 	| "shortcuts.label"
 	| "shortcuts.ask"
 	| "shortcuts.find"

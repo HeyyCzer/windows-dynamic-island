@@ -38,9 +38,12 @@ pub fn run() {
                 .with_handler(|app, shortcut, event| {
                     // See `providers/shortcuts.rs`.
                     if event.state() == ShortcutState::Pressed
-                        && let Some(event) = providers::shortcuts::event_for(shortcut)
+                        && let Some(target) = providers::shortcuts::event_for(shortcut)
                     {
-                        open_page(app, event);
+                        match target {
+                            providers::shortcuts::ShortcutTarget::Event(event) => open_page(app, event),
+                            providers::shortcuts::ShortcutTarget::Module(id) => open_module(app, &id),
+                        }
                     }
                 })
                 .build(),
@@ -114,4 +117,15 @@ fn open_page(app: &AppHandle, event: &str) {
         let _ = win.set_focus();
     }
     let _ = app.emit(event, ());
+}
+
+fn open_module(app: &AppHandle, id: &str) {
+    if tray::is_hidden(app) {
+        return;
+    }
+    if let Some(win) = app.get_webview_window(window::ISLAND_LABEL) {
+        window::allow_activation();
+        let _ = win.set_focus();
+    }
+    let _ = app.emit("island://open-module", id);
 }

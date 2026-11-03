@@ -8,7 +8,7 @@ import type { SettingDef } from "./settings";
 
 export const SHORTCUTS_PROVIDER = "shortcuts";
 
-export type ShortcutId = "ask" | "find";
+export type ShortcutId = string;
 
 /** Mirrors `Status` in `shortcuts.rs`. */
 export interface ShortcutStatus {
@@ -18,12 +18,33 @@ export interface ShortcutStatus {
 	taken: string | null;
 }
 
-export type ShortcutsState = Partial<Record<ShortcutId, ShortcutStatus>>;
+export type ShortcutsState = Partial<Record<string, ShortcutStatus>>;
 
-export const shortcutSettings: Record<ShortcutId, SettingDef<string | null> & { fallback: string }> = {
+const BUILTIN_SHORTCUTS: Record<string, SettingDef<string | null> & { fallback: string }> = {
 	ask: { key: "shortcut.ask", label: "shortcuts.ask", default: null, fallback: "Ctrl+Alt+Space" },
 	find: { key: "shortcut.find", label: "shortcuts.find", default: null, fallback: "Ctrl+Alt+F" },
 };
+
+export function shortcutSetting(id: ShortcutId): SettingDef<string | null> & { fallback: string } {
+	return (
+		BUILTIN_SHORTCUTS[id] ?? {
+			key: `shortcut.module.${id.replace(/^module:/, "")}`,
+			label: "shortcuts.label",
+			default: null,
+			fallback: "",
+		}
+	);
+}
+
+export function shortcutStateIds(values: Record<string, unknown>): string[] {
+	return [
+		"ask",
+		"find",
+		...Object.keys(values)
+			.filter((key) => key.startsWith("shortcut.module."))
+			.map((key) => `module:${key.slice(16)}`),
+	];
+}
 
 /** How a combination reads: Windows calls Super "Win". */
 export const showKeys = (keys: string) => keys.replace(/Super/g, "Win");
