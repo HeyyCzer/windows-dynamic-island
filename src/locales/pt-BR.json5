@@ -525,6 +525,7 @@
   },
 
   shortcuts: {
+    title: "Atalhos de teclado",
     label: "Atalho de teclado",
     ask: "Abrir Pergunte ao Claude",
     find: "Abrir Procurar na tela",

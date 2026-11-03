@@ -1,5 +1,5 @@
 import { XIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import { IconButton } from "../../components/ui/button";
 import { Row } from "../../components/ui/card";
 import { providerAction, useProvider } from "../../core/bridge";
@@ -9,17 +9,36 @@ import { readSetting, setSetting } from "../../core/settings";
 import {
 	comboOf,
 	modifiersOf,
+	moduleShortcutId,
 	SHORTCUTS_PROVIDER,
 	type ShortcutId,
 	type ShortcutsState,
-	shortcutSettings,
+	shortcutSetting,
+	shortcutStateIds,
 	showKeys,
 } from "../../core/shortcuts";
+import { modules } from "../../modules";
 
-/** A global shortcut: click, then press the new combination (Esc cancels). */
-export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<string, unknown> }) {
+/**
+ * A global shortcut: click, then press the new combination (Esc cancels).
+ * `label` names the action (a module's own page leaves the generic one);
+ * `hint` turns off the "works from anywhere" line where the page says it once.
+ */
+export function ShortcutRow({
+	id,
+	values,
+	label: actionLabel,
+	icon,
+	hint = true,
+}: {
+	id: ShortcutId;
+	values: Record<string, unknown>;
+	label?: string;
+	icon?: ReactNode;
+	hint?: boolean;
+}) {
 	const t = useT();
-	const def = shortcutSettings[id];
+	const def = shortcutSetting(id);
 	const status = useProvider<ShortcutsState>(SHORTCUTS_PROVIDER)?.[id];
 	const chosen = readSetting(values, def);
 	const [recording, setRecording] = useState(false);
@@ -38,11 +57,16 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 			if (e.code === "Escape" && !modifiersOf(e).length) return stop();
 			const combo = comboOf(e);
 			if (!combo) return setHeld(modifiersOf(e));
-			const other = (Object.keys(shortcutSettings) as ShortcutId[]).find(
-				(o) => o !== id && (readSetting(values, shortcutSettings[o]) ?? shortcutSettings[o].fallback) === combo,
+			const other = shortcutStateIds(values).find(
+				(o) => o !== id && (readSetting(values, shortcutSetting(o)) ?? shortcutSetting(o).fallback) === combo,
 			);
 			if (other)
-				setError(t("shortcuts.duplicate", { keys: showKeys(combo), action: t(shortcutSettings[other].label) }));
+				setError(
+					t("shortcuts.duplicate", {
+						keys: showKeys(combo),
+						action: actionName(other, t),
+					}),
+				);
 			else {
 				setError(null);
 				setSetting(def, combo);
@@ -61,7 +85,7 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 		};
 	}, [recording, id, def, values, t]);
 
-	const keys = chosen ?? def.fallback;
+	const keys = chosen ?? (def.fallback || null);
 	const label = recording
 		? held.length
 			? `${showKeys(held.join("+"))}+…`
@@ -70,15 +94,26 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 			? showKeys(status?.keys && chosen === null ? status.keys : keys)
 			: t("shortcuts.off");
 	const taken = !recording && status?.taken;
+	// Opt-in shortcuts have no default to go back to: off is their reset.
+	const hasDefault = !!def.fallback;
 
 	return (
 		<Row
-			label={t("shortcuts.label")}
-			desc={error ?? (taken ? t("shortcuts.taken", { keys: showKeys(taken) }) : t("shortcuts.desc"))}
+			label={
+				icon ? (
+					<span className="flex items-center gap-2.5">
+						<span className="grid w-4.5 flex-none place-items-center text-text-dim">{icon}</span>
+						{actionLabel ?? t("shortcuts.label")}
+					</span>
+				) : (
+					(actionLabel ?? t("shortcuts.label"))
+				)
+			}
+			desc={error ?? (taken ? t("shortcuts.taken", { keys: showKeys(taken) }) : hint ? t("shortcuts.desc") : undefined)}
 			descTone={error || taken ? "error" : undefined}
 		>
 			<div className="flex flex-none items-center gap-2">
-				{chosen !== null && (
+				{hasDefault && chosen !== null && (
 					<button
 						type="button"
 						className="text-[12px] font-semibold text-text-faint hover:text-text"
@@ -101,12 +136,23 @@ export function ShortcutRow({ id, values }: { id: ShortcutId; values: Record<str
 				>
 					{label}
 				</button>
-				{keys && !recording && (
-					<IconButton size="sm" tone="danger" title={t("shortcuts.disable")} onClick={() => setSetting(def, "")}>
-						<XIcon size={10} />
-					</IconButton>
-				)}
+				{/* Hidden, not removed: the key buttons stay lined up row to row. */}
+				<IconButton
+					size="sm"
+					tone="danger"
+					title={t("shortcuts.disable")}
+					className={cn((!keys || recording) && "invisible")}
+					onClick={() => setSetting(def, hasDefault ? "" : null)}
+				>
+					<XIcon size={10} />
+				</IconButton>
 			</div>
 		</Row>
 	);
+}
+
+/** What a shortcut opens, for the "already opens …" message. */
+function actionName(id: ShortcutId, t: ReturnType<typeof useT>) {
+	const module = modules.find((m) => moduleShortcutId(m) === id);
+	return module ? t(module.title) : t(shortcutSetting(id).label);
 }

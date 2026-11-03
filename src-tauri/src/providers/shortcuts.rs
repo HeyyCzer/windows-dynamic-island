@@ -1,11 +1,7 @@
-//! Global shortcuts: "Ask Claude" and "Find on screen" open from anywhere.
+//! Configurable global shortcuts for built-in modules and installed plugins.
 //!
-//! Each one is a setting (`shortcut.<id>`) holding a combination such as
-//! "Ctrl+Alt+Space"; an empty string turns it off. They're registered again
-//! whenever the settings change, and paused while the settings window records
-//! a new combination (otherwise the old one would fire instead of being seen).
-//! The state tells the frontend which combination each one got, and which
-//! ones another app already holds.
+//! Built-in Ask and Find actions retain their defaults. Other module shortcuts
+//! are opt-in settings stored under `shortcut.module.<module-id>`.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, Sender};
@@ -22,51 +18,54 @@ use crate::settings::{self, Settings};
 
 pub const ID: &str = "shortcuts";
 
+const MODULE_PREFIX: &str = "shortcut.module.";
+
 struct Action {
     id: &'static str,
     default: &'static str,
-    /// Tried when the default is taken and the user didn't pick one.
     fallback: Option<&'static str>,
-    /// Emitted to the island when the shortcut fires.
-    event: &'static str,
 }
 
-const ACTIONS: [Action; 2] = [
+const BUILTIN_ACTIONS: [Action; 2] = [
     Action {
         id: "ask",
         default: "Ctrl+Alt+Space",
         fallback: Some("Ctrl+Shift+Space"),
-        event: "island://ask",
     },
     Action {
         id: "find",
         default: "Ctrl+Alt+F",
         fallback: None,
-        event: "island://find",
     },
 ];
 
-/// Mirrors `ShortcutState` in `src/core/shortcuts.ts`.
-#[derive(Debug, Clone, PartialEq, Serialize, Default)]
-#[serde(rename_all = "camelCase")]
-struct Status {
-    /// The combination that works right now.
-    keys: Option<String>,
-    /// The one asked for is held by another app (or isn't a valid combination).
-    taken: Option<String>,
+#[derive(Clone)]
+struct RegisteredShortcut {
+    id: String,
+    keys: String,
+    shortcut: Shortcut,
 }
 
-/// Registered combination per action, by `ACTIONS` index.
-static REGISTERED: Mutex<[Option<(String, Shortcut)>; 2]> = Mutex::new([None, None]);
+static REGISTERED: Mutex<Vec<RegisteredShortcut>> = Mutex::new(Vec::new());
 
-/// The island event for a shortcut that fired.
-pub fn event_for(shortcut: &Shortcut) -> Option<&'static str> {
+pub enum ShortcutTarget {
+    Event(&'static str),
+    Module(String),
+}
+
+pub fn event_for(shortcut: &Shortcut) -> Option<ShortcutTarget> {
     let registered = REGISTERED.lock().unwrap();
-    registered
+    let id = &registered
         .iter()
-        .zip(&ACTIONS)
-        .find(|(r, _)| r.as_ref().is_some_and(|(_, s)| s == shortcut))
-        .map(|(_, a)| a.event)
+        .find(|entry| &entry.shortcut == shortcut)?
+        .id;
+    match id.as_str() {
+        "ask" => Some(ShortcutTarget::Event("island://ask")),
+        "find" => Some(ShortcutTarget::Event("island://find")),
+        _ => id
+            .strip_prefix("module:")
+            .map(|module_id| ShortcutTarget::Module(module_id.to_string())),
+    }
 }
 
 #[derive(Default)]
@@ -107,7 +106,6 @@ impl Provider for ShortcutsProvider {
 
     fn action(&self, action: &str, _payload: Value) -> Result<Value, String> {
         match action {
-            // While the settings window records a combination.
             "pause" => self.paused.store(true, Ordering::SeqCst),
             "resume" => self.paused.store(false, Ordering::SeqCst),
             _ => return Err(format!("shortcuts: unknown action '{action}'")),
@@ -117,39 +115,92 @@ impl Provider for ShortcutsProvider {
     }
 }
 
-/// Registers what the settings ask for, leaving unchanged ones alone.
+#[derive(Debug, Clone, PartialEq, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+struct Status {
+    keys: Option<String>,
+    taken: Option<String>,
+}
+
+struct DesiredShortcut {
+    id: String,
+    default: Option<String>,
+    fallback: Option<String>,
+    chosen: Option<String>,
+}
+
+fn desired_shortcuts(settings: &Settings) -> Vec<DesiredShortcut> {
+    let mut actions = BUILTIN_ACTIONS
+        .iter()
+        .map(|action| DesiredShortcut {
+            id: action.id.to_string(),
+            default: Some(action.default.to_string()),
+            fallback: action.fallback.map(str::to_string),
+            chosen: settings
+                .get(&format!("shortcut.{}", action.id))
+                .and_then(|value| value.as_str().map(str::to_string)),
+        })
+        .collect::<Vec<_>>();
+
+    for (key, value) in settings.snapshot() {
+        let Some(module_id) = key.strip_prefix(MODULE_PREFIX).filter(|id| !id.is_empty()) else {
+            continue;
+        };
+        actions.push(DesiredShortcut {
+            id: format!("module:{module_id}"),
+            default: None,
+            fallback: None,
+            chosen: value.as_str().map(str::to_string),
+        });
+    }
+    actions
+}
+
 fn sync(hub: &Hub, paused: bool) {
     let app = hub.app();
     let settings = app.state::<Settings>();
     let global = app.global_shortcut();
-    // A copy: registering waits on the main thread, where `event_for` runs.
-    let mut registered = REGISTERED.lock().unwrap().clone();
+    let previous = REGISTERED.lock().unwrap().clone();
+    let mut registered = Vec::new();
     let mut state = Map::new();
 
-    for (action, slot) in ACTIONS.iter().zip(registered.iter_mut()) {
-        let chosen = settings.get(&format!("shortcut.{}", action.id)).and_then(|v| v.as_str().map(str::to_string));
-        let mut candidates: Vec<String> = match &chosen {
+    for action in desired_shortcuts(&settings) {
+        let uses_default = action.chosen.is_none();
+        let mut candidates = match action.chosen {
             Some(keys) => vec![keys.trim().to_string()],
-            None => std::iter::once(action.default).chain(action.fallback).map(str::to_string).collect(),
+            None => action
+                .default
+                .into_iter()
+                .chain(action.fallback)
+                .collect::<Vec<_>>(),
         };
-        candidates.retain(|k| !k.is_empty());
+        candidates.retain(|keys| !keys.trim().is_empty());
         if paused {
             candidates.clear();
         }
 
         let mut status = Status::default();
-        if let Some((keys, _)) = slot.as_ref().filter(|(keys, _)| candidates.contains(keys)) {
-            // Already holds one of the wanted combinations.
-            status.keys = Some(keys.clone());
+        let existing = previous.iter().find(|entry| entry.id == action.id);
+        if let Some(entry) = existing.filter(|entry| candidates.contains(&entry.keys)) {
+            status.keys = Some(entry.keys.clone());
+            registered.push(entry.clone());
         } else {
-            if let Some((_, old)) = slot.take() {
-                let _ = global.unregister(old);
+            if let Some(entry) = existing {
+                let _ = global.unregister(entry.shortcut);
             }
             for keys in &candidates {
-                match keys.parse::<Shortcut>().ok().filter(|s| global.register(*s).is_ok()) {
+                match keys
+                    .parse::<Shortcut>()
+                    .ok()
+                    .filter(|shortcut| global.register(*shortcut).is_ok())
+                {
                     Some(shortcut) => {
-                        *slot = Some((keys.clone(), shortcut));
                         status.keys = Some(keys.clone());
+                        registered.push(RegisteredShortcut {
+                            id: action.id.clone(),
+                            keys: keys.clone(),
+                            shortcut,
+                        });
                         break;
                     }
                     None => {
@@ -159,14 +210,12 @@ fn sync(hub: &Hub, paused: bool) {
                 }
             }
         }
-        // The fallback worked: the default being taken isn't news.
-        if status.keys.is_some() && chosen.is_none() {
+        if status.keys.is_some() && uses_default {
             status.taken = None;
         }
-        state.insert(action.id.to_string(), serde_json::to_value(status).unwrap_or_default());
+        state.insert(action.id, serde_json::to_value(status).unwrap_or_default());
     }
     *REGISTERED.lock().unwrap() = registered;
-    // Paused: the frontend still shows what's set.
     if !paused {
         hub.publish(ID, Value::Object(state));
     }

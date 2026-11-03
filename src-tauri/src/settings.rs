@@ -40,6 +40,10 @@ impl Settings {
         self.data.lock().unwrap().get(key).cloned()
     }
 
+    pub fn snapshot(&self) -> Map<String, Value> {
+        self.data.lock().unwrap().clone()
+    }
+
     fn save(&self, data: &Map<String, Value>) {
         if let Some(dir) = self.path.parent() {
             let _ = std::fs::create_dir_all(dir);
