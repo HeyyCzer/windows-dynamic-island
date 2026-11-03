@@ -433,6 +433,14 @@
   },
   // Appearance page (settings): island style and rim
   appearance: {
+    blur: {
+      label: "Background blur",
+      desc: "Choose how the island diffuses the desktop behind it.",
+      none: "Off",
+      subtle: "Subtle",
+      moderate: "Moderate",
+      ambient: "Ambient",
+    },
     title: "Appearance",
     style: {
       label: "Style",

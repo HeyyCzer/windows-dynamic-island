@@ -47,6 +47,7 @@ export interface Appearance {
 	thickness: number;
 	animate: boolean;
 	glow: boolean;
+	blurEffect: "none" | "subtle" | "moderate" | "ambient";
 	idleClock: boolean;
 }
 
@@ -64,6 +65,7 @@ export function useAppearance(): Appearance {
 		thickness: Math.min(3, Math.max(1, Number(readSetting(s, appearanceSettings.thickness)) || 2)),
 		animate: readSetting(s, appearanceSettings.animate),
 		glow: readSetting(s, appearanceSettings.glow),
+		blurEffect: readSetting(s, appearanceSettings.blurEffect),
 		idleClock: readSetting(s, appearanceSettings.idleClock),
 	};
 }

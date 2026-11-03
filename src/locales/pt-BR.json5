@@ -398,6 +398,14 @@
     permission: "Permissão: {what}",
   },
   appearance: {
+    blur: {
+      label: "Desfoque do fundo",
+      desc: "Escolha a intensidade do desfoque da área atrás da ilha.",
+      none: "Desativado",
+      subtle: "Suave",
+      moderate: "Moderado",
+      ambient: "Ambiente",
+    },
     title: "Aparência",
     style: {
       label: "Estilo",

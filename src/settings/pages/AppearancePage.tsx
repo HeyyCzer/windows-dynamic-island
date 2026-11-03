@@ -133,6 +133,18 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 				</Row>
 				<ToggleRow def={appearanceSettings.animate} value={readSetting(values, appearanceSettings.animate)} />
 				<ToggleRow def={appearanceSettings.glow} value={readSetting(values, appearanceSettings.glow)} />
+				<Row label={t("appearance.blur.label")} desc={t("appearance.blur.desc")}>
+					<Segmented
+						options={[
+							{ value: "none", label: t("appearance.blur.none") },
+							{ value: "subtle", label: t("appearance.blur.subtle") },
+							{ value: "moderate", label: t("appearance.blur.moderate") },
+							{ value: "ambient", label: t("appearance.blur.ambient") },
+						]}
+						value={readSetting(values, appearanceSettings.blurEffect)}
+						onChange={(value) => setSetting(appearanceSettings.blurEffect, value)}
+					/>
+				</Row>
 				<ToggleRow def={appearanceSettings.idleClock} value={readSetting(values, appearanceSettings.idleClock)} />
 			</motion.section>
 

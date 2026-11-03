@@ -429,6 +429,14 @@
 
   // 外观页面（设置）：灵动岛样式与边框
   appearance: {
+    blur: {
+      label: "背景高斯模糊",
+      desc: "设置灵动岛对后方桌面的虚化强度。",
+      none: "关闭",
+      subtle: "轻微",
+      moderate: "适中",
+      ambient: "氛围",
+    },
     title: "外观",
     style: {
       label: "样式",

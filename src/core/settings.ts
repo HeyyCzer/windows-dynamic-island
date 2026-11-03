@@ -247,6 +247,12 @@ export const appearanceSettings = {
 		description: "appearance.glow.desc",
 		default: true,
 	} satisfies SettingDef,
+	blurEffect: {
+		key: "appearance.blurEffect",
+		label: "appearance.blur.label",
+		description: "appearance.blur.desc",
+		default: "subtle" as "none" | "subtle" | "moderate" | "ambient",
+	} satisfies SettingDef<"none" | "subtle" | "moderate" | "ambient">,
 	idleClock: {
 		key: "appearance.idleClock",
 		label: "appearance.idleClock.label",
