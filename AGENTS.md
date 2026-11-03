@@ -6,6 +6,7 @@
 * If you commit any changes to this repo, use the default commit message format: `<gitmoji> <commit message>`. For example, if you are fixing a bug, your commit message should look like this: `🐛 fixed (something)` or if you add a new feature `✨ added (something)`.
 * Fill in the PR template (`.github/pull_request_template.md`) and only tick the boxes you actually did.
 * Code, comments and documentation MUST be in English.
+* If code is written using AI agents, it must say so in the PR description and also in the commit description. For example, if you use Codex or Claude the commit must have `Co-authored-by: <AI agent name> <AI agent email>` in the commit description. In the PR description, the first line must be `> This PR was created with the help of <AI agent name>`. If you use multiple AI agents, you can list them all in the PR description.
 
 ### Before committing
 Every change MUST pass the same checks the CI runs (`.github/workflows/check.yml`). Run them and fix what they report before you commit:
