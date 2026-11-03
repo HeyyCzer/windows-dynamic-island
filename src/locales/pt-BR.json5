@@ -574,7 +574,7 @@
 
   shelf: {
     title: "Prateleira",
-    empty: "Solte aqui os arquivos que você quer guardar por um momento. Depois é só arrastá-los para onde quiser.",
+    empty: "Guarde arquivos aqui e arraste para onde quiser.",
     hint: "Arraste para usar · duplo clique abre",
     drop: "Solte para guardar aqui",
     clear: "Limpar",

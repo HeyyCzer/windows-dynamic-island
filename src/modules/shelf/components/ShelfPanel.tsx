@@ -26,7 +26,9 @@ export function ShelfPanel({ state }: { state: ShelfState | undefined }) {
 			</div>
 			<div
 				className={cn(
-					"flex min-h-0 flex-1 flex-wrap content-start gap-1 overflow-y-auto rounded-[14px] transition-[background,box-shadow] duration-200 [scrollbar-width:none]",
+					"flex min-h-0 flex-1 flex-wrap gap-1 overflow-y-auto rounded-[14px] transition-[background,box-shadow] duration-200 [scrollbar-width:none]",
+					// Wrapped tiles start at the top; the empty hint sits in the middle.
+					items.length ? "content-start" : "content-center justify-center",
 					dragging && "bg-[rgba(100,210,255,0.06)] shadow-[inset_0_0_0_1.5px_rgba(100,210,255,0.45)]",
 				)}
 				data-scroll
@@ -35,7 +37,7 @@ export function ShelfPanel({ state }: { state: ShelfState | undefined }) {
 					<Tile key={item.path} item={item} />
 				))}
 				{!items.length && (
-					<div className="m-auto flex flex-col items-center gap-1.5 text-[12.5px] text-text-dim">
+					<div className="flex flex-col items-center gap-1.5 text-[12.5px] text-text-dim">
 						<DownloadIcon size={22} />
 						<span>{t("shelf.drop")}</span>
 					</div>

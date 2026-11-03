@@ -8,10 +8,30 @@
 //!
 //! The frontend gets `island://file-drop` events (see `useFileDrop.ts`).
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use serde::Serialize;
 use tauri::{AppHandle, WebviewWindow};
 
 pub const EVENT: &str = "island://file-drop";
+
+/// The island itself is dragging files out (shelf, clipboard history). Its own
+/// drop target must ignore that drag: taking it for files coming in opened the
+/// drop zone mid-drag and the drop elsewhere was often lost.
+static OUTGOING: AtomicBool = AtomicBool::new(false);
+
+/// Runs a drag that starts on the island; it blocks until the drop.
+pub fn outgoing<R>(drag: impl FnOnce() -> R) -> R {
+    OUTGOING.store(true, Ordering::Relaxed);
+    let result = drag();
+    OUTGOING.store(false, Ordering::Relaxed);
+    result
+}
+
+/// Whether a drag the drop target sees should be taken as files coming in.
+fn incoming(has_files: bool) -> bool {
+    has_files && !OUTGOING.load(Ordering::Relaxed)
+}
 
 #[cfg_attr(not(windows), allow(dead_code))]
 #[derive(Clone, Serialize)]
@@ -73,7 +93,7 @@ mod imp {
     use windows::Win32::System::SystemServices::MODIFIERKEYS_FLAGS;
     use windows::Win32::UI::Shell::{DragQueryFileW, HDROP};
 
-    use super::{DropEvent, EVENT};
+    use super::{incoming, DropEvent, EVENT};
 
     #[implement(IDropTarget)]
     pub struct Target {
@@ -125,7 +145,7 @@ mod imp {
             _pt: &POINTL,
             effect: *mut DROPEFFECT,
         ) -> windows::core::Result<()> {
-            let files = paths(data).is_some_and(|p| !p.is_empty());
+            let files = incoming(paths(data).is_some_and(|p| !p.is_empty()));
             self.files.set(files);
             if files {
                 self.emit(DropEvent::Enter);
@@ -170,5 +190,20 @@ mod imp {
             }
             Ok(())
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn own_drag_is_not_taken_as_incoming() {
+        assert!(incoming(true));
+        assert!(!incoming(false));
+        outgoing(|| {
+            assert!(!incoming(true), "a drag out of the island must not open its drop zone");
+        });
+        assert!(incoming(true));
     }
 }

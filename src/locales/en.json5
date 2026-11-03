@@ -622,7 +622,7 @@
   // Shelf module
   shelf: {
     title: "Shelf",
-    empty: "Drop files here to keep them for a moment, then drag them wherever you want.",
+    empty: "Keep files here, then drag them anywhere.",
     hint: "Drag out to use · double-click opens",
     drop: "Drop to keep it here",
     clear: "Clear",
