@@ -14,6 +14,7 @@ export const codexAgent: AgentDefinition = {
 	Icon: CodexIcon,
 	useAgent: useCodex,
 	usageUrl: "https://chatgpt.com/codex/settings/usage",
+	openApp: () => providerAction("codex", "openApp"),
 	openSession: (session) => {
 		if (session.cwd) providerAction("codex", "openProject", session.cwd);
 	},

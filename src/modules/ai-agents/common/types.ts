@@ -14,6 +14,8 @@ export interface AgentDefinition {
 	useAgent: () => AgentSnapshot;
 	/** Web page with the plan's usage; clicking the limits opens it. */
 	usageUrl?: string;
+	/** Opens the agent's app; double-clicking the compact icon calls it. */
+	openApp?: () => Promise<unknown>;
 	/** Opens a session (e.g. its project in the editor). */
 	openSession?: (session: AgentSession) => void;
 	/** Answers a session's pending permission request from the island. */

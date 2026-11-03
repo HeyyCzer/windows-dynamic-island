@@ -100,6 +100,11 @@ impl Provider for CodexProvider {
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
         match action {
+            "openApp" => {
+                // Launches the desktop app through its registered URI, regardless of install path.
+                crate::settings::open_url("codex://");
+                Ok(Value::Null)
+            }
             // Clicking a session opens its project in VS Code.
             "openProject" => {
                 let cwd = payload.as_str().unwrap_or_default();

@@ -1,6 +1,8 @@
 import { AnimatePresence, motion } from "motion/react";
+import { useEffect } from "react";
 import { cn } from "../../../../core/cn";
 import { useT } from "../../../../core/i18n";
+import { useIsland } from "../../../../core/island";
 import { formatElapsed, useNow } from "../format";
 import type { AgentSessionRef } from "../types";
 import { StatusGlyph } from "./StatusGlyph";
@@ -9,6 +11,9 @@ import { StatusGlyph } from "./StatusGlyph";
 export function AgentCompactLeft({ hot, busyCount }: { hot: AgentSessionRef; busyCount: number }) {
 	const { agent, session } = hot;
 	const t = useT();
+	const { keepOpen } = useIsland();
+	const hold = `agent-icon:${agent.id}`;
+	useEffect(() => () => keepOpen(false, hold), [keepOpen, hold]);
 	const label =
 		session.status === "working"
 			? (session.activity ?? t("agents.status.working"))
@@ -24,7 +29,31 @@ export function AgentCompactLeft({ hot, busyCount }: { hot: AgentSessionRef; bus
 
 	return (
 		<>
-			<StatusGlyph agent={agent} status={session.status} size={18} />
+			{agent.openApp ? (
+				<button
+					type="button"
+					data-no-drag
+					className="flex shrink-0 cursor-pointer items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2"
+					aria-label={agent.name}
+					onPointerEnter={() => keepOpen(true, hold)}
+					onPointerLeave={() => keepOpen(false, hold)}
+					onClick={(event) => event.stopPropagation()}
+					onDoubleClick={(event) => {
+						event.stopPropagation();
+						agent.openApp?.().catch(console.error);
+					}}
+					onKeyDown={(event) => {
+						if (event.key === "Enter" || event.key === " ") {
+							event.preventDefault();
+							agent.openApp?.().catch(console.error);
+						}
+					}}
+				>
+					<StatusGlyph agent={agent} status={session.status} size={18} />
+				</button>
+			) : (
+				<StatusGlyph agent={agent} status={session.status} size={18} />
+			)}
 			<AnimatePresence mode="popLayout" initial={false}>
 				<motion.span
 					key={label}
