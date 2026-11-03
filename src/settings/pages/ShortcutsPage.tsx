@@ -1,26 +1,26 @@
 import { Card } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
+import { moduleShortcutId } from "../../core/shortcuts";
 import { modules } from "../../modules";
-import { Title } from "../components/Heading";
+import { Lead, Title } from "../components/Heading";
 import { ShortcutRow } from "../components/ShortcutRow";
 
+/** Every module's global shortcut in one list (each module's page has its own too). */
 export function ShortcutsPage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
-	const actionNames = Object.fromEntries(
-		modules.map((module) => [module.shortcut ?? `module:${module.id}`, t(module.title)]),
-	);
-
 	return (
 		<>
 			<Title>{t("shortcuts.title")}</Title>
+			<Lead>{t("shortcuts.desc")}</Lead>
 			<Card>
 				{modules.map((module) => (
 					<ShortcutRow
 						key={module.id}
-						id={module.shortcut ?? `module:${module.id}`}
+						id={moduleShortcutId(module)}
 						values={values}
-						actionLabel={t(module.title)}
-						actionNames={actionNames}
+						label={t(module.title)}
+						icon={module.settingsIcon}
+						hint={false}
 					/>
 				))}
 			</Card>

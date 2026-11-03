@@ -36,6 +36,10 @@ export function shortcutSetting(id: ShortcutId): SettingDef<string | null> & { f
 	);
 }
 
+/** The shortcut that opens a module: its built-in one, or an opt-in `module:<id>`. */
+export const moduleShortcutId = (module: { id: string; shortcut?: ShortcutId }): ShortcutId =>
+	module.shortcut ?? `module:${module.id}`;
+
 export function shortcutStateIds(values: Record<string, unknown>): string[] {
 	return [
 		"ask",

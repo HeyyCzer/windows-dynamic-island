@@ -167,7 +167,7 @@ fn sync(hub: &Hub, paused: bool) {
     for action in desired_shortcuts(&settings) {
         let uses_default = action.chosen.is_none();
         let mut candidates = match action.chosen {
-            Some(keys) => vec![keys],
+            Some(keys) => vec![keys.trim().to_string()],
             None => action
                 .default
                 .into_iter()
