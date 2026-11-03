@@ -3,7 +3,8 @@
  *
  * Every provider publishes its state under an id; `useProvider(id)` returns the
  * latest value and re-renders on change. Outside Tauri (plain `bun run dev` in a
- * browser) a mock feed is used so the UI can be designed without the backend.
+ * browser) a mock feed is used so the UI can be designed without the backend;
+ * it's dev-only, so release builds leave it out.
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -37,14 +38,21 @@ export function emitLocal(event: string, payload: unknown) {
 	for (const h of localEvents.get(event) ?? []) h(payload);
 }
 
+type LocalCall = (target: "provider" | "command", id: string, name: string, payload: unknown) => unknown;
+let localCall: LocalCall | undefined;
+
+/** Answer `providerAction`/`command` outside Tauri (used by the browser mock). */
+export function handleLocalCalls(handler: LocalCall) {
+	localCall = handler;
+}
+
 let started = false;
 export async function startBridge() {
 	if (started) return;
 	started = true;
 
 	if (!isTauri) {
-		const { startMock } = await import("./mock");
-		startMock();
+		if (import.meta.env.DEV) (await import("../dev/mock")).startMock();
 		return;
 	}
 
@@ -64,12 +72,12 @@ export function useProvider<T>(id: string): T | undefined {
 }
 
 export function providerAction<T = unknown>(id: string, action: string, payload?: unknown) {
-	if (!isTauri) return Promise.resolve(undefined as T);
+	if (!isTauri) return Promise.resolve(localCall?.("provider", id, action, payload) as T);
 	return invoke<T>("provider_action", { id, action, payload: payload ?? null });
 }
 
 export function command<T = unknown>(cmd: string, args?: Record<string, unknown>) {
-	if (!isTauri) return Promise.resolve(undefined as T);
+	if (!isTauri) return Promise.resolve(localCall?.("command", "", cmd, args) as T);
 	return invoke<T>(cmd, args);
 }
 

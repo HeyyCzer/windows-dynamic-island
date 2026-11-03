@@ -5,6 +5,7 @@
   * If the user asks you to give them a PR template, you should not ask the repo owner for merging or generate a new release with the changes, it's obvious that the repo owner will consider the PR for merging.
 * If you commit any changes to this repo, use the default commit message format: `<gitmoji> <commit message>`. For example, if you are fixing a bug, your commit message should look like this: `🐛 fixed (something)` or if you add a new feature `✨ added (something)`.
 * Fill in the PR template (`.github/pull_request_template.md`) and only tick the boxes you actually did.
+* Code, comments and documentation MUST be in English.
 
 ### Before committing
 Every change MUST pass the same checks the CI runs (`.github/workflows/check.yml`). Run them and fix what they report before you commit:
