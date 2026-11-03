@@ -76,7 +76,7 @@ export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
 			else holds.current.delete(reason);
 			if (holds.current.size > 0) window.clearTimeout(timer.current);
 			else if (!pointerInside.current) transition(false);
-			// 图标上的双击操作结束后，恢复指针所在位置的悬停行为。
+			// Once the icon's double-click hold ends, resume hover where the pointer is.
 			else if (!openRef.current && latest.current.expandOnHover) transition(true);
 		},
 		[transition],

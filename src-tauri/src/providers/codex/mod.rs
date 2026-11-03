@@ -101,7 +101,7 @@ impl Provider for CodexProvider {
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
         match action {
             "openApp" => {
-                // 使用系统注册的入口唤起桌面应用，不依赖安装路径。
+                // Launches the desktop app through its registered URI, regardless of install path.
                 crate::settings::open_url("codex://");
                 Ok(Value::Null)
             }
