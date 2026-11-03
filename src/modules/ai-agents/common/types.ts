@@ -20,8 +20,6 @@ export interface AgentDefinition {
 	openSession?: (session: AgentSession) => void;
 	/** Answers a session's pending permission request from the island. */
 	decide?: (session: AgentSession, decision: PermissionDecision) => Promise<unknown>;
-	/** Launches the desktop application, terminal or web environment for this agent. */
-	launchApp?: () => void;
 	/** Agent-specific block in the settings window (integration setup…). */
 	SettingsSection?: ComponentType;
 }
@@ -82,8 +80,6 @@ export interface TokenUsage {
 }
 
 export interface AgentSnapshot {
-	connection?: "connected" | "disconnected";
-	metricsHint?: string;
 	available: boolean;
 	sessions: AgentSession[];
 	limits: UsageLimit[];
@@ -92,6 +88,8 @@ export interface AgentSnapshot {
 	/** Called (throttled by the backend) while the agent's card is on screen. Must be stable. */
 	refreshLimits?: () => void;
 	tokensToday?: TokenUsage;
+	/** Shown when `tokensToday` is missing (e.g. the agent doesn't report tokens). */
+	metricsHint?: string;
 	/** Tokens and responses per day (last 7, today last) and in the last 5 hours. */
 	usage?: UsageHistory;
 	model?: string | null;

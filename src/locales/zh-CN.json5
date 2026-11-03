@@ -254,16 +254,12 @@
       desc: "当订阅计划的请求限额重置并可再次使用时展开通知。",
     },
     status: {
-      connected: "已连接",
-      disconnected: "未连接",
-      idle: "就绪",
       working: "工作中",
       waiting: "等待您操作",
       done: "已完成",
       limitsReset: "限额已重置，可以继续使用！",
     },
     now: "刚刚",
-    launchApp: "打开应用",
     openProject: "在 VS Code 中打开",
     // 本地转录记录中的 7 天使用情况
     usage: {
@@ -278,14 +274,6 @@
     noSessions: "暂无近期会话",
     contextUsed: "已使用上下文",
     noLimits: "暂无限额数据",
-    antigravity: {
-      fiveHour: "5 小时",
-      weekly: "每周",
-      quota: "额度",
-      notRunning: "请启动 Antigravity 并登录，以连接本地服务。",
-      serviceUnavailable: "本地服务正在启动，或暂时无法读取额度；正在自动重试。",
-      metricsUnavailable: "Antigravity 提供额度数据，不提供 Token 或会话统计。",
-    },
     tokensToday: "今日 Token 消耗",
     tokens: {
       input: "输入",
@@ -388,7 +376,7 @@
       update: "更新集成",
     },
     integration: {
-      title: "Claude Code 集成",
+      title: "集成",
       // {file}: Claude Code 设置文件路径
       desc: "HTTP 钩子用于实时状态 + 状态栏用于限额监控。您原有的状态栏配置保持有效。每次更改都会为 {file} 创建备份。",
       enable: "启用",
@@ -405,11 +393,30 @@
     // {time}: 时间窗口，例如 "5h" 或 "7d"
     limitWindow: "周期 · {time}",
     integration: {
-      title: "Codex",
+      title: "集成",
       // {dir}: Codex 会话存储目录
       desc: "从 {dir} 中的 Codex 会话读取实时状态、Token 消耗和限额（支持 CLI、IDE 插件与桌面应用）。无需额外安装插件。",
       found: "已检测到 Codex",
       missing: "在此电脑上未找到 Codex",
+    },
+  },
+
+  antigravity: {
+    notRunning: "请打开 Antigravity 并登录，以查看套餐额度。",
+    launch: "打开 Antigravity",
+    serviceUnavailable: "Antigravity 正在启动，或暂时无法读取额度；正在自动重试。",
+    metricsUnavailable: "Antigravity 提供额度数据，不提供 Token 或会话统计。",
+    window: {
+      fiveHour: "5 小时",
+      weekly: "每周",
+      quota: "额度",
+    },
+    integration: {
+      title: "集成",
+      desc: "从正在运行的应用读取套餐额度。仅检查此安装目录下的进程。",
+      choose: "浏览…",
+      found: "已检测到 Antigravity",
+      missing: "在此路径未找到 Antigravity",
     },
   },
 

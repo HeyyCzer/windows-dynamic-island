@@ -236,16 +236,12 @@
       desc: "Quando o limite de requisições do plano redefinir e poder ser usado novamente.",
     },
     status: {
-      connected: "Conectado",
-      disconnected: "Desconectado",
-      idle: "Pronto",
       working: "Trabalhando",
       waiting: "Aguardando você",
       done: "Concluído",
 	  limitsReset: "Limites resetados, você pode usar novamente!"
     },
     now: "Agora",
-    launchApp: "Abrir aplicativo",
     openProject: "Abrir no VS Code",
     usage: {
       today: "Hoje",
@@ -258,14 +254,6 @@
     noSessions: "Nenhuma sessão recente",
     contextUsed: "Contexto usado",
     noLimits: "Sem dados de limite ainda",
-    antigravity: {
-      fiveHour: "5 horas",
-      weekly: "Semanal",
-      quota: "Cota",
-      notRunning: "Inicie o Antigravity e entre na conta para conectar ao serviço local.",
-      serviceUnavailable: "O serviço local está iniciando ou não foi possível ler a cota. Tentando novamente automaticamente.",
-      metricsUnavailable: "O Antigravity fornece dados de cota, mas não estatísticas de tokens ou sessões.",
-    },
     tokensToday: "Tokens hoje",
     tokens: {
       input: "Entrada",
@@ -364,7 +352,7 @@
       update: "Atualizar integração",
     },
     integration: {
-      title: "Integração com Claude Code",
+      title: "Integração",
       desc: "Hooks HTTP para status em tempo real + statusline para limites do plano. Seu statusline atual continua funcionando. Um backup do {file} é criado a cada alteração.",
       enable: "Ativar",
       remove: "Remover",
@@ -379,10 +367,29 @@
     limitsHint: "Os limites do plano aparecem após a próxima resposta do Codex.",
     limitWindow: "Janela · {time}",
     integration: {
-      title: "Codex",
+      title: "Integração",
       desc: "Status ao vivo, tokens e limites do plano lidos das sessões do Codex em {dir} (CLI, extensão da IDE e app). Nada para instalar.",
       found: "Codex encontrado",
       missing: "Codex não encontrado neste computador",
+    },
+  },
+
+  antigravity: {
+    notRunning: "Abra o Antigravity e entre na conta para ver a cota do plano.",
+    launch: "Abrir Antigravity",
+    serviceUnavailable: "O Antigravity está iniciando ou não foi possível ler a cota. Tentando novamente automaticamente.",
+    metricsUnavailable: "O Antigravity informa a cota, mas não estatísticas de tokens ou sessões.",
+    window: {
+      fiveHour: "5h",
+      weekly: "Semanal",
+      quota: "Cota",
+    },
+    integration: {
+      title: "Integração",
+      desc: "Cota do plano lida do app em execução. Só os processos desta instalação são inspecionados.",
+      choose: "Procurar…",
+      found: "Antigravity encontrado",
+      missing: "Antigravity não encontrado neste caminho",
     },
   },
 
