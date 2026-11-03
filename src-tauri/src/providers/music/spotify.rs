@@ -110,7 +110,13 @@ impl Spotify {
         let device = self.device.lock().unwrap();
         let device = device.as_ref()?;
         let muted = device.level == 0.0 && self.restore.lock().unwrap().is_some();
-        Some((Volume { level: device.level, muted }, device.name.clone()))
+        Some((
+            Volume {
+                level: device.level,
+                muted,
+            },
+            device.name.clone(),
+        ))
     }
 
     /// Same shape as the mixer's: muting stores the level and sets 0.
@@ -136,7 +142,9 @@ impl Spotify {
         // Whoever holds `sending` sends the latest level, the rest just leave it.
         *self.pending.lock().unwrap() = Some((level * 100.0).round() as u32);
         loop {
-            let Ok(guard) = self.sending.try_lock() else { return Ok(()) };
+            let Ok(guard) = self.sending.try_lock() else {
+                return Ok(());
+            };
             while let Some(percent) = self.pending.lock().unwrap().take() {
                 self.api(|token| {
                     agent()
@@ -209,7 +217,9 @@ impl Spotify {
         });
         // 204 (nothing playing) comes back as `null`.
         let device = result.as_ref().ok().map(|v| &v["device"]).and_then(|d| {
-            let percent = d["volume_percent"].as_f64().filter(|_| d["supports_volume"] != false)?;
+            let percent = d["volume_percent"]
+                .as_f64()
+                .filter(|_| d["supports_volume"] != false)?;
             Some(Device {
                 name: d["name"].as_str().unwrap_or_default().to_string(),
                 level: (percent / 100.0) as f32,
@@ -232,7 +242,9 @@ impl Spotify {
         for attempt in 0..2 {
             let token = self.access_token()?;
             match json(call(&token)) {
-                Err(e) if e == "unauthorized" && attempt == 0 => *self.access.lock().unwrap() = None,
+                Err(e) if e == "unauthorized" && attempt == 0 => {
+                    *self.access.lock().unwrap() = None
+                }
                 other => return other,
             }
         }
@@ -258,7 +270,10 @@ impl Spotify {
             credentials::write(TOKEN_TARGET, next)?;
         }
         let token = v["access_token"].as_str().ok_or("http")?.to_string();
-        *access = Some((token.clone(), now_ms() + v["expires_in"].as_u64().unwrap_or(3600) * 1000));
+        *access = Some((
+            token.clone(),
+            now_ms() + v["expires_in"].as_u64().unwrap_or(3600) * 1000,
+        ));
         Ok(token)
     }
 
@@ -351,14 +366,22 @@ fn authorize(hub: &Hub, client: &str, cancel: &AtomicBool) -> Result<String, Str
                 .map(|(_, v)| v.into_owned())
         };
         // Favicon and anything that isn't our redirect.
-        if full.as_ref().is_none_or(|u| u.path() != REDIRECT_PATH) || param("state").as_deref() != Some(state.as_str()) {
+        if full.as_ref().is_none_or(|u| u.path() != REDIRECT_PATH)
+            || param("state").as_deref() != Some(state.as_str())
+        {
             let _ = req.respond(Response::empty(404));
             continue;
         }
         let code = param("code");
-        let key = if code.is_some() { "music.spotify.browserDone" } else { "music.spotify.browserDenied" };
+        let key = if code.is_some() {
+            "music.spotify.browserDone"
+        } else {
+            "music.spotify.browserDenied"
+        };
         let html = Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap();
-        let _ = req.respond(Response::from_string(browser_page(&i18n::t(hub.app(), key))).with_header(html));
+        let _ = req.respond(
+            Response::from_string(browser_page(&i18n::t(hub.app(), key))).with_header(html),
+        );
         match code {
             Some(code) => break code,
             None => return Err("denied".into()),
@@ -372,7 +395,10 @@ fn authorize(hub: &Hub, client: &str, cancel: &AtomicBool) -> Result<String, Str
         ("client_id", client),
         ("code_verifier", verifier.as_str()),
     ]))?;
-    v["refresh_token"].as_str().map(str::to_string).ok_or_else(|| "http".into())
+    v["refresh_token"]
+        .as_str()
+        .map(str::to_string)
+        .ok_or_else(|| "http".into())
 }
 
 fn browser_page(message: &str) -> String {

@@ -12,8 +12,8 @@ pub mod spotify;
 pub mod volume;
 mod youtube;
 
-use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
+use std::sync::atomic::AtomicBool;
 
 use serde::Serialize;
 use serde_json::Value;
@@ -66,7 +66,8 @@ impl Provider for MusicProvider {
 
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
         self.spotify.start(hub.clone());
-        let (playing, poll_hub, spotify) = (self.playing.clone(), hub.clone(), self.spotify.clone());
+        let (playing, poll_hub, spotify) =
+            (self.playing.clone(), hub.clone(), self.spotify.clone());
         std::thread::spawn(move || smtc::poll_loop(poll_hub, playing, spotify));
 
         let playing = self.playing.clone();
@@ -77,7 +78,8 @@ impl Provider for MusicProvider {
         if action == "volume" {
             let app_id = payload["appId"].as_str().unwrap_or_default();
             // Spotify with no mixer entry here plays on another device.
-            if payload["target"] == "app" && spotify::is_spotify(app_id) && !volume::has_app(app_id) {
+            if payload["target"] == "app" && spotify::is_spotify(app_id) && !volume::has_app(app_id)
+            {
                 let level = payload["level"].as_f64().map(|l| l.clamp(0.0, 1.0) as f32);
                 self.spotify.set_volume(level, payload["muted"].as_bool())?;
             } else {

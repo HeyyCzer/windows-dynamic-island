@@ -11,7 +11,9 @@ use serde_json::Value;
 use tiny_http::{Header, Method, Response, Server};
 
 use super::activity::{self, Activity};
-use super::{now_ms, permissions, sounds, statusline, transcripts, usage, Ctx, Source, Status, HOOK_PORT};
+use super::{
+    Ctx, HOOK_PORT, Source, Status, now_ms, permissions, sounds, statusline, transcripts, usage,
+};
 
 pub const HOOK_PATH: &str = "/claude/hook";
 pub const STATUSLINE_PATH: &str = "/claude/statusline";
@@ -34,7 +36,10 @@ pub fn serve(ctx: Ctx) {
     let json = Header::from_bytes("Content-Type", "application/json").unwrap();
     for mut req in server.incoming_requests() {
         let mut body = String::new();
-        let _ = req.as_reader().take(4 * 1024 * 1024).read_to_string(&mut body);
+        let _ = req
+            .as_reader()
+            .take(4 * 1024 * 1024)
+            .read_to_string(&mut body);
         let payload: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
 
         if *req.method() == Method::Post {
@@ -119,13 +124,14 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
                     alert = Some(sounds::Alert::Permission);
                     s.status = Status::Waiting;
                     s.tool = Some(tool.to_string());
-                    s.activity = Some(activity::describe(tool, &v["tool_input"]).needs_permission());
+                    s.activity =
+                        Some(activity::describe(tool, &v["tool_input"]).needs_permission());
                 }
                 "Notification" => {
                     let message = str_of("message");
                     let kind = str_of("notification_type");
-                    let asks_permission =
-                        kind == "permission_prompt" || message.to_lowercase().contains("permission");
+                    let asks_permission = kind == "permission_prompt"
+                        || message.to_lowercase().contains("permission");
                     if asks_permission && s.status != Status::Waiting {
                         alert = Some(sounds::Alert::Permission);
                         s.status = Status::Waiting;
@@ -142,7 +148,11 @@ pub fn handle_hook(ctx: &Ctx, v: &Value) {
                     if s.prompt.is_none() {
                         s.prompt = transcripts::last_prompt(transcript).map(|p| preview(&p));
                     }
-                    s.activity = Some(Activity::new(if event == "Stop" { "done" } else { "failed" }));
+                    s.activity = Some(Activity::new(if event == "Stop" {
+                        "done"
+                    } else {
+                        "failed"
+                    }));
                 }
                 _ => {}
             }

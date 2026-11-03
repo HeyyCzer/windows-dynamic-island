@@ -40,8 +40,14 @@ impl Alert {
 
     fn bundled(self) -> (&'static str, &'static [u8]) {
         match self {
-            Alert::Done => ("claude-done.mp3", include_bytes!("../../../sounds/claude-done.mp3")),
-            Alert::Permission => ("claude-permission.mp3", include_bytes!("../../../sounds/claude-permission.mp3")),
+            Alert::Done => (
+                "claude-done.mp3",
+                include_bytes!("../../../sounds/claude-done.mp3"),
+            ),
+            Alert::Permission => (
+                "claude-permission.mp3",
+                include_bytes!("../../../sounds/claude-permission.mp3"),
+            ),
         }
     }
 }

@@ -20,7 +20,11 @@ pub struct Activity {
 
 impl Activity {
     pub fn new(kind: &'static str) -> Self {
-        Self { kind, arg: None, permission: false }
+        Self {
+            kind,
+            arg: None,
+            permission: false,
+        }
     }
 
     pub fn with(kind: &'static str, arg: impl AsRef<str>) -> Self {
@@ -56,7 +60,11 @@ pub fn describe(tool: &str, input: &Value) -> Activity {
 
     match tool {
         "Bash" | "PowerShell" => {
-            let what = if s("description").is_empty() { s("command") } else { s("description") };
+            let what = if s("description").is_empty() {
+                s("command")
+            } else {
+                s("description")
+            };
             Activity::with("run", first_line(what))
         }
         "Read" => Activity::with("read", file()),
@@ -89,7 +97,12 @@ pub fn file_name(path: &str) -> Option<String> {
 }
 
 pub fn host(url: &str) -> &str {
-    url.split("://").nth(1).unwrap_or(url).split('/').next().unwrap_or(url)
+    url.split("://")
+        .nth(1)
+        .unwrap_or(url)
+        .split('/')
+        .next()
+        .unwrap_or(url)
 }
 
 fn first_line(s: &str) -> &str {

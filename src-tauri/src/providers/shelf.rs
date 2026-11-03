@@ -11,8 +11,8 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::Manager;
 
-use super::ask::{data_url, image_media_type};
 use super::Provider;
+use super::ask::{data_url, image_media_type};
 use crate::hub::Hub;
 
 pub const ID: &str = "shelf";
@@ -66,8 +66,11 @@ impl Ctx {
                 let thumb = thumbs
                     .entry(p.clone())
                     .or_insert_with(|| {
-                        let small = std::fs::metadata(path).is_ok_and(|m| m.len() <= MAX_THUMB_BYTES);
-                        image_media_type(path).filter(|_| small).and_then(|m| data_url(path, m))
+                        let small =
+                            std::fs::metadata(path).is_ok_and(|m| m.len() <= MAX_THUMB_BYTES);
+                        image_media_type(path)
+                            .filter(|_| small)
+                            .and_then(|m| data_url(path, m))
                     })
                     .clone();
                 Item {
@@ -77,7 +80,10 @@ impl Ctx {
                         .map(|n| n.to_string_lossy().to_string())
                         .unwrap_or_else(|| p.clone()),
                     is_dir: path.is_dir(),
-                    ext: path.extension().map(|e| e.to_string_lossy().to_lowercase()).unwrap_or_default(),
+                    ext: path
+                        .extension()
+                        .map(|e| e.to_string_lossy().to_lowercase())
+                        .unwrap_or_default(),
                     thumb,
                 }
             })
@@ -99,27 +105,45 @@ impl Provider for ShelfProvider {
     }
 
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
-        let file = hub.app().path().app_data_dir().unwrap_or_else(|_| std::env::temp_dir()).join("shelf.json");
+        let file = hub
+            .app()
+            .path()
+            .app_data_dir()
+            .unwrap_or_else(|_| std::env::temp_dir())
+            .join("shelf.json");
         let paths = std::fs::read_to_string(&file)
             .ok()
             .and_then(|t| serde_json::from_str::<Vec<String>>(&t).ok())
             .unwrap_or_default();
-        let ctx = Arc::new(Ctx { hub, file, paths: Mutex::new(paths), thumbs: Mutex::default() });
+        let ctx = Arc::new(Ctx {
+            hub,
+            file,
+            paths: Mutex::new(paths),
+            thumbs: Mutex::default(),
+        });
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         ctx.commit();
         // Notice files deleted or moved meanwhile.
-        std::thread::spawn(move || loop {
-            std::thread::sleep(Duration::from_secs(10));
-            ctx.commit();
+        std::thread::spawn(move || {
+            loop {
+                std::thread::sleep(Duration::from_secs(10));
+                ctx.commit();
+            }
         });
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
-        let ctx = self.ctx.lock().unwrap().clone().ok_or("shelf not started")?;
+        let ctx = self
+            .ctx
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or("shelf not started")?;
         match action {
             // Newest first; dropping something already there moves it to the front.
             "add" => {
-                let new: Vec<String> = serde_json::from_value(payload).map_err(|e| e.to_string())?;
+                let new: Vec<String> =
+                    serde_json::from_value(payload).map_err(|e| e.to_string())?;
                 let mut paths = ctx.paths.lock().unwrap();
                 for p in new.into_iter().rev() {
                     paths.retain(|q| !q.eq_ignore_ascii_case(&p));
@@ -153,7 +177,12 @@ impl Provider for ShelfProvider {
 /// Only paths that are actually on the shelf can be opened or dragged.
 fn known(ctx: &Ctx, payload: &Value) -> Option<String> {
     let path = payload.as_str()?;
-    ctx.paths.lock().unwrap().iter().find(|p| *p == path).cloned()
+    ctx.paths
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|p| *p == path)
+        .cloned()
 }
 
 /// OLE drag & drop has to run on the UI thread, while the mouse button is down.
@@ -161,13 +190,21 @@ fn known(ctx: &Ctx, payload: &Value) -> Option<String> {
 pub(crate) fn start_drag(app: &tauri::AppHandle, paths: Vec<PathBuf>) {
     let handle = app.clone();
     let _ = app.run_on_main_thread(move || {
-        let Some(win) = handle.get_webview_window(crate::window::ISLAND_LABEL) else { return };
+        let Some(win) = handle.get_webview_window(crate::window::ISLAND_LABEL) else {
+            return;
+        };
         let image = match paths.as_slice() {
             [one] if image_media_type(one).is_some() => drag::Image::File(one.clone()),
             _ => drag::Image::Raw(vec![]),
         };
         let result = crate::file_drop::outgoing(|| {
-            drag::start_drag(&win, drag::DragItem::Files(paths), image, |_, _| {}, drag::Options::default())
+            drag::start_drag(
+                &win,
+                drag::DragItem::Files(paths),
+                image,
+                |_, _| {},
+                drag::Options::default(),
+            )
         });
         if let Err(e) = result {
             log::warn!("drag failed: {e}");

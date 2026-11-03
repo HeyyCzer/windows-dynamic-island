@@ -52,13 +52,23 @@ fn read() -> Option<(bool, u8)> {
 
 /// The lowest low-battery threshold crossed going from `before` to `now`, if any.
 fn crossed(before: u8, now: u8) -> Option<u8> {
-    THRESHOLDS.into_iter().rev().find(|&t| before > t && now <= t)
+    THRESHOLDS
+        .into_iter()
+        .rev()
+        .find(|&t| before > t && now <= t)
 }
 
 fn show_power(activities: &Activities, on_ac: bool, percent: u8) {
     let app = activities.app();
     let mut alert = Activity::alert("system.battery", "battery", Duration::from_millis(3500));
-    alert.title = i18n::t(app, if on_ac { "system.battery.charging" } else { "system.battery.onBattery" });
+    alert.title = i18n::t(
+        app,
+        if on_ac {
+            "system.battery.charging"
+        } else {
+            "system.battery.onBattery"
+        },
+    );
     alert.icon = Some(if on_ac { "charging" } else { "battery" }.into());
     alert.color = on_ac.then(|| GREEN.into());
     alert.progress = Some(percent as f64 / 100.0);
@@ -70,7 +80,8 @@ fn show_low(activities: &Activities, percent: u8, threshold: u8) {
     let app = activities.app();
     let mut alert = Activity::alert("system.battery", "battery", Duration::from_secs(6));
     alert.title = i18n::t(app, "system.battery.low");
-    alert.subtitle = Some(i18n::t(app, "system.battery.lowDetail").replace("{n}", &percent.to_string()));
+    alert.subtitle =
+        Some(i18n::t(app, "system.battery.lowDetail").replace("{n}", &percent.to_string()));
     alert.icon = Some("battery".into());
     alert.color = Some(if threshold <= 10 { RED } else { ORANGE }.into());
     alert.progress = Some(percent as f64 / 100.0);

@@ -88,7 +88,9 @@ fn get(path: &str, query: &[(&str, &str)], token: Option<&str>) -> Result<Value,
                 .map(|secs| now_ms() + secs * 1000)
                 .or_else(|| {
                     let exhausted = header("x-ratelimit-remaining") == Some(0);
-                    header("x-ratelimit-reset").filter(|_| exhausted).map(|secs| secs * 1000)
+                    header("x-ratelimit-reset")
+                        .filter(|_| exhausted)
+                        .map(|secs| secs * 1000)
                 })
                 // Secondary limits don't always say when; back off a minute.
                 .unwrap_or_else(|| now_ms() + 60_000);
@@ -96,7 +98,10 @@ fn get(path: &str, query: &[(&str, &str)], token: Option<&str>) -> Result<Value,
         }
         _ => return Err(Error::Http),
     }
-    let body = res.body_mut().read_to_string().map_err(|_| Error::Network)?;
+    let body = res
+        .body_mut()
+        .read_to_string()
+        .map_err(|_| Error::Network)?;
     serde_json::from_str(&body).map_err(|_| Error::Http)
 }
 
@@ -105,7 +110,12 @@ pub fn repo_issues(repo: &str, token: Option<&str>) -> Result<RepoIssues, Error>
     let q = format!("repo:{repo} is:issue is:open");
     let v = get(
         "/search/issues",
-        &[("q", &q), ("sort", "created"), ("order", "desc"), ("per_page", "1")],
+        &[
+            ("q", &q),
+            ("sort", "created"),
+            ("order", "desc"),
+            ("per_page", "1"),
+        ],
         token,
     )?;
     let latest = v["items"].get(0).map(|i| Issue {

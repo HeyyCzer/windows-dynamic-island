@@ -1,22 +1,22 @@
 //! Now-playing metadata and transport controls through SMTC.
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use base64::Engine;
 use serde_json::Value;
 use tauri::Manager;
-use windows::core::Result;
 use windows::Media::Control::{
     GlobalSystemMediaTransportControlsSession as Session,
     GlobalSystemMediaTransportControlsSessionManager as SessionManager,
     GlobalSystemMediaTransportControlsSessionPlaybackStatus as Status,
 };
 use windows::Storage::Streams::DataReader;
+use windows::core::Result;
 
 use super::spotify::{self, Spotify};
-use super::{MusicState, ID};
+use super::{ID, MusicState};
 use crate::hub::Hub;
 use crate::providers::{now_ms, process};
 use crate::settings::Settings;
@@ -40,7 +40,10 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>, spotify: Arc<Spot
         }
         let state = match manager.as_ref().map(read_state) {
             Some(Ok(Some((mut state, session)))) => {
-                let key = format!("{}|{}|{}|{}", state.app_id, state.title, state.artist, state.album);
+                let key = format!(
+                    "{}|{}|{}|{}",
+                    state.app_id, state.title, state.artist, state.album
+                );
                 if key != track_key {
                     track_key = key;
                     thumbnail = None;
@@ -52,7 +55,12 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>, spotify: Arc<Spot
                     thumbnail = read_thumbnail(&session).ok().flatten();
                 }
                 state.thumbnail = thumbnail.clone();
-                let video = hub.app().state::<Settings>().get(VIDEO_KEY).and_then(|v| v.as_bool()).unwrap_or(false);
+                let video = hub
+                    .app()
+                    .state::<Settings>()
+                    .get(VIDEO_KEY)
+                    .and_then(|v| v.as_bool())
+                    .unwrap_or(false);
                 if video {
                     state.youtube_id = youtube.video_id(&state);
                 }
@@ -68,7 +76,8 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>, spotify: Arc<Spot
                     state.app_volume = Some(volume);
                     state.app_device = Some(device);
                     // The desktop app still runs here, just silent: its icon.
-                    state.app_icon = process::find_exe("spotify").and_then(|exe| process::app_icon(&exe));
+                    state.app_icon =
+                        process::find_exe("spotify").and_then(|exe| process::app_icon(&exe));
                 }
                 state
             }
@@ -83,7 +92,11 @@ pub fn poll_loop(hub: Arc<Hub>, playing_flag: Arc<AtomicBool>, spotify: Arc<Spot
         };
         playing_flag.store(state.playing, Ordering::Relaxed);
         hub.publish(ID, &state);
-        std::thread::sleep(Duration::from_millis(if state.playing { 500 } else { 1000 }));
+        std::thread::sleep(Duration::from_millis(if state.playing {
+            500
+        } else {
+            1000
+        }));
     }
 }
 
@@ -99,13 +112,19 @@ pub fn control(action: &str, payload: Value) -> Result<()> {
         "next" => session.TrySkipNextAsync()?.join()?,
         "previous" => session.TrySkipPreviousAsync()?.join()?,
         "focus" => {
-            let title = session.TryGetMediaPropertiesAsync()?.join()?.Title()?.to_string();
+            let title = session
+                .TryGetMediaPropertiesAsync()?
+                .join()?
+                .Title()?
+                .to_string();
             super::focus::focus(&session.SourceAppUserModelId()?.to_string(), &title);
             true
         }
         "seek" => {
             let ms = payload.as_u64().unwrap_or(0) as i64;
-            session.TryChangePlaybackPositionAsync(ms * 10_000)?.join()?
+            session
+                .TryChangePlaybackPositionAsync(ms * 10_000)?
+                .join()?
         }
         _ => false,
     };
@@ -138,7 +157,8 @@ fn read_state(manager: &SessionManager) -> Result<Option<(MusicState, Session)>>
     }
 
     let playing = info.PlaybackStatus()? == Status::Playing;
-    let duration_ms = (timeline.EndTime()?.Duration - timeline.StartTime()?.Duration).max(0) as u64 / 10_000;
+    let duration_ms =
+        (timeline.EndTime()?.Duration - timeline.StartTime()?.Duration).max(0) as u64 / 10_000;
     let mut position_ms = timeline.Position()?.Duration.max(0) as u64 / 10_000;
     let now = now_ms();
     if playing {
@@ -186,12 +206,19 @@ fn read_thumbnail(session: &Session) -> Result<Option<String>> {
     if size == 0 {
         return Ok(None);
     }
-    let mime = stream.ContentType().map(|s| s.to_string()).unwrap_or_default();
+    let mime = stream
+        .ContentType()
+        .map(|s| s.to_string())
+        .unwrap_or_default();
     let reader = DataReader::CreateDataReader(&stream.GetInputStreamAt(0)?)?;
     reader.LoadAsync(size)?.join()?;
     let mut buf = vec![0u8; size as usize];
     reader.ReadBytes(&mut buf)?;
-    let mime = if mime.is_empty() { "image/png".into() } else { mime };
+    let mime = if mime.is_empty() {
+        "image/png".into()
+    } else {
+        mime
+    };
     let b64 = base64::engine::general_purpose::STANDARD.encode(&buf);
     Ok(Some(format!("data:{mime};base64,{b64}")))
 }

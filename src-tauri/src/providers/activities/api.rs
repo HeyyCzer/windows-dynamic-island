@@ -13,7 +13,7 @@ use std::io::Read;
 use std::time::Duration;
 
 use serde::Deserialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tiny_http::{Header, Method, Request, Response, Server};
 
 use super::{Activities, Activity, Style};
@@ -53,11 +53,21 @@ pub fn serve(activities: Activities) {
 fn respond(req: Request, status: u16, payload: Option<Value>) {
     let json = Header::from_bytes("Content-Type", "application/json; charset=utf-8").unwrap();
     let body = payload.map(|p| p.to_string()).unwrap_or_default();
-    let _ = req.respond(Response::from_string(body).with_status_code(status).with_header(json));
+    let _ = req.respond(
+        Response::from_string(body)
+            .with_status_code(status)
+            .with_header(json),
+    );
 }
 
 fn route(activities: &Activities, req: &Request, body: &str) -> (u16, Option<Value>) {
-    let path = req.url().split('?').next().unwrap_or("").trim_end_matches('/').to_lowercase();
+    let path = req
+        .url()
+        .split('?')
+        .next()
+        .unwrap_or("")
+        .trim_end_matches('/')
+        .to_lowercase();
     match (req.method(), path.as_str()) {
         (Method::Options, _) => (204, None),
         (Method::Get, "" | "/status") => (200, Some(status(activities))),
@@ -72,7 +82,10 @@ fn route(activities: &Activities, req: &Request, body: &str) -> (u16, Option<Val
                     activities.upsert(activity);
                     (200, Some(json!({ "id": id })))
                 }
-                None => (400, Some(json!({ "error": "send at least 'title' or 'progress'" }))),
+                None => (
+                    400,
+                    Some(json!({ "error": "send at least 'title' or 'progress'" })),
+                ),
             }
         }
         // 204 keeps curl silent: for UserPromptSubmit, anything a hook prints
@@ -84,7 +97,12 @@ fn route(activities: &Activities, req: &Request, body: &str) -> (u16, Option<Val
             (204, None)
         }
         (Method::Delete, p) if p.starts_with("/activity/") => {
-            let raw = &req.url().split('?').next().unwrap_or("").trim_end_matches('/')["/activity/".len()..];
+            let raw = &req
+                .url()
+                .split('?')
+                .next()
+                .unwrap_or("")
+                .trim_end_matches('/')["/activity/".len()..];
             let id = percent_decode(raw);
             if activities.remove(&id) {
                 (200, Some(json!({ "removed": id })))
@@ -159,7 +177,10 @@ struct ActivityRequest {
 }
 
 fn to_activity(r: ActivityRequest, notify: bool) -> Option<Activity> {
-    let progress = r.progress.filter(|p| p.is_finite()).map(|p| p.clamp(0.0, 1.0));
+    let progress = r
+        .progress
+        .filter(|p| p.is_finite())
+        .map(|p| p.clamp(0.0, 1.0));
     let title = truncate(r.title, 120);
     if title.is_none() && progress.is_none() {
         return None;
@@ -181,8 +202,14 @@ fn to_activity(r: ActivityRequest, notify: bool) -> Option<Activity> {
         expires_at: duration.map(|d| now_ms() + d.as_millis() as u64),
         priority: r.priority.unwrap_or(50).clamp(0, 99),
         // Only web links: an HTTP caller must never make us launch a file or protocol.
-        action: r.action.filter(|a| a.starts_with("https://") || a.starts_with("http://")),
-        style: if r.style.is_some_and(|s| s.eq_ignore_ascii_case("level")) { Style::Level } else { Style::Standard },
+        action: r
+            .action
+            .filter(|a| a.starts_with("https://") || a.starts_with("http://")),
+        style: if r.style.is_some_and(|s| s.eq_ignore_ascii_case("level")) {
+            Style::Level
+        } else {
+            Style::Standard
+        },
         expand: r.expand.unwrap_or(notify),
         source: truncate(r.source, 40).unwrap_or_else(|| "api".into()),
         updated_at: 0,
@@ -203,7 +230,10 @@ fn is_hex_color(c: &str) -> bool {
 }
 
 fn random_id() -> String {
-    format!("{:08x}", (now_ms() as u32) ^ std::process::id().rotate_left(16))
+    format!(
+        "{:08x}",
+        (now_ms() as u32) ^ std::process::id().rotate_left(16)
+    )
 }
 
 fn percent_decode(s: &str) -> String {
@@ -240,7 +270,14 @@ mod tests {
     #[test]
     fn needs_title_or_progress() {
         assert!(to_activity(ActivityRequest::default(), true).is_none());
-        let a = to_activity(ActivityRequest { progress: Some(2.0), ..Default::default() }, false).unwrap();
+        let a = to_activity(
+            ActivityRequest {
+                progress: Some(2.0),
+                ..Default::default()
+            },
+            false,
+        )
+        .unwrap();
         assert_eq!(a.progress, Some(1.0));
         assert!(a.expires_at.is_none());
     }

@@ -20,7 +20,7 @@ use serde_json::Value;
 
 use super::activity::{self, Activity};
 use super::integration::claude_dir;
-use super::{now_ms, project_name, Ctx, DayUsage, Source, Status, TokenStats, Usage};
+use super::{Ctx, DayUsage, Source, Status, TokenStats, Usage, now_ms, project_name};
 
 const SCAN_EVERY: Duration = Duration::from_secs(3);
 /// A transcript with no new message for this long can't be "working" anymore.
@@ -67,7 +67,9 @@ struct Totals {
 impl Totals {
     fn new(today: NaiveDate) -> Self {
         Self {
-            first_day: today.checked_sub_days(Days::new(DAYS as u64 - 1)).unwrap_or(today),
+            first_day: today
+                .checked_sub_days(Days::new(DAYS as u64 - 1))
+                .unwrap_or(today),
             today,
             seen: HashSet::new(),
             today_tokens: TokenStats::default(),
@@ -78,7 +80,11 @@ impl Totals {
 
     fn usage(&mut self, now: u64) -> Usage {
         let horizon = now.saturating_sub(FIVE_HOURS_MS);
-        let mut entries: Vec<_> = self.recent.drain(..).filter(|(t, _)| *t >= horizon).collect();
+        let mut entries: Vec<_> = self
+            .recent
+            .drain(..)
+            .filter(|(t, _)| *t >= horizon)
+            .collect();
         entries.sort_by_key(|(t, _)| *t);
         self.recent = entries.into();
         Usage {
@@ -118,7 +124,9 @@ pub fn scan_loop(ctx: Ctx) {
         let mut paths = Vec::new();
         collect_jsonl(&claude_dir().join("projects"), 0, &mut paths);
         for path in paths {
-            let Ok(meta) = std::fs::metadata(&path) else { continue };
+            let Ok(meta) = std::fs::metadata(&path) else {
+                continue;
+            };
             let mtime = meta
                 .modified()
                 .ok()
@@ -187,12 +195,16 @@ fn last_text(path: &Path, role: &str) -> Option<String> {
 }
 
 fn collect_jsonl(dir: &Path, depth: u8, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         match entry.file_type() {
             Ok(t) if t.is_dir() && depth < 3 => collect_jsonl(&path, depth + 1, out),
-            Ok(t) if t.is_file() && path.extension().is_some_and(|e| e == "jsonl") => out.push(path),
+            Ok(t) if t.is_file() && path.extension().is_some_and(|e| e == "jsonl") => {
+                out.push(path)
+            }
             _ => {}
         }
     }
@@ -206,7 +218,9 @@ fn midnight_ms(day: NaiveDate) -> u64 {
 }
 
 fn read_new_lines(path: &Path, st: &mut FileState, totals: &mut Totals) {
-    let Ok(mut file) = File::open(path) else { return };
+    let Ok(mut file) = File::open(path) else {
+        return;
+    };
     if file.seek(SeekFrom::Start(st.offset)).is_err() {
         return;
     }
@@ -215,20 +229,25 @@ fn read_new_lines(path: &Path, st: &mut FileState, totals: &mut Totals) {
         return;
     }
     // Only consume complete lines; a partially written one is read next time.
-    let Some(last_nl) = buf.iter().rposition(|&b| b == b'\n') else { return };
+    let Some(last_nl) = buf.iter().rposition(|&b| b == b'\n') else {
+        return;
+    };
     st.offset += last_nl as u64 + 1;
 
     for line in buf[..last_nl].split(|&b| b == b'\n') {
-        let Ok(v) = serde_json::from_slice::<Value>(line) else { continue };
+        let Ok(v) = serde_json::from_slice::<Value>(line) else {
+            continue;
+        };
         process_line(&v, st, totals);
     }
 }
 
 fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals) {
     if st.session_id.is_empty()
-        && let Some(id) = v["sessionId"].as_str() {
-            st.session_id = id.to_string();
-        }
+        && let Some(id) = v["sessionId"].as_str()
+    {
+        st.session_id = id.to_string();
+    }
     if let Some(cwd) = v["cwd"].as_str() {
         st.cwd = cwd.to_string();
     }
@@ -245,11 +264,21 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals) {
         Some("assistant") => {
             let msg = &v["message"];
             let usage = &msg["usage"];
-            let finished = matches!(msg["stop_reason"].as_str(), Some("end_turn" | "stop_sequence" | "refusal"));
+            let finished = matches!(
+                msg["stop_reason"].as_str(),
+                Some("end_turn" | "stop_sequence" | "refusal")
+            );
             if usage.is_object()
                 && let Some(ts) = ts
             {
-                count_usage(totals, v, usage, ts.date_naive(), ts_ms.unwrap_or(0), finished);
+                count_usage(
+                    totals,
+                    v,
+                    usage,
+                    ts.date_naive(),
+                    ts_ms.unwrap_or(0),
+                    finished,
+                );
             }
             // Errors (auth, network, overload…) are logged as a synthetic
             // assistant message, and no Stop hook fires for them.
@@ -258,12 +287,18 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals) {
             } else {
                 finished.then_some("done")
             };
-            st.end = kind.map(|kind| TurnEnd { kind, at: ts_ms.unwrap_or(st.last_ts) });
+            st.end = kind.map(|kind| TurnEnd {
+                kind,
+                at: ts_ms.unwrap_or(st.last_ts),
+            });
             if let Some(tool) = msg["content"]
                 .as_array()
                 .and_then(|c| c.iter().rev().find(|b| b["type"] == "tool_use"))
             {
-                st.activity = Some(activity::describe(tool["name"].as_str().unwrap_or(""), &tool["input"]));
+                st.activity = Some(activity::describe(
+                    tool["name"].as_str().unwrap_or(""),
+                    &tool["input"],
+                ));
             } else if st.end.is_none() {
                 st.activity = Some(Activity::thinking());
             }
@@ -280,8 +315,14 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals) {
                 _ => vec![],
             };
             // Esc mid-turn: logged as a user message, no Stop hook either.
-            if texts.iter().any(|t| t.starts_with("[Request interrupted by user")) {
-                st.end = Some(TurnEnd { kind: "interrupted", at: ts_ms.unwrap_or(st.last_ts) });
+            if texts
+                .iter()
+                .any(|t| t.starts_with("[Request interrupted by user"))
+            {
+                st.end = Some(TurnEnd {
+                    kind: "interrupted",
+                    at: ts_ms.unwrap_or(st.last_ts),
+                });
                 return;
             }
             st.end = None;
@@ -295,7 +336,14 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals) {
     }
 }
 
-fn count_usage(totals: &mut Totals, v: &Value, usage: &Value, day: NaiveDate, ts_ms: u64, finished: bool) {
+fn count_usage(
+    totals: &mut Totals,
+    v: &Value,
+    usage: &Value,
+    day: NaiveDate,
+    ts_ms: u64,
+    finished: bool,
+) {
     let Some(index) = day
         .signed_duration_since(totals.first_day)
         .num_days()
@@ -393,5 +441,9 @@ fn apply_sessions(store: &mut super::Store, files: &HashMap<PathBuf, FileState>)
 }
 
 fn end_status(end: TurnEnd) -> Status {
-    if end.kind == "interrupted" { Status::Idle } else { Status::Done }
+    if end.kind == "interrupted" {
+        Status::Idle
+    } else {
+        Status::Done
+    }
 }

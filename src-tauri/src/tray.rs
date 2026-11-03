@@ -35,7 +35,13 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         autostart_on,
         None::<&str>,
     )?;
-    let toggle = MenuItem::with_id(app, "toggle", t(toggle_key(is_hidden(app))), true, None::<&str>)?;
+    let toggle = MenuItem::with_id(
+        app,
+        "toggle",
+        t(toggle_key(is_hidden(app))),
+        true,
+        None::<&str>,
+    )?;
     let settings = MenuItem::with_id(app, "settings", t("tray.settings"), true, None::<&str>)?;
     let recenter = MenuItem::with_id(app, "recenter", t("tray.recenter"), true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", t("tray.quit"), true, None::<&str>)?;
@@ -66,7 +72,12 @@ pub fn setup(app: &AppHandle) -> tauri::Result<()> {
         // Left click: the black hole swallows the island / gives it back. Right click: menu.
         .show_menu_on_left_click(false)
         .on_tray_icon_event(|tray, event| {
-            if let TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. } = event {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
                 toggle_hidden(tray.app_handle());
             }
         })
@@ -131,10 +142,18 @@ pub fn sync_hidden(app: &AppHandle) {
     if let Some(items) = app.try_state::<TrayItems>() {
         let _ = items.toggle.set_text(i18n::t(app, toggle_key(hidden)));
     }
-    let Some(tray) = app.tray_by_id(TRAY_ID) else { return };
-    let icon = app.default_window_icon().map(|icon| if hidden { dimmed(icon) } else { icon.clone() });
+    let Some(tray) = app.tray_by_id(TRAY_ID) else {
+        return;
+    };
+    let icon = app
+        .default_window_icon()
+        .map(|icon| if hidden { dimmed(icon) } else { icon.clone() });
     let _ = tray.set_icon(icon);
-    let tooltip = if hidden { i18n::t(app, "tray.hiddenTooltip") } else { "Island for Windows".to_string() };
+    let tooltip = if hidden {
+        i18n::t(app, "tray.hiddenTooltip")
+    } else {
+        "Island for Windows".to_string()
+    };
     let _ = tray.set_tooltip(Some(tooltip));
 }
 
@@ -165,8 +184,13 @@ pub fn show_update(app: &AppHandle, version: &str) {
         let _ = item.set_text(update_label(app, version));
         return;
     }
-    let Ok(item) = MenuItem::with_id(app, "update", update_label(app, version), true, None::<&str>)
-    else {
+    let Ok(item) = MenuItem::with_id(
+        app,
+        "update",
+        update_label(app, version),
+        true,
+        None::<&str>,
+    ) else {
         return;
     };
     let _ = items.menu.insert(&item, 0);

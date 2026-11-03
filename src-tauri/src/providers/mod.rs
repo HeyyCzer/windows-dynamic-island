@@ -12,8 +12,8 @@
 pub mod activities;
 pub mod antigravity;
 pub mod ask;
-pub mod claude;
 pub mod calendar;
+pub mod claude;
 pub mod clipboard;
 pub mod codex;
 pub mod credentials;

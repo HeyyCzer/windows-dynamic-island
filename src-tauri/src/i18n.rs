@@ -17,7 +17,12 @@ const SOURCES: &[(&str, &str)] = include!(concat!(env!("OUT_DIR"), "/locales.rs"
 static LOCALES: LazyLock<Vec<(&'static str, Map<String, Value>)>> = LazyLock::new(|| {
     SOURCES
         .iter()
-        .map(|(code, json)| (*code, serde_json::from_str(json).expect("invalid locale JSON")))
+        .map(|(code, json)| {
+            (
+                *code,
+                serde_json::from_str(json).expect("invalid locale JSON"),
+            )
+        })
         .collect()
 });
 

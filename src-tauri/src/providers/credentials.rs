@@ -7,7 +7,9 @@ pub const MAX_LEN: usize = 5 * 512;
 
 #[cfg(windows)]
 pub fn read(target: &str) -> Option<String> {
-    use windows::Win32::Security::Credentials::{CRED_TYPE_GENERIC, CREDENTIALW, CredFree, CredReadW};
+    use windows::Win32::Security::Credentials::{
+        CRED_TYPE_GENERIC, CREDENTIALW, CredFree, CredReadW,
+    };
     use windows::core::HSTRING;
 
     unsafe {

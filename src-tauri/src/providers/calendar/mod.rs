@@ -41,7 +41,9 @@ const MIN_REFRESH_GAP_MS: u64 = 15_000;
 const MAX_FEEDS: usize = 8;
 const MAX_GOOGLE_CALENDARS: usize = 20;
 /// For iCal feeds that don't name a color.
-const FEED_COLORS: [&str; 6] = ["#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#FF375F", "#64D2FF"];
+const FEED_COLORS: [&str; 6] = [
+    "#0A84FF", "#30D158", "#FF9F0A", "#BF5AF2", "#FF375F", "#64D2FF",
+];
 /// Hosts of video calls worth a "Join" button.
 const MEETING_HOSTS: [&str; 6] = [
     "meet.google.com",
@@ -208,7 +210,8 @@ impl CalendarProvider {
     }
 
     fn add_feed(&self, payload: &Value) -> Result<Value, String> {
-        let url = ics::normalize(payload["url"].as_str().unwrap_or_default()).ok_or(Error::Invalid.code())?;
+        let url = ics::normalize(payload["url"].as_str().unwrap_or_default())
+            .ok_or(Error::Invalid.code())?;
         let mut feeds = load_feeds();
         if feeds.contains(&url) {
             return Err("duplicate".into());
@@ -262,7 +265,11 @@ impl Provider for CalendarProvider {
                 match reason {
                     // Some other setting changed.
                     Some(Wake::Settings) if signature == w.signature => continue,
-                    Some(Wake::Refresh) if now_ms().saturating_sub(w.last_round) < MIN_REFRESH_GAP_MS => continue,
+                    Some(Wake::Refresh)
+                        if now_ms().saturating_sub(w.last_round) < MIN_REFRESH_GAP_MS =>
+                    {
+                        continue;
+                    }
                     Some(Wake::Sources) => w.sources_dirty = true,
                     _ => {}
                 }
@@ -299,7 +306,10 @@ impl Provider for CalendarProvider {
                     id: id.to_string(),
                     secret: secret.to_string(),
                 };
-                credentials::write(CLIENT_TARGET, &serde_json::to_string(&client).map_err(|e| e.to_string())?)?;
+                credentials::write(
+                    CLIENT_TARGET,
+                    &serde_json::to_string(&client).map_err(|e| e.to_string())?,
+                )?;
                 self.wake(Wake::Sources);
             }
             "clearClient" => {
@@ -311,7 +321,10 @@ impl Provider for CalendarProvider {
             "addFeed" => return self.add_feed(&payload),
             "removeFeed" => {
                 let id = payload["id"].as_str().unwrap_or_default();
-                let feeds: Vec<String> = load_feeds().into_iter().filter(|url| feed_id(url) != id).collect();
+                let feeds: Vec<String> = load_feeds()
+                    .into_iter()
+                    .filter(|url| feed_id(url) != id)
+                    .collect();
                 save_feeds(&feeds)?;
                 self.wake(Wake::Sources);
             }
@@ -345,12 +358,18 @@ fn save_feeds(feeds: &[String]) -> Result<(), String> {
     if feeds.is_empty() {
         return credentials::delete(FEEDS_TARGET);
     }
-    credentials::write(FEEDS_TARGET, &serde_json::to_string(feeds).map_err(|e| e.to_string())?)
+    credentials::write(
+        FEEDS_TARGET,
+        &serde_json::to_string(feeds).map_err(|e| e.to_string())?,
+    )
 }
 
 /// Stable id for a link that doesn't reveal it.
 fn feed_id(url: &str) -> String {
-    Sha256::digest(url.as_bytes())[..6].iter().map(|b| format!("{b:02x}")).collect()
+    Sha256::digest(url.as_bytes())[..6]
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 pub fn local_midnight_ms(date: NaiveDate) -> u64 {
@@ -396,7 +415,10 @@ struct Worker {
 impl Worker {
     fn config(&self) -> (bool, Map<String, Value>) {
         let settings = self.hub.app().state::<Settings>();
-        let enabled = settings.get(ENABLED_KEY).and_then(|v| v.as_bool()).unwrap_or(true);
+        let enabled = settings
+            .get(ENABLED_KEY)
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
         let visibility = settings
             .get(VISIBILITY_KEY)
             .and_then(|v| v.as_object().cloned())
@@ -431,10 +453,20 @@ impl Worker {
         let (from, to) = window();
         let previous_calendars = std::mem::take(&mut self.state.calendars);
         let previous_events = std::mem::take(&mut self.state.events);
-        let visible = |key: &str, default: bool| visibility.get(key).and_then(Value::as_bool).unwrap_or(default);
+        let visible = |key: &str, default: bool| {
+            visibility
+                .get(key)
+                .and_then(Value::as_bool)
+                .unwrap_or(default)
+        };
         // On a transient error a calendar keeps what it had.
         let keep = |key: &str, events: &mut Vec<CalEvent>| {
-            events.extend(previous_events.iter().filter(|e| e.calendar == key).cloned());
+            events.extend(
+                previous_events
+                    .iter()
+                    .filter(|e| e.calendar == key)
+                    .cloned(),
+            );
         };
         let mut calendars = Vec::new();
         let mut events = Vec::new();
@@ -472,7 +504,10 @@ impl Worker {
                 Err(e) => {
                     self.state.google.error = Some(e.code());
                     if e != Error::Unauthorized {
-                        for c in previous_calendars.iter().filter(|c| c.source == Source::Google) {
+                        for c in previous_calendars
+                            .iter()
+                            .filter(|c| c.source == Source::Google)
+                        {
                             keep(&c.key, &mut events);
                             calendars.push(c.clone());
                         }
@@ -486,7 +521,10 @@ impl Worker {
             let id = feed_id(&url);
             let key = format!("ics:{id}");
             let before = previous_feeds.iter().find(|f| f.id == id);
-            let before_color = previous_calendars.iter().find(|c| c.key == key).map(|c| c.color.clone());
+            let before_color = previous_calendars
+                .iter()
+                .find(|c| c.key == key)
+                .map(|c| c.color.clone());
             let mut feed = FeedState {
                 host: url::Url::parse(&url)
                     .ok()
@@ -496,7 +534,8 @@ impl Worker {
                 error: None,
                 id,
             };
-            let mut color = before_color.unwrap_or_else(|| FEED_COLORS[i % FEED_COLORS.len()].to_string());
+            let mut color =
+                before_color.unwrap_or_else(|| FEED_COLORS[i % FEED_COLORS.len()].to_string());
             let shown = visible(&key, true);
             if shown {
                 match ics::fetch(&url, &key, from, to) {

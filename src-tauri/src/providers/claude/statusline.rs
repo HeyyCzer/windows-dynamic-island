@@ -16,7 +16,7 @@ use std::time::Duration;
 use serde_json::Value;
 
 use super::hooks::STATUSLINE_PATH;
-use super::{now_ms, Ctx, LimitWindow, Limits, HOOK_PORT};
+use super::{Ctx, HOOK_PORT, LimitWindow, Limits, now_ms};
 
 pub const BRIDGE_FLAG: &str = "--claude-statusline";
 /// `identifier` from `tauri.conf.json` (see `build.rs`).
@@ -28,7 +28,9 @@ pub const ORIGINAL_FILE: &str = "claude-statusline-original.json";
 
 /// Same directory Tauri uses as `app_config_dir` on Windows.
 pub fn config_dir() -> PathBuf {
-    let base = std::env::var_os("APPDATA").map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
+    let base = std::env::var_os("APPDATA")
+        .map(PathBuf::from)
+        .unwrap_or_else(std::env::temp_dir);
     let dir = base.join(IDENTIFIER);
     migrate_legacy(&base.join(LEGACY_IDENTIFIER), &dir);
     dir
@@ -147,7 +149,10 @@ fn forward(body: &str) {
 fn original_command() -> Option<String> {
     let text = std::fs::read_to_string(config_dir().join(ORIGINAL_FILE)).ok()?;
     let v: Value = serde_json::from_str(&text).ok()?;
-    v["command"].as_str().filter(|c| !c.trim().is_empty()).map(str::to_string)
+    v["command"]
+        .as_str()
+        .filter(|c| !c.trim().is_empty())
+        .map(str::to_string)
 }
 
 /// Run the user's statusline the way Claude Code would: through Git Bash when
@@ -186,9 +191,10 @@ fn run_original(command: &str, input: &str) -> Option<String> {
 
 fn find_bash() -> Option<PathBuf> {
     if let Some(p) = std::env::var_os("CLAUDE_CODE_GIT_BASH_PATH").map(PathBuf::from)
-        && p.exists() {
-            return Some(p);
-        }
+        && p.exists()
+    {
+        return Some(p);
+    }
     let candidates = [
         r"C:\Program Files\Git\bin\bash.exe",
         r"C:\Program Files (x86)\Git\bin\bash.exe",
@@ -199,7 +205,10 @@ fn find_bash() -> Option<PathBuf> {
 /// Minimal statusline when the user had none.
 fn fallback_line(input: &str) -> String {
     let v: Value = serde_json::from_str(input).unwrap_or(Value::Null);
-    let mut parts = vec![format!("[{}]", v["model"]["display_name"].as_str().unwrap_or("Claude"))];
+    let mut parts = vec![format!(
+        "[{}]",
+        v["model"]["display_name"].as_str().unwrap_or("Claude")
+    )];
     if let Some(ctx) = v["context_window"]["used_percentage"].as_f64() {
         parts.push(format!("ctx {ctx:.0}%"));
     }

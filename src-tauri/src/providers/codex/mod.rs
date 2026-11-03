@@ -18,9 +18,9 @@ use std::sync::Arc;
 use serde::Serialize;
 use serde_json::Value;
 
+use super::Provider;
 use super::claude::activity::Activity;
 use super::claude::{Status, TokenStats, Usage};
-use super::Provider;
 use crate::hub::Hub;
 
 pub const ID: &str = "codex";

@@ -15,7 +15,7 @@ use std::time::Duration;
 
 use serde_json::Value;
 
-use super::{now_ms, Ctx, LimitWindow, Limits};
+use super::{Ctx, LimitWindow, Limits, now_ms};
 
 const URL: &str = "https://api.anthropic.com/api/oauth/usage";
 const BETA: &str = "oauth-2025-04-20";
@@ -48,7 +48,10 @@ pub fn request(ctx: &Ctx, min_age_ms: u64) {
     let now = now_ms();
     {
         let mut gate = GATE.lock().unwrap();
-        if gate.in_flight || now < gate.blocked_until || now.saturating_sub(gate.last_attempt) < min_age_ms {
+        if gate.in_flight
+            || now < gate.blocked_until
+            || now.saturating_sub(gate.last_attempt) < min_age_ms
+        {
             return;
         }
         gate.in_flight = true;
@@ -65,9 +68,15 @@ pub fn request(ctx: &Ctx, min_age_ms: u64) {
                 drop(gate);
                 ctx.publish();
             }
-            Err(Failure { retry_after_ms, reason }) => {
+            Err(Failure {
+                retry_after_ms,
+                reason,
+            }) => {
                 log::warn!("claude usage: {reason}");
-                gate.blocked_until = now_ms() + retry_after_ms.unwrap_or(FAILURE_BACKOFF_MS).min(MAX_RETRY_AFTER_MS);
+                gate.blocked_until = now_ms()
+                    + retry_after_ms
+                        .unwrap_or(FAILURE_BACKOFF_MS)
+                        .min(MAX_RETRY_AFTER_MS);
             }
         }
     });
@@ -116,21 +125,32 @@ fn fetch() -> Result<Limits, Failure> {
         });
     }
 
-    let body = res.body_mut().read_to_string().map_err(|e| Failure::new(e.to_string()))?;
+    let body = res
+        .body_mut()
+        .read_to_string()
+        .map_err(|e| Failure::new(e.to_string()))?;
     let v: Value = serde_json::from_str(&body).map_err(|e| Failure::new(e.to_string()))?;
     parse(&v).ok_or_else(|| Failure::new("no limit windows in response"))
 }
 
 fn access_token() -> Option<String> {
     let home = std::env::var_os("USERPROFILE").or_else(|| std::env::var_os("HOME"))?;
-    let path = PathBuf::from(home).join(".claude").join(".credentials.json");
+    let path = PathBuf::from(home)
+        .join(".claude")
+        .join(".credentials.json");
     let v: Value = serde_json::from_str(&std::fs::read_to_string(path).ok()?).ok()?;
     let oauth = &v["claudeAiOauth"];
     // Claude Code refreshes it; an expired token would just 401.
-    if oauth["expiresAt"].as_u64().is_some_and(|exp| exp <= now_ms()) {
+    if oauth["expiresAt"]
+        .as_u64()
+        .is_some_and(|exp| exp <= now_ms())
+    {
         return None;
     }
-    oauth["accessToken"].as_str().filter(|t| !t.is_empty()).map(str::to_string)
+    oauth["accessToken"]
+        .as_str()
+        .filter(|t| !t.is_empty())
+        .map(str::to_string)
 }
 
 fn parse(v: &Value) -> Option<Limits> {

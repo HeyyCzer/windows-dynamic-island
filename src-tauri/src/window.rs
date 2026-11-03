@@ -55,7 +55,9 @@ fn track_foreground(_: &AppHandle) {}
 /// Lets the island take keyboard focus (typing a question).
 #[tauri::command]
 pub fn focus_island(app: AppHandle) -> Result<(), String> {
-    let win = app.get_webview_window(ISLAND_LABEL).ok_or("no island window")?;
+    let win = app
+        .get_webview_window(ISLAND_LABEL)
+        .ok_or("no island window")?;
     allow_activation();
     win.set_focus().map_err(|e| e.to_string())
 }
@@ -83,7 +85,9 @@ static FILE_DRAG: AtomicBool = AtomicBool::new(false);
 #[cfg(windows)]
 fn set_file_drag(win: &WebviewWindow, on: bool) {
     use windows::Win32::Foundation::HWND;
-    use windows::Win32::UI::WindowsAndMessaging::{GWL_EXSTYLE, GetWindowLongW, SetWindowLongW, WS_EX_NOACTIVATE};
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongW, SetWindowLongW, WS_EX_NOACTIVATE,
+    };
 
     FILE_DRAG.store(on, Ordering::Relaxed);
     if on {
@@ -97,7 +101,11 @@ fn set_file_drag(win: &WebviewWindow, on: bool) {
     // The subclass puts `WS_EX_NOACTIVATE` back unless a drag is on.
     unsafe {
         let hwnd = HWND(hwnd.0);
-        SetWindowLongW(hwnd, GWL_EXSTYLE, GetWindowLongW(hwnd, GWL_EXSTYLE) & !(WS_EX_NOACTIVATE.0 as i32));
+        SetWindowLongW(
+            hwnd,
+            GWL_EXSTYLE,
+            GetWindowLongW(hwnd, GWL_EXSTYLE) & !(WS_EX_NOACTIVATE.0 as i32),
+        );
     }
 }
 
@@ -230,7 +238,10 @@ pub fn spawn_hit_test(app: AppHandle) {
                 pressed_inside = over_island;
             }
             button_down = down;
-            let drop_zone = island_interactive && down && !pressed_inside && cursor_inside(&app, &win, DROP_MARGIN);
+            let drop_zone = island_interactive
+                && down
+                && !pressed_inside
+                && cursor_inside(&app, &win, DROP_MARGIN);
             let dragging_in = down && !pressed_inside && (file_drag || drop_zone);
             if dragging_in != file_drag {
                 file_drag = dragging_in;
@@ -318,8 +329,8 @@ fn foreground_window() -> isize {
 fn ensure_topmost(win: &WebviewWindow, force: bool) {
     use windows::Win32::Foundation::HWND;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GetWindowLongPtrW, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOOWNERZORDER, SWP_NOSIZE,
-        SetWindowPos, WS_EX_TOPMOST,
+        GWL_EXSTYLE, GetWindowLongPtrW, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE,
+        SWP_NOOWNERZORDER, SWP_NOSIZE, SetWindowPos, WS_EX_TOPMOST,
     };
 
     let Ok(hwnd) = win.hwnd() else {
@@ -370,8 +381,8 @@ pub fn make_overlay(win: &WebviewWindow) {
     use windows::Win32::Foundation::HWND;
     use windows::Win32::UI::Shell::SetWindowSubclass;
     use windows::Win32::UI::WindowsAndMessaging::{
-        GWL_EXSTYLE, GWL_STYLE, GetWindowLongW, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_NOZORDER,
-        SetWindowLongW, SetWindowPos,
+        GWL_EXSTYLE, GWL_STYLE, GetWindowLongW, SWP_FRAMECHANGED, SWP_NOACTIVATE, SWP_NOMOVE,
+        SWP_NOSIZE, SWP_NOZORDER, SetWindowLongW, SetWindowPos,
     };
 
     let Ok(hwnd) = win.hwnd() else {
@@ -463,11 +474,16 @@ unsafe extern "system" fn overlay_proc(
 #[cfg(windows)]
 fn fullscreen_app_active(island: &WebviewWindow) -> bool {
     use windows::Win32::Foundation::{HWND, RECT};
-    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromWindow, MONITORINFO, MONITOR_DEFAULTTONEAREST};
-    use windows::Win32::UI::Shell::{
-        SHQueryUserNotificationState, QUNS_BUSY, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
+    use windows::Win32::Graphics::Gdi::{
+        GetMonitorInfoW, MONITOR_DEFAULTTONEAREST, MONITORINFO, MonitorFromWindow,
     };
-    use windows::Win32::UI::WindowsAndMessaging::{GetClassNameW, GetForegroundWindow, GetWindowRect};
+    use windows::Win32::UI::Shell::{
+        QUNS_BUSY, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
+        SHQueryUserNotificationState,
+    };
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GetClassNameW, GetForegroundWindow, GetWindowRect,
+    };
 
     unsafe {
         let fg = GetForegroundWindow();
@@ -483,7 +499,10 @@ fn fullscreen_app_active(island: &WebviewWindow) -> bool {
         let mut class = [0u16; 64];
         let len = GetClassNameW(fg, &mut class) as usize;
         let class = String::from_utf16_lossy(&class[..len]);
-        if matches!(class.as_str(), "Progman" | "WorkerW" | "Shell_TrayWnd" | "Shell_SecondaryTrayWnd") {
+        if matches!(
+            class.as_str(),
+            "Progman" | "WorkerW" | "Shell_TrayWnd" | "Shell_SecondaryTrayWnd"
+        ) {
             return false;
         }
 
@@ -494,9 +513,12 @@ fn fullscreen_app_active(island: &WebviewWindow) -> bool {
         }
 
         if let Ok(state) = SHQueryUserNotificationState()
-            && (state == QUNS_BUSY || state == QUNS_RUNNING_D3D_FULL_SCREEN || state == QUNS_PRESENTATION_MODE) {
-                return true;
-            }
+            && (state == QUNS_BUSY
+                || state == QUNS_RUNNING_D3D_FULL_SCREEN
+                || state == QUNS_PRESENTATION_MODE)
+        {
+            return true;
+        }
 
         let mut info = MONITORINFO {
             cbSize: std::mem::size_of::<MONITORINFO>() as u32,

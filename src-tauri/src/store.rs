@@ -27,7 +27,10 @@ pub fn launch_path() -> std::io::Result<PathBuf> {
     }
     let local = std::env::var_os("LOCALAPPDATA")
         .ok_or_else(|| std::io::Error::new(std::io::ErrorKind::NotFound, "LOCALAPPDATA not set"))?;
-    Ok(PathBuf::from(local).join("Microsoft").join("WindowsApps").join(ALIAS))
+    Ok(PathBuf::from(local)
+        .join("Microsoft")
+        .join("WindowsApps")
+        .join(ALIAS))
 }
 
 #[cfg(test)]
@@ -38,8 +41,17 @@ mod tests {
 
     #[test]
     fn manifest_matches_the_code() {
-        assert!(MANIFEST.contains(&format!("Alias=\"{ALIAS}\"")), "execution alias");
-        assert!(MANIFEST.contains(&format!("Executable=\"{ALIAS}\"")), "executable name");
-        assert!(MANIFEST.contains(&format!("TaskId=\"{STARTUP_TASK_ID}\"")), "startup task id");
+        assert!(
+            MANIFEST.contains(&format!("Alias=\"{ALIAS}\"")),
+            "execution alias"
+        );
+        assert!(
+            MANIFEST.contains(&format!("Executable=\"{ALIAS}\"")),
+            "executable name"
+        );
+        assert!(
+            MANIFEST.contains(&format!("TaskId=\"{STARTUP_TASK_ID}\"")),
+            "startup task id"
+        );
     }
 }

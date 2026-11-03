@@ -44,7 +44,10 @@ impl Client {
         let id = option_env!("GOOGLE_CLIENT_ID")?.trim();
         (!id.is_empty()).then(|| Client {
             id: id.to_string(),
-            secret: option_env!("GOOGLE_CLIENT_SECRET").unwrap_or_default().trim().to_string(),
+            secret: option_env!("GOOGLE_CLIENT_SECRET")
+                .unwrap_or_default()
+                .trim()
+                .to_string(),
         })
     }
 
@@ -82,7 +85,10 @@ fn agent() -> ureq::Agent {
 fn json(res: Result<ureq::http::Response<ureq::Body>, ureq::Error>) -> Result<Value, Error> {
     let mut res = res.map_err(|_| Error::Network)?;
     let status = res.status().as_u16();
-    let body = res.body_mut().read_to_string().map_err(|_| Error::Network)?;
+    let body = res
+        .body_mut()
+        .read_to_string()
+        .map_err(|_| Error::Network)?;
     let v: Value = serde_json::from_str(&body).unwrap_or(Value::Null);
     match status {
         200..=299 => Ok(v),
@@ -109,7 +115,11 @@ pub fn authorize(app: &AppHandle, client: &Client, cancel: &AtomicBool) -> Resul
     let state = random_token(16)?;
 
     let server = Server::http("127.0.0.1:0").map_err(|_| Error::Network)?;
-    let port = server.server_addr().to_ip().map(|a| a.port()).ok_or(Error::Network)?;
+    let port = server
+        .server_addr()
+        .to_ip()
+        .map(|a| a.port())
+        .ok_or(Error::Network)?;
     let redirect = format!("http://127.0.0.1:{port}");
     let url = Url::parse_with_params(
         AUTH_URL,
@@ -148,14 +158,21 @@ pub fn authorize(app: &AppHandle, client: &Client, cancel: &AtomicBool) -> Resul
                 .map(|(_, v)| v.into_owned())
         };
         // Favicon and anything that isn't our redirect.
-        if full.as_ref().is_none_or(|u| u.path() != "/") || param("state").as_deref() != Some(state.as_str()) {
+        if full.as_ref().is_none_or(|u| u.path() != "/")
+            || param("state").as_deref() != Some(state.as_str())
+        {
             let _ = req.respond(Response::empty(404));
             continue;
         }
         let code = param("code");
-        let key = if code.is_some() { "calendar.google.browserDone" } else { "calendar.google.browserDenied" };
+        let key = if code.is_some() {
+            "calendar.google.browserDone"
+        } else {
+            "calendar.google.browserDenied"
+        };
         let html = Header::from_bytes("Content-Type", "text/html; charset=utf-8").unwrap();
-        let _ = req.respond(Response::from_string(browser_page(&i18n::t(app, key))).with_header(html));
+        let _ =
+            req.respond(Response::from_string(browser_page(&i18n::t(app, key))).with_header(html));
         match code {
             Some(code) => break code,
             None => return Err(Error::Denied),
@@ -168,7 +185,10 @@ pub fn authorize(app: &AppHandle, client: &Client, cancel: &AtomicBool) -> Resul
         ("grant_type", "authorization_code"),
         ("code_verifier", &verifier),
     ])))?;
-    v["refresh_token"].as_str().map(str::to_string).ok_or(Error::Http)
+    v["refresh_token"]
+        .as_str()
+        .map(str::to_string)
+        .ok_or(Error::Http)
 }
 
 fn browser_page(message: &str) -> String {
@@ -182,7 +202,9 @@ fn browser_page(message: &str) -> String {
 
 /// Best effort: signing out also invalidates the token on Google's side.
 pub fn revoke(refresh_token: &str) {
-    let _ = agent().post(REVOKE_URL).send_form([("token", refresh_token)]);
+    let _ = agent()
+        .post(REVOKE_URL)
+        .send_form([("token", refresh_token)]);
 }
 
 /// A signed-in account; trades the refresh token for access tokens as needed.
@@ -258,7 +280,10 @@ impl Session {
                         .or(c["summary"].as_str())
                         .unwrap_or_default()
                         .to_string(),
-                    color: c["backgroundColor"].as_str().unwrap_or("#4285F4").to_string(),
+                    color: c["backgroundColor"]
+                        .as_str()
+                        .unwrap_or("#4285F4")
+                        .to_string(),
                     selected: c["selected"] == true,
                     primary: c["primary"] == true,
                     default_reminders: popups(&c["defaultReminders"]),
@@ -304,7 +329,11 @@ impl Session {
             }
             let v = self.get(&page)?;
             let items = v["items"].as_array().map(Vec::as_slice).unwrap_or_default();
-            events.extend(items.iter().filter_map(|e| event(e, key, default_reminders)));
+            events.extend(
+                items
+                    .iter()
+                    .filter_map(|e| event(e, key, default_reminders)),
+            );
             page_token = v["nextPageToken"].as_str().map(str::to_string);
             if page_token.is_none() {
                 break;
@@ -332,9 +361,16 @@ fn when(v: &Value) -> Option<(u64, bool)> {
 
 /// Minutes of the on-screen notifications in a reminders list (e-mails left out).
 fn popups(list: &Value) -> Vec<u32> {
-    let minutes = list.as_array().map(Vec::as_slice).unwrap_or_default().iter().filter_map(|r| {
-        (r["method"] == "popup").then(|| r["minutes"].as_u64()).flatten()
-    });
+    let minutes = list
+        .as_array()
+        .map(Vec::as_slice)
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|r| {
+            (r["method"] == "popup")
+                .then(|| r["minutes"].as_u64())
+                .flatten()
+        });
     sort_reminders(minutes.map(|m| m.min(u32::MAX as u64) as u32).collect())
 }
 
@@ -342,9 +378,10 @@ fn event(v: &Value, key: &str, default_reminders: &[u32]) -> Option<CalEvent> {
     if v["status"] == "cancelled" || v["eventType"] == "workingLocation" {
         return None;
     }
-    let declined = v["attendees"]
-        .as_array()
-        .is_some_and(|a| a.iter().any(|p| p["self"] == true && p["responseStatus"] == "declined"));
+    let declined = v["attendees"].as_array().is_some_and(|a| {
+        a.iter()
+            .any(|p| p["self"] == true && p["responseStatus"] == "declined")
+    });
     if declined {
         return None;
     }
@@ -354,7 +391,12 @@ fn event(v: &Value, key: &str, default_reminders: &[u32]) -> Option<CalEvent> {
         .as_array()
         .and_then(|points| points.iter().find(|p| p["entryPointType"] == "video"))
         .and_then(|p| p["uri"].as_str());
-    let text = |k: &str| v[k].as_str().map(str::trim).filter(|s| !s.is_empty()).map(str::to_string);
+    let text = |k: &str| {
+        v[k].as_str()
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+    };
     let location = text("location");
     let meeting_url = v["hangoutLink"]
         .as_str()

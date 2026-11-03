@@ -4,7 +4,10 @@
 //! it was left. The page itself is `src/pip/PipApp.tsx`.
 
 use serde_json::json;
-use tauri::{AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri::{
+    AppHandle, Emitter, Manager, PhysicalPosition, PhysicalSize, WebviewUrl, WebviewWindowBuilder,
+    WindowEvent,
+};
 
 pub const PIP_LABEL: &str = "pip";
 pub const CHANGED_EVENT: &str = "pip://changed";
@@ -24,7 +27,9 @@ fn setting(app: &AppHandle, key: &str) -> Option<f64> {
 }
 
 fn width(app: &AppHandle) -> f64 {
-    setting(app, WIDTH_KEY).unwrap_or(DEFAULT_WIDTH).clamp(MIN_WIDTH, MAX_WIDTH)
+    setting(app, WIDTH_KEY)
+        .unwrap_or(DEFAULT_WIDTH)
+        .clamp(MIN_WIDTH, MAX_WIDTH)
 }
 
 #[tauri::command]
@@ -130,7 +135,8 @@ pub fn pip_snap(app: AppHandle) -> Result<(), String> {
         y = y.clamp(area.position.y, bottom.max(area.position.y));
     }
     if (x, y) != (pos.x, pos.y) {
-        win.set_position(PhysicalPosition::new(x, y)).map_err(|e| e.to_string())?;
+        win.set_position(PhysicalPosition::new(x, y))
+            .map_err(|e| e.to_string())?;
     }
     crate::settings::set(&app, X_KEY, json!(x));
     crate::settings::set(&app, Y_KEY, json!(y));
@@ -149,7 +155,8 @@ pub fn pip_resize(app: AppHandle, delta: f64) -> Result<(), String> {
     win.set_size(new).map_err(|e| e.to_string())?;
     let dx = (new.width as i32 - old.width as i32) / 2;
     let dy = (new.height as i32 - old.height as i32) / 2;
-    win.set_position(PhysicalPosition::new(pos.x - dx, pos.y - dy)).map_err(|e| e.to_string())?;
+    win.set_position(PhysicalPosition::new(pos.x - dx, pos.y - dy))
+        .map_err(|e| e.to_string())?;
     crate::settings::set(&app, WIDTH_KEY, json!(w.round()));
     Ok(())
 }

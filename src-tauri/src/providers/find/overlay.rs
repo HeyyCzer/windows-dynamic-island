@@ -15,16 +15,18 @@ use std::sync::{Arc, Mutex};
 
 use windows::Win32::Foundation::{COLORREF, HWND, LPARAM, LRESULT, POINT, RECT, SIZE, WPARAM};
 use windows::Win32::Graphics::Gdi::{
-    AC_SRC_ALPHA, AC_SRC_OVER, BI_RGB, BITMAPINFO, BITMAPINFOHEADER, BLENDFUNCTION, CreateCompatibleDC,
-    CreateDIBSection, DIB_RGB_COLORS, DeleteDC, DeleteObject, GetDC, ReleaseDC, SelectObject,
+    AC_SRC_ALPHA, AC_SRC_OVER, BI_RGB, BITMAPINFO, BITMAPINFOHEADER, BLENDFUNCTION,
+    CreateCompatibleDC, CreateDIBSection, DIB_RGB_COLORS, DeleteDC, DeleteObject, GetDC, ReleaseDC,
+    SelectObject,
 };
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::Threading::GetCurrentThreadId;
 use windows::Win32::UI::WindowsAndMessaging::{
-    CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, HWND_TOPMOST, MSG, PM_NOREMOVE, PeekMessageW,
-    PostThreadMessageW, RegisterClassW, SW_HIDE, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SetWindowPos,
-    ShowWindow, TranslateMessage, ULW_ALPHA, UpdateLayeredWindow, WM_APP, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE,
-    WS_EX_TOOLWINDOW, WS_EX_TOPMOST, WS_EX_TRANSPARENT, WS_POPUP,
+    CreateWindowExW, DefWindowProcW, DispatchMessageW, GetMessageW, HWND_TOPMOST, MSG, PM_NOREMOVE,
+    PeekMessageW, PostThreadMessageW, RegisterClassW, SW_HIDE, SWP_NOACTIVATE, SWP_NOMOVE,
+    SWP_NOSIZE, SWP_SHOWWINDOW, SetWindowPos, ShowWindow, TranslateMessage, ULW_ALPHA,
+    UpdateLayeredWindow, WM_APP, WNDCLASSW, WS_EX_LAYERED, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
+    WS_EX_TOPMOST, WS_EX_TRANSPARENT, WS_POPUP,
 };
 use windows::core::w;
 
@@ -92,7 +94,12 @@ impl Overlay {
     }
 }
 
-unsafe extern "system" fn window_proc(hwnd: HWND, msg: u32, wparam: WPARAM, lparam: LPARAM) -> LRESULT {
+unsafe extern "system" fn window_proc(
+    hwnd: HWND,
+    msg: u32,
+    wparam: WPARAM,
+    lparam: LPARAM,
+) -> LRESULT {
     unsafe { DefWindowProcW(hwnd, msg, wparam, lparam) }
 }
 
@@ -136,7 +143,9 @@ fn run(pending: Arc<Mutex<Option<Msg>>>, below: Option<isize>, ready: mpsc::Send
                                 },
                             };
                             // Painting moves the window over its marks.
-                            let Some(area) = area(group.rect, &group.marks) else { continue };
+                            let Some(area) = area(group.rect, &group.marks) else {
+                                continue;
+                            };
                             paint(hwnd, area, &group.marks);
                             let after = below.map(|h| HWND(h as *mut _)).unwrap_or(HWND_TOPMOST);
                             let _ = SetWindowPos(
@@ -177,7 +186,10 @@ fn area(monitor: RECT, marks: &[Mark]) -> Option<RECT> {
             (r.y + r.h + PAD).ceil() as i32,
         )
     };
-    let (left, top, right, bottom) = marks.iter().map(edges).reduce(|a, b| (a.0.min(b.0), a.1.min(b.1), a.2.max(b.2), a.3.max(b.3)))?;
+    let (left, top, right, bottom) = marks
+        .iter()
+        .map(edges)
+        .reduce(|a, b| (a.0.min(b.0), a.1.min(b.1), a.2.max(b.2), a.3.max(b.3)))?;
     let mut area = RECT {
         left: left.max(monitor.left),
         top: top.max(monitor.top),
@@ -191,7 +203,10 @@ fn area(monitor: RECT, marks: &[Mark]) -> Option<RECT> {
 }
 
 fn window_for(windows: &[(usize, HWND)], monitor: usize) -> Option<HWND> {
-    windows.iter().find(|(m, _)| *m == monitor).map(|(_, hwnd)| *hwnd)
+    windows
+        .iter()
+        .find(|(m, _)| *m == monitor)
+        .map(|(_, hwnd)| *hwnd)
 }
 
 unsafe fn create(class: &WNDCLASSW, rect: RECT) -> Option<HWND> {
@@ -229,8 +244,11 @@ fn draw(pixels: &mut [u32], width: i32, height: i32, origin: (i32, i32), marks: 
     let mut sorted: Vec<&Mark> = marks.iter().collect();
     sorted.sort_by_key(|m| m.current);
     for mark in sorted {
-        let (fill, border, thickness) =
-            if mark.current { (pixel(CURRENT, 110), pixel(CURRENT, 255), 3) } else { (pixel(MATCH, 70), pixel(MATCH, 235), 2) };
+        let (fill, border, thickness) = if mark.current {
+            (pixel(CURRENT, 110), pixel(CURRENT, 255), 3)
+        } else {
+            (pixel(MATCH, 70), pixel(MATCH, 235), 2)
+        };
         // The whole box (border included), then only the part in the buffer:
         // a mark cut by the monitor's edge has no border along the cut.
         let r = mark.rect;
@@ -240,7 +258,10 @@ fn draw(pixels: &mut [u32], width: i32, height: i32, origin: (i32, i32), marks: 
         let y1 = (r.y + r.h + PAD).ceil() as i32 - origin.1;
         for y in y0.max(0)..y1.min(height) {
             for x in x0.max(0)..x1.min(width) {
-                let edge = x - x0 < thickness || x1 - 1 - x < thickness || y - y0 < thickness || y1 - 1 - y < thickness;
+                let edge = x - x0 < thickness
+                    || x1 - 1 - x < thickness
+                    || y - y0 < thickness
+                    || y1 - 1 - y < thickness;
                 pixels[(y * width + x) as usize] = if edge { border } else { fill };
             }
         }
@@ -266,10 +287,12 @@ unsafe fn paint(hwnd: HWND, area: RECT, marks: &[Mark]) {
             ..Default::default()
         };
         let mut bits = std::ptr::null_mut();
-        if let Ok(bitmap) = CreateDIBSection(Some(memory), &info, DIB_RGB_COLORS, &mut bits, None, 0)
+        if let Ok(bitmap) =
+            CreateDIBSection(Some(memory), &info, DIB_RGB_COLORS, &mut bits, None, 0)
             && !bits.is_null()
         {
-            let pixels = std::slice::from_raw_parts_mut(bits as *mut u32, (width * height) as usize);
+            let pixels =
+                std::slice::from_raw_parts_mut(bits as *mut u32, (width * height) as usize);
             pixels.fill(0);
             draw(pixels, width, height, (area.left, area.top), marks);
             let old = SelectObject(memory, bitmap.into());
@@ -282,8 +305,14 @@ unsafe fn paint(hwnd: HWND, area: RECT, marks: &[Mark]) {
             let _ = UpdateLayeredWindow(
                 hwnd,
                 Some(screen),
-                Some(&POINT { x: area.left, y: area.top }),
-                Some(&SIZE { cx: width, cy: height }),
+                Some(&POINT {
+                    x: area.left,
+                    y: area.top,
+                }),
+                Some(&SIZE {
+                    cx: width,
+                    cy: height,
+                }),
                 Some(memory),
                 Some(&POINT::default()),
                 COLORREF(0),
@@ -311,13 +340,42 @@ mod tests {
 
     #[test]
     fn a_window_spans_only_its_marks() {
-        let monitor = RECT { left: 0, top: 0, right: 1920, bottom: 1080 };
-        let at = |x, y| Mark { rect: Rect { x, y, w: 50.0, h: 20.0 }, current: false };
+        let monitor = RECT {
+            left: 0,
+            top: 0,
+            right: 1920,
+            bottom: 1080,
+        };
+        let at = |x, y| Mark {
+            rect: Rect {
+                x,
+                y,
+                w: 50.0,
+                h: 20.0,
+            },
+            current: false,
+        };
         let spans = area(monitor, &[at(100.0, 200.0), at(400.0, 50.0)]).unwrap();
-        assert_eq!(spans, RECT { left: 97, top: 47, right: 453, bottom: 223 });
+        assert_eq!(
+            spans,
+            RECT {
+                left: 97,
+                top: 47,
+                right: 453,
+                bottom: 223
+            }
+        );
         // Matches in opposite corners: still a pixel short of the monitor.
         let corners = area(monitor, &[at(-10.0, -10.0), at(1900.0, 1070.0)]).unwrap();
-        assert_eq!(corners, RECT { left: 0, top: 0, right: 1920, bottom: 1079 });
+        assert_eq!(
+            corners,
+            RECT {
+                left: 0,
+                top: 0,
+                right: 1920,
+                bottom: 1079
+            }
+        );
         assert_eq!(area(monitor, &[]), None);
     }
 
@@ -325,7 +383,15 @@ mod tests {
     fn marks_are_clipped_to_their_monitor() {
         // A 10×10 monitor at (100, 50); a mark hanging off its right edge.
         let mut pixels = vec![0u32; 100];
-        let mark = Mark { rect: Rect { x: 106.0, y: 54.0, w: 20.0, h: 2.0 }, current: true };
+        let mark = Mark {
+            rect: Rect {
+                x: 106.0,
+                y: 54.0,
+                w: 20.0,
+                h: 2.0,
+            },
+            current: true,
+        };
         draw(&mut pixels, 10, 10, (100, 50), &[mark]);
         assert_eq!(pixels[0], 0);
         // The cut edge is filled, not bordered.

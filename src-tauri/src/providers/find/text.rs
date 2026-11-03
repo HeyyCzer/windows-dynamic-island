@@ -18,7 +18,12 @@ impl Rect {
         let (x, y) = (self.x.min(other.x), self.y.min(other.y));
         let right = (self.x + self.w).max(other.x + other.w);
         let bottom = (self.y + self.h).max(other.y + other.h);
-        Rect { x, y, w: right - x, h: bottom - y }
+        Rect {
+            x,
+            y,
+            w: right - x,
+            h: bottom - y,
+        }
     }
 
     pub fn center(self) -> (f64, f64) {
@@ -62,7 +67,10 @@ pub fn fold(c: char) -> char {
 
 /// The query as it is matched: folded, with single spaces between words.
 fn normalize(query: &str) -> Vec<char> {
-    let words: Vec<String> = query.split_whitespace().map(|w| w.chars().map(fold).collect()).collect();
+    let words: Vec<String> = query
+        .split_whitespace()
+        .map(|w| w.chars().map(fold).collect())
+        .collect();
     words.join(" ").chars().collect()
 }
 
@@ -91,7 +99,10 @@ pub fn find(lines: &[Line], query: &str) -> Vec<Found> {
         while start + needle.len() <= chars.len() {
             if chars[start..start + needle.len()] == needle[..] {
                 if let Some(rect) = span_rect(line, &owners[start..start + needle.len()]) {
-                    found.push(Found { rect, monitor: line.monitor });
+                    found.push(Found {
+                        rect,
+                        monitor: line.monitor,
+                    });
                 }
                 start += needle.len();
             } else {
@@ -119,7 +130,12 @@ fn span_rect(line: &Line, owners: &[Option<(usize, usize)>]) -> Option<Rect> {
             let r = word.rect;
             let x0 = r.x + r.w * first as f64 / n;
             let x1 = r.x + r.w * (last + 1) as f64 / n;
-            Rect { x: x0, y: r.y, w: x1 - x0, h: r.h }
+            Rect {
+                x: x0,
+                y: r.y,
+                w: x1 - x0,
+                h: r.h,
+            }
         })
         .reduce(Rect::union)
 }
@@ -133,7 +149,10 @@ mod tests {
             monitor,
             words: words
                 .iter()
-                .map(|&(text, x, w)| Word { text: text.to_string(), rect: Rect { x, y, w, h: 20.0 } })
+                .map(|&(text, x, w)| Word {
+                    text: text.to_string(),
+                    rect: Rect { x, y, w, h: 20.0 },
+                })
                 .collect(),
         }
     }
@@ -151,15 +170,42 @@ mod tests {
         // "Dynamic": 7 chars over 70 px; "nam" is chars 2..=4.
         let lines = [line(0, 10.0, &[("Dynamic", 100.0, 70.0)])];
         let found = find(&lines, "nam");
-        assert_eq!(found, [Found { rect: Rect { x: 120.0, y: 10.0, w: 30.0, h: 20.0 }, monitor: 0 }]);
+        assert_eq!(
+            found,
+            [Found {
+                rect: Rect {
+                    x: 120.0,
+                    y: 10.0,
+                    w: 30.0,
+                    h: 20.0
+                },
+                monitor: 0
+            }]
+        );
     }
 
     #[test]
     fn a_phrase_spans_words() {
-        let lines = [line(1, 0.0, &[("Find", 0.0, 40.0), ("on", 50.0, 20.0), ("screen", 80.0, 60.0)])];
+        let lines = [line(
+            1,
+            0.0,
+            &[
+                ("Find", 0.0, 40.0),
+                ("on", 50.0, 20.0),
+                ("screen", 80.0, 60.0),
+            ],
+        )];
         let found = find(&lines, "on   SCREEN");
         assert_eq!(found.len(), 1);
-        assert_eq!(found[0].rect, Rect { x: 50.0, y: 0.0, w: 90.0, h: 20.0 });
+        assert_eq!(
+            found[0].rect,
+            Rect {
+                x: 50.0,
+                y: 0.0,
+                w: 90.0,
+                h: 20.0
+            }
+        );
         assert_eq!(found[0].monitor, 1);
     }
 
@@ -167,7 +213,11 @@ mod tests {
     fn finds_every_occurrence_in_reading_order() {
         let lines = [
             line(0, 0.0, &[("banana", 0.0, 60.0)]),
-            line(0, 30.0, &[("ana", 0.0, 30.0), ("e", 40.0, 10.0), ("Ana", 60.0, 30.0)]),
+            line(
+                0,
+                30.0,
+                &[("ana", 0.0, 30.0), ("e", 40.0, 10.0), ("Ana", 60.0, 30.0)],
+            ),
         ];
         let found = find(&lines, "ana");
         // "banana" holds one non-overlapping "ana" (chars 1..=3), then two more.

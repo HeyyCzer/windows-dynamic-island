@@ -4,10 +4,13 @@
 
 use windows::Win32::Foundation::{HWND, LPARAM, RECT};
 use windows::Win32::Graphics::Gdi::{
-    BitBlt, CreateCompatibleBitmap, CreateCompatibleDC, DeleteDC, DeleteObject, EnumDisplayMonitors, GetDC, GetDIBits,
-    ReleaseDC, SelectObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS, HDC, HGDIOBJ, HMONITOR, SRCCOPY,
+    BI_RGB, BITMAPINFO, BITMAPINFOHEADER, BitBlt, CreateCompatibleBitmap, CreateCompatibleDC,
+    DIB_RGB_COLORS, DeleteDC, DeleteObject, EnumDisplayMonitors, GetDC, GetDIBits, HDC, HGDIOBJ,
+    HMONITOR, ReleaseDC, SRCCOPY, SelectObject,
 };
-use windows::Win32::UI::WindowsAndMessaging::{SetWindowDisplayAffinity, WDA_EXCLUDEFROMCAPTURE, WDA_NONE};
+use windows::Win32::UI::WindowsAndMessaging::{
+    SetWindowDisplayAffinity, WDA_EXCLUDEFROMCAPTURE, WDA_NONE,
+};
 use windows::core::BOOL;
 
 /// Top-down BGRA pixels.
@@ -32,7 +35,11 @@ impl Image {
             let start = ((row * self.width + x) * 4) as usize;
             bgra.extend_from_slice(&self.bgra[start..start + (w * 4) as usize]);
         }
-        Some(Image { width: w, height: h, bgra })
+        Some(Image {
+            width: w,
+            height: h,
+            bgra,
+        })
     }
 }
 
@@ -58,7 +65,9 @@ pub fn area(rect: RECT) -> Option<Image> {
     }
     unsafe {
         let screen = GetDC(None);
-        let image = grab(w, h, |dc| BitBlt(dc, 0, 0, w, h, Some(screen), rect.left, rect.top, SRCCOPY).is_ok());
+        let image = grab(w, h, |dc| {
+            BitBlt(dc, 0, 0, w, h, Some(screen), rect.left, rect.top, SRCCOPY).is_ok()
+        });
         ReleaseDC(None, screen);
         image
     }
@@ -88,18 +97,34 @@ pub fn grab(w: i32, h: i32, draw: impl FnOnce(HDC) -> bool) -> Option<Image> {
         };
         let mut bgra = vec![0u8; (w * h * 4) as usize];
         SelectObject(dc, previous);
-        let lines = GetDIBits(dc, bitmap, 0, h as u32, Some(bgra.as_mut_ptr() as *mut _), &mut info, DIB_RGB_COLORS);
+        let lines = GetDIBits(
+            dc,
+            bitmap,
+            0,
+            h as u32,
+            Some(bgra.as_mut_ptr() as *mut _),
+            &mut info,
+            DIB_RGB_COLORS,
+        );
 
         let _ = DeleteObject(HGDIOBJ::from(bitmap));
         let _ = DeleteDC(dc);
         ReleaseDC(None, screen);
-        (drawn && lines == h).then_some(Image { width: w as u32, height: h as u32, bgra })
+        (drawn && lines == h).then_some(Image {
+            width: w as u32,
+            height: h as u32,
+            bgra,
+        })
     }
 }
 
 /// Leaves `hwnd` out of every screen capture (it stays on screen), or puts it back.
 pub fn exclude_from_capture(hwnd: HWND, excluded: bool) {
-    let affinity = if excluded { WDA_EXCLUDEFROMCAPTURE } else { WDA_NONE };
+    let affinity = if excluded {
+        WDA_EXCLUDEFROMCAPTURE
+    } else {
+        WDA_NONE
+    };
     if let Err(e) = unsafe { SetWindowDisplayAffinity(hwnd, affinity) } {
         log::warn!("display affinity: {e}");
     }

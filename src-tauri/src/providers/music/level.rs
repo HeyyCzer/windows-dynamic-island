@@ -5,17 +5,19 @@
 //! session is loud. So we read the peak of every *active* audio session on
 //! every active output device and use the loudest one.
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
-use windows::core::{Interface, Result};
 use windows::Win32::Media::Audio::Endpoints::IAudioMeterInformation;
 use windows::Win32::Media::Audio::{
-    eRender, AudioSessionStateActive, IAudioSessionManager2, IMMDeviceEnumerator, MMDeviceEnumerator,
-    DEVICE_STATE_ACTIVE,
+    AudioSessionStateActive, DEVICE_STATE_ACTIVE, IAudioSessionManager2, IMMDeviceEnumerator,
+    MMDeviceEnumerator, eRender,
 };
-use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED};
+use windows::Win32::System::Com::{
+    CLSCTX_ALL, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx,
+};
+use windows::core::{Interface, Result};
 
 use super::LEVEL_EVENT;
 use crate::hub::Hub;
@@ -54,14 +56,23 @@ pub fn level_loop(hub: Arc<Hub>, playing: Arc<AtomicBool>) {
 fn active_session_meters() -> Result<Vec<IAudioMeterInformation>> {
     let mut meters = Vec::new();
     unsafe {
-        let enumerator: IMMDeviceEnumerator = CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)?;
+        let enumerator: IMMDeviceEnumerator =
+            CoCreateInstance(&MMDeviceEnumerator, None, CLSCTX_ALL)?;
         let devices = enumerator.EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE)?;
         for i in 0..devices.GetCount()? {
-            let Ok(device) = devices.Item(i) else { continue };
-            let Ok(manager) = device.Activate::<IAudioSessionManager2>(CLSCTX_ALL, None) else { continue };
-            let Ok(sessions) = manager.GetSessionEnumerator() else { continue };
+            let Ok(device) = devices.Item(i) else {
+                continue;
+            };
+            let Ok(manager) = device.Activate::<IAudioSessionManager2>(CLSCTX_ALL, None) else {
+                continue;
+            };
+            let Ok(sessions) = manager.GetSessionEnumerator() else {
+                continue;
+            };
             for j in 0..sessions.GetCount().unwrap_or(0) {
-                let Ok(session) = sessions.GetSession(j) else { continue };
+                let Ok(session) = sessions.GetSession(j) else {
+                    continue;
+                };
                 if session.GetState().ok() != Some(AudioSessionStateActive) {
                     continue;
                 }

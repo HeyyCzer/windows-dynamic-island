@@ -44,7 +44,11 @@ pub fn from_dib(bytes: &[u8]) -> Option<Picture> {
         return None;
     }
     // A plain BITMAPINFOHEADER with bit fields is followed by the 3 color masks.
-    let masks = if compression == BI_BITFIELDS && header_size == HEADER { 12 } else { 0 };
+    let masks = if compression == BI_BITFIELDS && header_size == HEADER {
+        12
+    } else {
+        0
+    };
     let start = header_size + masks;
     let bpp = bits as usize / 8;
     let stride = (w as usize * bits as usize).div_ceil(32) * 4;
@@ -61,9 +65,16 @@ pub fn from_dib(bytes: &[u8]) -> Option<Picture> {
     }
     // Most apps leave the alpha byte of 32-bit DIBs at zero: that means opaque.
     if bpp == 4 && rgba.as_chunks::<4>().0.iter().all(|p| p[3] == 0) {
-        rgba.as_chunks_mut::<4>().0.iter_mut().for_each(|p| p[3] = 255);
+        rgba.as_chunks_mut::<4>()
+            .0
+            .iter_mut()
+            .for_each(|p| p[3] = 255);
     }
-    Some(Picture { width: w, height: h, rgba })
+    Some(Picture {
+        width: w,
+        height: h,
+        rgba,
+    })
 }
 
 /// Picture → `CF_DIB` bytes (32-bit, bottom-up: what every app reads).
@@ -96,12 +107,20 @@ pub fn encode_png(p: &Picture) -> Result<Vec<u8>, String> {
     if opaque {
         encoder.set_color(png::ColorType::Rgb);
         writer = encoder.write_header().map_err(|e| e.to_string())?;
-        let rgb: Vec<u8> = p.rgba.as_chunks::<4>().0.iter().flat_map(|px| [px[0], px[1], px[2]]).collect();
+        let rgb: Vec<u8> = p
+            .rgba
+            .as_chunks::<4>()
+            .0
+            .iter()
+            .flat_map(|px| [px[0], px[1], px[2]])
+            .collect();
         writer.write_image_data(&rgb).map_err(|e| e.to_string())?;
     } else {
         encoder.set_color(png::ColorType::Rgba);
         writer = encoder.write_header().map_err(|e| e.to_string())?;
-        writer.write_image_data(&p.rgba).map_err(|e| e.to_string())?;
+        writer
+            .write_image_data(&p.rgba)
+            .map_err(|e| e.to_string())?;
     }
     writer.finish().map_err(|e| e.to_string())?;
     Ok(out)
@@ -117,12 +136,26 @@ pub fn decode_png(bytes: &[u8]) -> Option<Picture> {
     let data = &buf[..info.buffer_size()];
     let rgba = match info.color_type {
         png::ColorType::Rgba => data.to_vec(),
-        png::ColorType::Rgb => data.as_chunks::<3>().0.iter().flat_map(|px| [px[0], px[1], px[2], 255]).collect(),
-        png::ColorType::GrayscaleAlpha => data.as_chunks::<2>().0.iter().flat_map(|px| [px[0], px[0], px[0], px[1]]).collect(),
+        png::ColorType::Rgb => data
+            .as_chunks::<3>()
+            .0
+            .iter()
+            .flat_map(|px| [px[0], px[1], px[2], 255])
+            .collect(),
+        png::ColorType::GrayscaleAlpha => data
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .flat_map(|px| [px[0], px[0], px[0], px[1]])
+            .collect(),
         png::ColorType::Grayscale => data.iter().flat_map(|&g| [g, g, g, 255]).collect(),
         png::ColorType::Indexed => return None,
     };
-    Some(Picture { width: info.width, height: info.height, rgba })
+    Some(Picture {
+        width: info.width,
+        height: info.height,
+        rgba,
+    })
 }
 
 /// Width and height from a PNG's header, without decoding it.
@@ -165,7 +198,11 @@ pub fn thumbnail(p: &Picture, max_side: u32) -> Picture {
             rgba.extend(sum.iter().map(|s| (s / n) as u8));
         }
     }
-    Picture { width: w, height: h, rgba }
+    Picture {
+        width: w,
+        height: h,
+        rgba,
+    }
 }
 
 /// Cheap identity for spotting the same picture copied twice.
@@ -210,11 +247,18 @@ mod tests {
         out
     }
 
-    const EXPECTED: [u8; 16] = [255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255];
+    const EXPECTED: [u8; 16] = [
+        255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
+    ];
 
     #[test]
     fn reads_dibs() {
-        for (bits, top_down, alpha) in [(24, false, 0), (32, false, 0), (32, true, 0), (32, false, 255)] {
+        for (bits, top_down, alpha) in [
+            (24, false, 0),
+            (32, false, 0),
+            (32, true, 0),
+            (32, false, 255),
+        ] {
             let p = from_dib(&dib(bits, top_down, alpha)).expect("parsed");
             assert_eq!((p.width, p.height), (2, 2));
             assert_eq!(p.rgba, EXPECTED, "{bits} bits, top_down={top_down}");
@@ -251,7 +295,11 @@ mod tests {
 
     #[test]
     fn thumbnails() {
-        let p = Picture { width: 400, height: 100, rgba: vec![200; 400 * 100 * 4] };
+        let p = Picture {
+            width: 400,
+            height: 100,
+            rgba: vec![200; 400 * 100 * 4],
+        };
         let t = thumbnail(&p, 200);
         assert_eq!((t.width, t.height), (200, 50));
         assert!(t.rgba.iter().all(|&c| c == 200));

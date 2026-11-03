@@ -10,18 +10,22 @@ use std::sync::{LazyLock, Mutex};
 use base64::Engine;
 use windows::Win32::Foundation::{CloseHandle, HWND, MAX_PATH};
 use windows::Win32::Graphics::Gdi::{
-    BI_RGB, BITMAP, BITMAPINFO, BITMAPINFOHEADER, CreateCompatibleDC, DIB_RGB_COLORS, DeleteDC, DeleteObject, GetDIBits,
-    GetObjectW, HBITMAP,
+    BI_RGB, BITMAP, BITMAPINFO, BITMAPINFOHEADER, CreateCompatibleDC, DIB_RGB_COLORS, DeleteDC,
+    DeleteObject, GetDIBits, GetObjectW, HBITMAP,
 };
-use windows::Win32::Storage::FileSystem::{GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW};
+use windows::Win32::Storage::FileSystem::{
+    GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW,
+};
 use windows::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, PROCESSENTRY32W, Process32FirstW, Process32NextW, TH32CS_SNAPPROCESS,
 };
 use windows::Win32::System::Threading::{
-    OpenProcess, QueryFullProcessImageNameW, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION,
+    OpenProcess, PROCESS_NAME_WIN32, PROCESS_QUERY_LIMITED_INFORMATION, QueryFullProcessImageNameW,
 };
 use windows::Win32::UI::Shell::SHDefExtractIconW;
-use windows::Win32::UI::WindowsAndMessaging::{DestroyIcon, GetIconInfo, GetWindowThreadProcessId, HICON, ICONINFO};
+use windows::Win32::UI::WindowsAndMessaging::{
+    DestroyIcon, GetIconInfo, GetWindowThreadProcessId, HICON, ICONINFO,
+};
 use windows::core::{HSTRING, PWSTR};
 
 use super::clipboard::image::{Picture, encode_png};
@@ -42,16 +46,25 @@ pub fn exe_path(pid: u32) -> Option<PathBuf> {
         let process = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid).ok()?;
         let mut buf = [0u16; MAX_PATH as usize * 2];
         let mut len = buf.len() as u32;
-        let ok = QueryFullProcessImageNameW(process, PROCESS_NAME_WIN32, PWSTR(buf.as_mut_ptr()), &mut len);
+        let ok = QueryFullProcessImageNameW(
+            process,
+            PROCESS_NAME_WIN32,
+            PWSTR(buf.as_mut_ptr()),
+            &mut len,
+        );
         let _ = CloseHandle(process);
         ok.ok()?;
-        Some(PathBuf::from(String::from_utf16_lossy(&buf[..len as usize])))
+        Some(PathBuf::from(String::from_utf16_lossy(
+            &buf[..len as usize],
+        )))
     }
 }
 
 /// Lowercase file name without `.exe` (`snippingtool`).
 pub fn exe_stem(path: &Path) -> String {
-    path.file_stem().map(|s| s.to_string_lossy().to_lowercase()).unwrap_or_default()
+    path.file_stem()
+        .map(|s| s.to_string_lossy().to_lowercase())
+        .unwrap_or_default()
 }
 
 /// Display name of an exe (cached: it never changes for a given file).
@@ -61,8 +74,15 @@ pub fn app_name(path: &Path) -> String {
     }
     let name = file_description(path)
         .filter(|d| !d.trim().is_empty())
-        .unwrap_or_else(|| path.file_stem().map(|s| s.to_string_lossy().to_string()).unwrap_or_default());
-    NAMES.lock().unwrap().insert(path.to_path_buf(), name.clone());
+        .unwrap_or_else(|| {
+            path.file_stem()
+                .map(|s| s.to_string_lossy().to_string())
+                .unwrap_or_default()
+        });
+    NAMES
+        .lock()
+        .unwrap()
+        .insert(path.to_path_buf(), name.clone());
     name
 }
 
@@ -79,8 +99,13 @@ fn file_description(path: &Path) -> Option<String> {
         // First language/codepage pair, falling back to US English / Unicode.
         let mut ptr = std::ptr::null_mut();
         let mut len = 0u32;
-        let lang = if VerQueryValueW(data.as_ptr() as *const _, &HSTRING::from("\\VarFileInfo\\Translation"), &mut ptr, &mut len)
-            .as_bool()
+        let lang = if VerQueryValueW(
+            data.as_ptr() as *const _,
+            &HSTRING::from("\\VarFileInfo\\Translation"),
+            &mut ptr,
+            &mut len,
+        )
+        .as_bool()
             && len >= 4
         {
             let pair = std::slice::from_raw_parts(ptr as *const u16, 2);
@@ -90,7 +115,9 @@ fn file_description(path: &Path) -> Option<String> {
         };
 
         let key = HSTRING::from(format!("\\StringFileInfo\\{lang}\\FileDescription"));
-        if !VerQueryValueW(data.as_ptr() as *const _, &key, &mut ptr, &mut len).as_bool() || len == 0 {
+        if !VerQueryValueW(data.as_ptr() as *const _, &key, &mut ptr, &mut len).as_bool()
+            || len == 0
+        {
             return None;
         }
         let chars = std::slice::from_raw_parts(ptr as *const u16, len as usize);
@@ -101,7 +128,10 @@ fn file_description(path: &Path) -> Option<String> {
 
 /// The exe of a running process by its lowercase stem (`spotify`), if any.
 pub fn find_exe(stem: &str) -> Option<PathBuf> {
-    find_processes(stem, true).into_iter().next().map(|(_, path)| path)
+    find_processes(stem, true)
+        .into_iter()
+        .next()
+        .map(|(_, path)| path)
 }
 
 /// Pid and exe of every running process with this lowercase stem.
@@ -116,10 +146,17 @@ fn find_processes(stem: &str, first_only: bool) -> Vec<(u32, PathBuf)> {
         let Ok(snapshot) = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0) else {
             return found;
         };
-        let mut entry = PROCESSENTRY32W { dwSize: size_of::<PROCESSENTRY32W>() as u32, ..Default::default() };
+        let mut entry = PROCESSENTRY32W {
+            dwSize: size_of::<PROCESSENTRY32W>() as u32,
+            ..Default::default()
+        };
         let mut more = Process32FirstW(snapshot, &mut entry).is_ok();
         while more && !(first_only && !found.is_empty()) {
-            let len = entry.szExeFile.iter().position(|&c| c == 0).unwrap_or(entry.szExeFile.len());
+            let len = entry
+                .szExeFile
+                .iter()
+                .position(|&c| c == 0)
+                .unwrap_or(entry.szExeFile.len());
             let name = String::from_utf16_lossy(&entry.szExeFile[..len]);
             if exe_stem(Path::new(&name)) == stem
                 && let Some(path) = exe_path(entry.th32ProcessID)
@@ -140,15 +177,32 @@ pub fn app_icon(path: &Path) -> Option<String> {
     }
     let icon = extract_icon(path)
         .and_then(|picture| encode_png(&picture).ok())
-        .map(|png| format!("data:image/png;base64,{}", base64::engine::general_purpose::STANDARD.encode(png)));
-    ICONS.lock().unwrap().insert(path.to_path_buf(), icon.clone());
+        .map(|png| {
+            format!(
+                "data:image/png;base64,{}",
+                base64::engine::general_purpose::STANDARD.encode(png)
+            )
+        });
+    ICONS
+        .lock()
+        .unwrap()
+        .insert(path.to_path_buf(), icon.clone());
     icon
 }
 
 fn extract_icon(path: &Path) -> Option<Picture> {
     unsafe {
         let mut icon = HICON::default();
-        SHDefExtractIconW(&HSTRING::from(path.as_os_str()), 0, 0, Some(&mut icon), None, ICON_SIZE).ok().ok()?;
+        SHDefExtractIconW(
+            &HSTRING::from(path.as_os_str()),
+            0,
+            0,
+            Some(&mut icon),
+            None,
+            ICON_SIZE,
+        )
+        .ok()
+        .ok()?;
         if icon.is_invalid() {
             return None;
         }
@@ -181,7 +235,11 @@ unsafe fn icon_picture(icon: HICON) -> Option<Picture> {
     for px in pixels.as_chunks_mut::<4>().0 {
         px.swap(0, 2);
     }
-    Some(Picture { width, height, rgba: pixels })
+    Some(Picture {
+        width,
+        height,
+        rgba: pixels,
+    })
 }
 
 /// A bitmap's pixels as top-down 32-bit BGRA rows.
@@ -190,7 +248,14 @@ unsafe fn bitmap_bgra(bitmap: HBITMAP) -> Option<(u32, u32, Vec<u8>)> {
         return None;
     }
     let mut bm = BITMAP::default();
-    if unsafe { GetObjectW(bitmap.into(), size_of::<BITMAP>() as i32, Some(&raw mut bm as *mut c_void)) } == 0 {
+    if unsafe {
+        GetObjectW(
+            bitmap.into(),
+            size_of::<BITMAP>() as i32,
+            Some(&raw mut bm as *mut c_void),
+        )
+    } == 0
+    {
         return None;
     }
     let (width, height) = (bm.bmWidth.unsigned_abs(), bm.bmHeight.unsigned_abs());
@@ -209,7 +274,15 @@ unsafe fn bitmap_bgra(bitmap: HBITMAP) -> Option<(u32, u32, Vec<u8>)> {
     let mut pixels = vec![0u8; width as usize * height as usize * 4];
     unsafe {
         let dc = CreateCompatibleDC(None);
-        let lines = GetDIBits(dc, bitmap, 0, height, Some(pixels.as_mut_ptr() as *mut c_void), &mut info, DIB_RGB_COLORS);
+        let lines = GetDIBits(
+            dc,
+            bitmap,
+            0,
+            height,
+            Some(pixels.as_mut_ptr() as *mut c_void),
+            &mut info,
+            DIB_RGB_COLORS,
+        );
         let _ = DeleteDC(dc);
         (lines == height as i32).then_some((width, height, pixels))
     }

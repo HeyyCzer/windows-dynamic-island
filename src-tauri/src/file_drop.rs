@@ -45,10 +45,10 @@ enum DropEvent {
 /// (Re)registers the drop target. Must run on the window's thread.
 #[cfg(windows)]
 pub fn hook(app: &AppHandle, win: &WebviewWindow) {
-    use windows::core::BOOL;
     use windows::Win32::Foundation::{HWND, LPARAM};
     use windows::Win32::System::Ole::{IDropTarget, RegisterDragDrop, RevokeDragDrop};
     use windows::Win32::UI::WindowsAndMessaging::EnumChildWindows;
+    use windows::core::BOOL;
 
     let Ok(hwnd) = win.hwnd() else {
         return;
@@ -71,7 +71,13 @@ pub fn hook(app: &AppHandle, win: &WebviewWindow) {
     }
     let mut f = register;
     let mut dyn_f: &mut dyn FnMut(HWND) = &mut f;
-    let _ = unsafe { EnumChildWindows(Some(hwnd), Some(each), LPARAM(&mut dyn_f as *mut _ as isize)) };
+    let _ = unsafe {
+        EnumChildWindows(
+            Some(hwnd),
+            Some(each),
+            LPARAM(&mut dyn_f as *mut _ as isize),
+        )
+    };
 }
 
 #[cfg(not(windows))]
@@ -84,16 +90,17 @@ mod imp {
     use std::os::windows::ffi::OsStringExt;
 
     use tauri::{AppHandle, Emitter};
-    use windows::core::{implement, Ref};
     use windows::Win32::Foundation::POINTL;
-    use windows::Win32::System::Com::{IDataObject, DVASPECT_CONTENT, FORMATETC, TYMED_HGLOBAL};
+    use windows::Win32::System::Com::{DVASPECT_CONTENT, FORMATETC, IDataObject, TYMED_HGLOBAL};
     use windows::Win32::System::Ole::{
-        IDropTarget, IDropTarget_Impl, ReleaseStgMedium, CF_HDROP, DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_NONE,
+        CF_HDROP, DROPEFFECT, DROPEFFECT_COPY, DROPEFFECT_NONE, IDropTarget, IDropTarget_Impl,
+        ReleaseStgMedium,
     };
     use windows::Win32::System::SystemServices::MODIFIERKEYS_FLAGS;
     use windows::Win32::UI::Shell::{DragQueryFileW, HDROP};
+    use windows::core::{Ref, implement};
 
-    use super::{incoming, DropEvent, EVENT};
+    use super::{DropEvent, EVENT, incoming};
 
     #[implement(IDropTarget)]
     pub struct Target {
@@ -104,7 +111,10 @@ mod imp {
 
     impl Target {
         pub fn new(app: AppHandle) -> Self {
-            Self { app, files: Cell::new(false) }
+            Self {
+                app,
+                files: Cell::new(false),
+            }
         }
 
         fn emit(&self, event: DropEvent) {
@@ -130,7 +140,9 @@ mod imp {
                 let len = unsafe { DragQueryFileW(hdrop, i, None) } as usize;
                 let mut buf = vec![0u16; len + 1];
                 unsafe { DragQueryFileW(hdrop, i, Some(&mut buf)) };
-                OsString::from_wide(&buf[..len]).to_string_lossy().into_owned()
+                OsString::from_wide(&buf[..len])
+                    .to_string_lossy()
+                    .into_owned()
             })
             .collect();
         unsafe { ReleaseStgMedium(&mut medium) };
@@ -151,12 +163,29 @@ mod imp {
                 self.emit(DropEvent::Enter);
             }
             // Copy: the source keeps its files (the shelf only keeps a reference).
-            unsafe { *effect = if files { DROPEFFECT_COPY } else { DROPEFFECT_NONE } };
+            unsafe {
+                *effect = if files {
+                    DROPEFFECT_COPY
+                } else {
+                    DROPEFFECT_NONE
+                }
+            };
             Ok(())
         }
 
-        fn DragOver(&self, _keys: MODIFIERKEYS_FLAGS, _pt: &POINTL, effect: *mut DROPEFFECT) -> windows::core::Result<()> {
-            unsafe { *effect = if self.files.get() { DROPEFFECT_COPY } else { DROPEFFECT_NONE } };
+        fn DragOver(
+            &self,
+            _keys: MODIFIERKEYS_FLAGS,
+            _pt: &POINTL,
+            effect: *mut DROPEFFECT,
+        ) -> windows::core::Result<()> {
+            unsafe {
+                *effect = if self.files.get() {
+                    DROPEFFECT_COPY
+                } else {
+                    DROPEFFECT_NONE
+                }
+            };
             Ok(())
         }
 
@@ -202,7 +231,10 @@ mod tests {
         assert!(incoming(true));
         assert!(!incoming(false));
         outgoing(|| {
-            assert!(!incoming(true), "a drag out of the island must not open its drop zone");
+            assert!(
+                !incoming(true),
+                "a drag out of the island must not open its drop zone"
+            );
         });
         assert!(incoming(true));
     }

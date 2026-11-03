@@ -9,10 +9,10 @@
 //! needs Windows Developer Mode.
 
 use tauri::{AppHandle, Manager};
-use windows::core::HSTRING;
 use windows::ApplicationModel::Package;
 use windows::Foundation::Uri;
 use windows::Management::Deployment::{PackageManager, RegisterPackageOptions};
+use windows::core::HSTRING;
 
 /// Must match the `<msix>` element in `src-tauri/app.manifest`.
 const NAME: &str = "DynamicIsland";
@@ -42,9 +42,18 @@ const TASKBAR: [(&str, &[u8]); 10] = taskbar![
 ];
 
 const ASSETS: &[(&str, &[u8])] = &[
-    ("StoreLogo.png", include_bytes!("../../../icons/StoreLogo.png")),
-    ("Square44x44Logo.png", include_bytes!("../../../icons/Square44x44Logo.png")),
-    ("Square150x150Logo.png", include_bytes!("../../../icons/Square150x150Logo.png")),
+    (
+        "StoreLogo.png",
+        include_bytes!("../../../icons/StoreLogo.png"),
+    ),
+    (
+        "Square44x44Logo.png",
+        include_bytes!("../../../icons/Square44x44Logo.png"),
+    ),
+    (
+        "Square150x150Logo.png",
+        include_bytes!("../../../icons/Square150x150Logo.png"),
+    ),
 ];
 
 pub fn has_identity() -> bool {
@@ -78,11 +87,19 @@ pub fn refresh_registration(app: &AppHandle) {
     let Ok(current) = package.Id().and_then(|id| id.Version()) else {
         return;
     };
-    let has_manifest = package
-        .InstalledPath()
-        .is_ok_and(|dir| std::path::Path::new(&dir.to_string()).join("AppxManifest.xml").exists());
+    let has_manifest = package.InstalledPath().is_ok_and(|dir| {
+        std::path::Path::new(&dir.to_string())
+            .join("AppxManifest.xml")
+            .exists()
+    });
     let v = &app.package_info().version;
-    if has_manifest && (current.Major as u64, current.Minor as u64, current.Build as u64) == (v.major, v.minor, v.patch) {
+    if has_manifest
+        && (
+            current.Major as u64,
+            current.Minor as u64,
+            current.Build as u64,
+        ) == (v.major, v.minor, v.patch)
+    {
         return;
     }
     if let Err(e) = deploy(app, true) {
@@ -95,16 +112,27 @@ pub fn refresh_registration(app: &AppHandle) {
 fn deploy(app: &AppHandle, in_place: bool) -> Result<(), String> {
     let exe = std::env::current_exe().map_err(|e| e.to_string())?;
     let exe_dir = exe.parent().ok_or("no exe folder")?;
-    let exe_name = exe.file_name().ok_or("no exe name")?.to_string_lossy().to_string();
+    let exe_name = exe
+        .file_name()
+        .ok_or("no exe name")?
+        .to_string_lossy()
+        .to_string();
 
-    let dir = app.path().app_data_dir().map_err(|e| e.to_string())?.join("package");
+    let dir = app
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?
+        .join("package");
     write_assets(&dir)?;
     let manifest = dir.join("AppxManifest.xml");
     let version = app.package_info().version.clone();
     let xml = MANIFEST
         .replace("{name}", NAME)
         .replace("{publisher}", PUBLISHER)
-        .replace("{version}", &format!("{}.{}.{}.0", version.major, version.minor, version.patch))
+        .replace(
+            "{version}",
+            &format!("{}.{}.{}.0", version.major, version.minor, version.patch),
+        )
         .replace("{exe}", &xml_escape(&exe_name));
     std::fs::write(&manifest, xml).map_err(|e| e.to_string())?;
 
@@ -126,15 +154,22 @@ fn deploy(app: &AppHandle, in_place: bool) -> Result<(), String> {
         }
 
         let options = RegisterPackageOptions::new()?;
-        options.SetExternalLocationUri(&Uri::CreateUri(&HSTRING::from(file_uri(exe_dir, true)))?)?;
+        options
+            .SetExternalLocationUri(&Uri::CreateUri(&HSTRING::from(file_uri(exe_dir, true)))?)?;
         options.SetDeveloperMode(true)?;
         options.SetDeferRegistrationWhenPackagesAreInUse(in_place)?;
         let deployment = manager
-            .RegisterPackageByUriAsync(&Uri::CreateUri(&HSTRING::from(file_uri(&manifest, false)))?, &options)?
+            .RegisterPackageByUriAsync(
+                &Uri::CreateUri(&HSTRING::from(file_uri(&manifest, false)))?,
+                &options,
+            )?
             .join()?;
         let code = deployment.ExtendedErrorCode()?;
         if code.is_err() {
-            let text = deployment.ErrorText().map(|t| t.to_string()).unwrap_or_default();
+            let text = deployment
+                .ErrorText()
+                .map(|t| t.to_string())
+                .unwrap_or_default();
             return Err(windows::core::Error::new(code, text));
         }
         Ok(())
@@ -161,7 +196,10 @@ pub fn refresh_assets() {
         return;
     };
     let dir = std::path::PathBuf::from(dir.to_string());
-    if TASKBAR.iter().all(|(name, _)| dir.join("Assets").join(name).exists()) {
+    if TASKBAR
+        .iter()
+        .all(|(name, _)| dir.join("Assets").join(name).exists())
+    {
         return;
     }
     if let Err(e) = write_assets(&dir) {
@@ -188,7 +226,10 @@ fn file_uri(path: &std::path::Path, folder: bool) -> String {
 }
 
 fn xml_escape(s: &str) -> String {
-    s.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 const MANIFEST: &str = r#"<?xml version="1.0" encoding="utf-8"?>

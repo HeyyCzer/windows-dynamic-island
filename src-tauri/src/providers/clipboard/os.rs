@@ -8,12 +8,14 @@ use std::time::Duration;
 
 use windows::Win32::Foundation::{GlobalFree, HANDLE, HGLOBAL, HWND, POINT};
 use windows::Win32::System::DataExchange::{
-    CloseClipboard, EmptyClipboard, GetClipboardData, GetClipboardOwner, IsClipboardFormatAvailable, OpenClipboard,
-    RegisterClipboardFormatW, SetClipboardData,
+    CloseClipboard, EmptyClipboard, GetClipboardData, GetClipboardOwner,
+    IsClipboardFormatAvailable, OpenClipboard, RegisterClipboardFormatW, SetClipboardData,
 };
-use windows::Win32::System::Memory::{GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock, GMEM_MOVEABLE};
+use windows::Win32::System::Memory::{
+    GMEM_MOVEABLE, GlobalAlloc, GlobalLock, GlobalSize, GlobalUnlock,
+};
 use windows::Win32::System::Ole::{CF_DIB, CF_HDROP, CF_UNICODETEXT};
-use windows::Win32::UI::Shell::{DragQueryFileW, DROPFILES, HDROP};
+use windows::Win32::UI::Shell::{DROPFILES, DragQueryFileW, HDROP};
 use windows::core::{BOOL, HSTRING};
 
 use super::image::{self, Picture};
@@ -120,10 +122,15 @@ pub fn read() -> Result<Option<Copied>, String> {
     if available(f.exclude) || available(f.viewer_ignore) {
         return Ok(None);
     }
-    let owner = unsafe { GetClipboardOwner() }.ok().filter(|h| !h.is_invalid()).and_then(process::window_pid);
+    let owner = unsafe { GetClipboardOwner() }
+        .ok()
+        .filter(|h| !h.is_invalid())
+        .and_then(process::window_pid);
     let own = owner == Some(std::process::id());
     let exe = owner.and_then(process::exe_path);
-    let tool = exe.as_deref().is_some_and(|p| SCREENSHOT_TOOLS.contains(&process::exe_stem(p).as_str()));
+    let tool = exe
+        .as_deref()
+        .is_some_and(|p| SCREENSHOT_TOOLS.contains(&process::exe_stem(p).as_str()));
 
     let _open = Open::new(None)?;
     if available(f.can_include_in_history)
@@ -134,7 +141,12 @@ pub fn read() -> Result<Option<Copied>, String> {
 
     let text = || {
         let data = bytes(CF_UNICODETEXT.0 as u32)?;
-        let wide: Vec<u16> = data.as_chunks::<2>().0.iter().map(|c| u16::from_le_bytes(*c)).collect();
+        let wide: Vec<u16> = data
+            .as_chunks::<2>()
+            .0
+            .iter()
+            .map(|c| u16::from_le_bytes(*c))
+            .collect();
         let end = wide.iter().position(|&c| c == 0).unwrap_or(wide.len());
         let text = String::from_utf16_lossy(&wide[..end]);
         (!text.trim().is_empty() && text.chars().count() <= MAX_TEXT_CHARS).then_some(text)
@@ -157,7 +169,12 @@ pub fn read() -> Result<Option<Copied>, String> {
     // A picture without an owner comes from the Print Screen key.
     let screenshot = matches!(clip, Clip::Picture(_)) && (tool || owner.is_none());
     let source = exe.as_deref().map(process::app_name);
-    Ok(Some(Copied { clip, source, screenshot, own }))
+    Ok(Some(Copied {
+        clip,
+        source,
+        screenshot,
+        own,
+    }))
 }
 
 fn files() -> Option<Vec<PathBuf>> {
@@ -190,7 +207,11 @@ pub fn write(owner: HWND, payload: Payload) -> Result<(), String> {
     unsafe { EmptyClipboard() }.map_err(|e| e.to_string())?;
     match payload {
         Payload::Text(text) => {
-            let bytes: Vec<u8> = text.encode_utf16().chain([0]).flat_map(u16::to_le_bytes).collect();
+            let bytes: Vec<u8> = text
+                .encode_utf16()
+                .chain([0])
+                .flat_map(u16::to_le_bytes)
+                .collect();
             set(CF_UNICODETEXT.0 as u32, &bytes)
         }
         Payload::Picture { picture, png } => {
@@ -234,7 +255,11 @@ fn drop_files(paths: &[PathBuf]) -> Vec<u8> {
         fWide: BOOL(1),
     };
     let mut out = unsafe {
-        std::slice::from_raw_parts(&header as *const DROPFILES as *const u8, std::mem::size_of::<DROPFILES>()).to_vec()
+        std::slice::from_raw_parts(
+            &header as *const DROPFILES as *const u8,
+            std::mem::size_of::<DROPFILES>(),
+        )
+        .to_vec()
     };
     for path in paths {
         out.extend(path.as_os_str().encode_wide().flat_map(u16::to_le_bytes));
@@ -246,15 +271,25 @@ fn drop_files(paths: &[PathBuf]) -> Vec<u8> {
 
 /// The file Windows' Snipping Tool saved for this screenshot, if it did:
 /// a PNG in the Screenshots folder from around `at` with the same size.
-pub fn saved_screenshot(folder: &Path, at: std::time::SystemTime, size: (u32, u32)) -> Option<PathBuf> {
+pub fn saved_screenshot(
+    folder: &Path,
+    at: std::time::SystemTime,
+    size: (u32, u32),
+) -> Option<PathBuf> {
     let window = Duration::from_secs(20);
     std::fs::read_dir(folder)
         .ok()?
         .flatten()
-        .filter(|e| e.path().extension().is_some_and(|x| x.eq_ignore_ascii_case("png")))
+        .filter(|e| {
+            e.path()
+                .extension()
+                .is_some_and(|x| x.eq_ignore_ascii_case("png"))
+        })
         .filter(|e| {
             e.metadata().and_then(|m| m.modified()).is_ok_and(|t| {
-                t.duration_since(at).or_else(|_| at.duration_since(t)).is_ok_and(|d| d <= window)
+                t.duration_since(at)
+                    .or_else(|_| at.duration_since(t))
+                    .is_ok_and(|d| d <= window)
             })
         })
         .map(|e| e.path())

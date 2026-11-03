@@ -28,7 +28,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-use super::{now_ms, Provider};
+use super::{Provider, now_ms};
 use crate::hub::Hub;
 
 pub(crate) use hooks::preview;
@@ -113,7 +113,9 @@ pub struct Limits {
 
 impl Limits {
     fn windows_mut(&mut self) -> impl Iterator<Item = &mut LimitWindow> {
-        [&mut self.five_hour, &mut self.seven_day].into_iter().flatten()
+        [&mut self.five_hour, &mut self.seven_day]
+            .into_iter()
+            .flatten()
     }
 }
 
@@ -184,10 +186,13 @@ pub struct Store {
 
 impl Store {
     pub fn session(&mut self, id: &str, cwd: &str) -> &mut Session {
-        let s = self.sessions.entry(id.to_string()).or_insert_with(|| Session {
-            id: id.to_string(),
-            ..Default::default()
-        });
+        let s = self
+            .sessions
+            .entry(id.to_string())
+            .or_insert_with(|| Session {
+                id: id.to_string(),
+                ..Default::default()
+            });
         if !cwd.is_empty() && s.cwd != cwd {
             s.cwd = cwd.to_string();
             s.project = project_name(cwd);
@@ -221,7 +226,8 @@ impl Store {
         for w in limits.windows_mut() {
             if let Some(resets_at) = w.resets_at.filter(|_| w.expired(now / 1000)) {
                 expired = true;
-                announce |= w.used_pct > 0.0 && now.saturating_sub(resets_at * 1000) < LIMITS_RESET_ANNOUNCE_MS;
+                announce |= w.used_pct > 0.0
+                    && now.saturating_sub(resets_at * 1000) < LIMITS_RESET_ANNOUNCE_MS;
                 *w = LimitWindow::default();
             }
         }
@@ -243,7 +249,11 @@ impl Store {
             Status::Done => 2,
             Status::Idle => 3,
         };
-        sessions.sort_by(|a, b| rank(a).cmp(&rank(b)).then(b.last_event_at.cmp(&a.last_event_at)));
+        sessions.sort_by(|a, b| {
+            rank(a)
+                .cmp(&rank(b))
+                .then(b.last_event_at.cmp(&a.last_event_at))
+        });
         sessions.truncate(8);
         ClaudeState {
             sessions,
@@ -343,7 +353,12 @@ impl Provider for ClaudeProvider {
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
-        let ctx = self.ctx.lock().unwrap().clone().ok_or("claude provider not started")?;
+        let ctx = self
+            .ctx
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or("claude provider not started")?;
         match action {
             // Clicking a session opens its project in VS Code.
             "openProject" => {
@@ -356,12 +371,18 @@ impl Provider for ClaudeProvider {
             // Allow / Always / Deny clicked in the island.
             "permission" => {
                 let id = payload["id"].as_str().ok_or("missing request id")?;
-                let decision = payload["decision"].as_str().and_then(permissions::Decision::parse).ok_or("bad decision")?;
+                let decision = payload["decision"]
+                    .as_str()
+                    .and_then(permissions::Decision::parse)
+                    .ok_or("bad decision")?;
                 permissions::decide(&ctx, id, decision)?;
                 return Ok(Value::Null);
             }
             "testSound" => {
-                let alert = payload.as_str().and_then(sounds::Alert::parse).ok_or("bad sound")?;
+                let alert = payload
+                    .as_str()
+                    .and_then(sounds::Alert::parse)
+                    .ok_or("bad sound")?;
                 sounds::play(ctx.hub.app(), alert, true);
                 return Ok(Value::Null);
             }

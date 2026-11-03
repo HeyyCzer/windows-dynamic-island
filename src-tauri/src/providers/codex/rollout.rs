@@ -19,10 +19,10 @@ use std::time::{Duration, UNIX_EPOCH};
 use chrono::{DateTime, Days, Local, NaiveDate};
 use serde_json::Value;
 
-use super::{codex_home, CodexState, LimitWindow, Limits, Session};
+use super::{CodexState, LimitWindow, Limits, Session, codex_home};
 use crate::hub::Hub;
-use crate::providers::claude::activity::{file_name, host, Activity};
-use crate::providers::claude::{preview, project_name, DayUsage, Status, TokenStats, Usage};
+use crate::providers::claude::activity::{Activity, file_name, host};
+use crate::providers::claude::{DayUsage, Status, TokenStats, Usage, preview, project_name};
 use crate::providers::now_ms;
 
 const SCAN_EVERY: Duration = Duration::from_secs(2);
@@ -60,7 +60,9 @@ struct Totals {
 impl Totals {
     fn new(today: NaiveDate) -> Self {
         Self {
-            first_day: today.checked_sub_days(Days::new(DAYS as u64 - 1)).unwrap_or(today),
+            first_day: today
+                .checked_sub_days(Days::new(DAYS as u64 - 1))
+                .unwrap_or(today),
             today,
             today_tokens: TokenStats::default(),
             daily: [(0, 0); DAYS],
@@ -118,7 +120,9 @@ pub fn scan_loop(hub: Arc<Hub>) {
         let mut paths = Vec::new();
         collect_rollouts(&home.join("sessions"), 0, &mut paths);
         for path in paths {
-            let Ok(meta) = std::fs::metadata(&path) else { continue };
+            let Ok(meta) = std::fs::metadata(&path) else {
+                continue;
+            };
             let mtime = meta
                 .modified()
                 .ok()
@@ -144,7 +148,10 @@ pub fn scan_loop(hub: Arc<Hub>) {
         let sessions = sessions(&mut files, now);
         let state = CodexState {
             available: home.is_dir(),
-            model: sessions.iter().max_by_key(|s| s.last_event_at).and_then(|s| s.model.clone()),
+            model: sessions
+                .iter()
+                .max_by_key(|s| s.last_event_at)
+                .and_then(|s| s.model.clone()),
             sessions,
             limits: limits.clone(),
             tokens_today: totals.today_tokens.clone(),
@@ -157,14 +164,19 @@ pub fn scan_loop(hub: Arc<Hub>) {
 
 /// `sessions/YYYY/MM/DD/rollout-*.jsonl`
 fn collect_rollouts(dir: &Path, depth: u8, out: &mut Vec<PathBuf>) {
-    let Ok(entries) = std::fs::read_dir(dir) else { return };
+    let Ok(entries) = std::fs::read_dir(dir) else {
+        return;
+    };
     for entry in entries.flatten() {
         let path = entry.path();
         match entry.file_type() {
             Ok(t) if t.is_dir() && depth < 3 => collect_rollouts(&path, depth + 1, out),
-            Ok(t) if t.is_file()
-                && path.extension().is_some_and(|e| e == "jsonl")
-                && path.file_name().is_some_and(|n| n.to_string_lossy().starts_with("rollout-")) =>
+            Ok(t)
+                if t.is_file()
+                    && path.extension().is_some_and(|e| e == "jsonl")
+                    && path
+                        .file_name()
+                        .is_some_and(|n| n.to_string_lossy().starts_with("rollout-")) =>
             {
                 out.push(path)
             }
@@ -180,8 +192,15 @@ fn midnight_ms(day: NaiveDate) -> u64 {
         .unwrap_or(0)
 }
 
-fn read_new_lines(path: &Path, st: &mut FileState, totals: &mut Totals, limits: &mut Option<Limits>) {
-    let Ok(mut file) = File::open(path) else { return };
+fn read_new_lines(
+    path: &Path,
+    st: &mut FileState,
+    totals: &mut Totals,
+    limits: &mut Option<Limits>,
+) {
+    let Ok(mut file) = File::open(path) else {
+        return;
+    };
     if file.seek(SeekFrom::Start(st.offset)).is_err() {
         return;
     }
@@ -190,11 +209,15 @@ fn read_new_lines(path: &Path, st: &mut FileState, totals: &mut Totals, limits: 
         return;
     }
     // Only consume complete lines; a partially written one is read next time.
-    let Some(last_nl) = buf.iter().rposition(|&b| b == b'\n') else { return };
+    let Some(last_nl) = buf.iter().rposition(|&b| b == b'\n') else {
+        return;
+    };
     st.offset += last_nl as u64 + 1;
 
     for line in buf[..last_nl].split(|&b| b == b'\n') {
-        let Ok(v) = serde_json::from_slice::<Value>(line) else { continue };
+        let Ok(v) = serde_json::from_slice::<Value>(line) else {
+            continue;
+        };
         process_line(&v, st, totals, limits);
     }
 }
@@ -204,7 +227,9 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals, limits: &mut
         .as_str()
         .and_then(|s| DateTime::parse_from_rfc3339(s).ok())
         .map(|d| d.with_timezone(&Local));
-    let ts_ms = ts.map(|d| d.timestamp_millis().max(0) as u64).unwrap_or(st.session.last_event_at);
+    let ts_ms = ts
+        .map(|d| d.timestamp_millis().max(0) as u64)
+        .unwrap_or(st.session.last_event_at);
     let s = &mut st.session;
     s.last_event_at = s.last_event_at.max(ts_ms);
     let p = &v["payload"];
@@ -245,7 +270,10 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals, limits: &mut
                 let failed = !p["error"].is_null();
                 s.status = Status::Done;
                 s.finished_at = Some(secs_or_ts("completed_at"));
-                s.summary = p["last_agent_message"].as_str().map(preview).filter(|t| !t.is_empty());
+                s.summary = p["last_agent_message"]
+                    .as_str()
+                    .map(preview)
+                    .filter(|t| !t.is_empty());
                 s.activity = Some(Activity::new(if failed { "failed" } else { "done" }));
                 if let Some(i) = ts.and_then(|d| totals.day_index(d.date_naive())) {
                     totals.daily[i].1 += 1;
@@ -270,14 +298,17 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals, limits: &mut
                     if let Some(ts) = ts {
                         count_usage(totals, last, ts.date_naive(), ts_ms);
                     }
-                    if let (Some(window), Some(used)) = (st.context_window, last["total_tokens"].as_u64())
+                    if let (Some(window), Some(used)) =
+                        (st.context_window, last["total_tokens"].as_u64())
                         && window > 0
                     {
                         s.context_pct = Some((used as f64 * 100.0 / window as f64).min(100.0));
                     }
                 }
                 if let Some(new) = parse_limits(&p["rate_limits"], ts_ms)
-                    && limits.as_ref().is_none_or(|l| new.updated_at >= l.updated_at)
+                    && limits
+                        .as_ref()
+                        .is_none_or(|l| new.updated_at >= l.updated_at)
                 {
                     *limits = Some(new);
                 }
@@ -295,11 +326,19 @@ fn process_line(v: &Value, st: &mut FileState, totals: &mut Totals, limits: &mut
                 }
                 "custom_tool_call" => Some(describe(p["name"].as_str().unwrap_or(""), &p["input"])),
                 "local_shell_call" => Some(describe("local_shell", &p["action"])),
-                "web_search_call" => Some(Activity::with("webSearch", p["action"]["query"].as_str().unwrap_or(""))),
+                "web_search_call" => Some(Activity::with(
+                    "webSearch",
+                    p["action"]["query"].as_str().unwrap_or(""),
+                )),
                 "message" if p["role"] == "user" => {
                     let text = p["content"]
                         .as_array()
-                        .map(|c| c.iter().filter_map(|b| b["text"].as_str()).collect::<Vec<_>>().join("\n"))
+                        .map(|c| {
+                            c.iter()
+                                .filter_map(|b| b["text"].as_str())
+                                .collect::<Vec<_>>()
+                                .join("\n")
+                        })
                         .unwrap_or_default();
                     set_prompt(s, &text);
                     None
@@ -336,7 +375,9 @@ fn set_prompt(s: &mut Session, text: &str) {
 }
 
 fn count_usage(totals: &mut Totals, last: &Value, day: NaiveDate, ts_ms: u64) {
-    let Some(index) = totals.day_index(day) else { return };
+    let Some(index) = totals.day_index(day) else {
+        return;
+    };
     let n = |k: &str| last[k].as_u64().unwrap_or(0);
     // OpenAI counts cached tokens inside `input_tokens`.
     let cache_read = n("cached_input_tokens");
@@ -390,7 +431,10 @@ fn parse_limits(rl: &Value, ts_ms: u64) -> Option<Limits> {
 
 /// A window past its reset time no longer applies: it starts over at 0.
 fn expire(limits: &mut Limits, now_s: u64) {
-    for w in [&mut limits.primary, &mut limits.secondary].into_iter().flatten() {
+    for w in [&mut limits.primary, &mut limits.secondary]
+        .into_iter()
+        .flatten()
+    {
         if w.resets_at.is_some_and(|t| t <= now_s) {
             w.used_pct = 0.0;
             w.resets_at = None;
@@ -418,7 +462,11 @@ fn sessions(files: &mut HashMap<PathBuf, FileState>, now: u64) -> Vec<Session> {
         Status::Done => 2,
         Status::Idle => 3,
     };
-    out.sort_by(|a, b| rank(a).cmp(&rank(b)).then(b.last_event_at.cmp(&a.last_event_at)));
+    out.sort_by(|a, b| {
+        rank(a)
+            .cmp(&rank(b))
+            .then(b.last_event_at.cmp(&a.last_event_at))
+    });
     out.truncate(MAX_SESSIONS);
     out
 }
@@ -429,11 +477,13 @@ fn describe(tool: &str, args: &Value) -> Activity {
     let file = |key: &str| file_name(s(key)).unwrap_or_default();
 
     match tool {
-        "shell" | "container.exec" | "local_shell" | "exec_command" | "shell_command" | "unified_exec" => {
-            Activity::with("run", command(args))
-        }
+        "shell" | "container.exec" | "local_shell" | "exec_command" | "shell_command"
+        | "unified_exec" => Activity::with("run", command(args)),
         "apply_patch" => {
-            let patch = args.as_str().or_else(|| args["input"].as_str()).or_else(|| args["patch"].as_str());
+            let patch = args
+                .as_str()
+                .or_else(|| args["input"].as_str())
+                .or_else(|| args["patch"].as_str());
             patch_activity(patch.unwrap_or(""))
         }
         "update_plan" => Activity::new("todos"),
@@ -457,7 +507,11 @@ fn describe(tool: &str, args: &Value) -> Activity {
 /// The command line of a shell call: `["bash", "-lc", "cargo test"]` →
 /// `cargo test`, a plain string as is.
 fn command(args: &Value) -> String {
-    let cmd = if args["command"].is_null() { &args["cmd"] } else { &args["command"] };
+    let cmd = if args["command"].is_null() {
+        &args["cmd"]
+    } else {
+        &args["command"]
+    };
     let text = match cmd {
         Value::String(s) => s.clone(),
         Value::Array(parts) => {
@@ -514,14 +568,29 @@ mod tests {
     #[test]
     fn turn_lifecycle() {
         let (st, totals, limits) = feed(&[
-            line("session_meta", json!({ "id": "t1", "cwd": "C:\\dev\\app", "source": "cli" })),
-            line("turn_context", json!({ "cwd": "C:\\dev\\app", "model": "gpt-5-codex" })),
-            line("event_msg", json!({ "type": "task_started", "model_context_window": 200000 })),
-            line("event_msg", json!({ "type": "user_message", "message": "fix the tests" })),
-            line("response_item", json!({
-                "type": "function_call", "name": "shell",
-                "arguments": "{\"command\":[\"bash\",\"-lc\",\"cargo test\"]}"
-            })),
+            line(
+                "session_meta",
+                json!({ "id": "t1", "cwd": "C:\\dev\\app", "source": "cli" }),
+            ),
+            line(
+                "turn_context",
+                json!({ "cwd": "C:\\dev\\app", "model": "gpt-5-codex" }),
+            ),
+            line(
+                "event_msg",
+                json!({ "type": "task_started", "model_context_window": 200000 }),
+            ),
+            line(
+                "event_msg",
+                json!({ "type": "user_message", "message": "fix the tests" }),
+            ),
+            line(
+                "response_item",
+                json!({
+                    "type": "function_call", "name": "shell",
+                    "arguments": "{\"command\":[\"bash\",\"-lc\",\"cargo test\"]}"
+                }),
+            ),
         ]);
         assert_eq!(st.session.id, "t1");
         assert_eq!(st.session.project, "app");
@@ -535,28 +604,40 @@ mod tests {
         let (st, totals, limits) = feed(&[
             line("session_meta", json!({ "id": "t1", "cwd": "/dev/app" })),
             line("event_msg", json!({ "type": "task_started" })),
-            line("event_msg", json!({ "type": "token_count",
-                "info": {
-                    "total_token_usage": { "total_tokens": 1500 },
-                    "last_token_usage": { "input_tokens": 1000, "cached_input_tokens": 600, "output_tokens": 500, "total_tokens": 1500 },
-                    "model_context_window": 10000
-                },
-                "rate_limits": {
-                    "primary": { "used_percent": 12.5, "window_minutes": 300, "resets_at": 4102444800u64 },
-                    "secondary": { "used_percent": 40.0, "window_minutes": 10080, "resets_in_seconds": 60 }
-                }
-            })),
+            line(
+                "event_msg",
+                json!({ "type": "token_count",
+                    "info": {
+                        "total_token_usage": { "total_tokens": 1500 },
+                        "last_token_usage": { "input_tokens": 1000, "cached_input_tokens": 600, "output_tokens": 500, "total_tokens": 1500 },
+                        "model_context_window": 10000
+                    },
+                    "rate_limits": {
+                        "primary": { "used_percent": 12.5, "window_minutes": 300, "resets_at": 4102444800u64 },
+                        "secondary": { "used_percent": 40.0, "window_minutes": 10080, "resets_in_seconds": 60 }
+                    }
+                }),
+            ),
             // Same total: only the limits moved, nothing to count.
-            line("event_msg", json!({ "type": "token_count",
-                "info": { "total_token_usage": { "total_tokens": 1500 }, "last_token_usage": { "input_tokens": 1000 } }
-            })),
-            line("event_msg", json!({ "type": "task_complete", "last_agent_message": "All **green**." })),
+            line(
+                "event_msg",
+                json!({ "type": "token_count",
+                    "info": { "total_token_usage": { "total_tokens": 1500 }, "last_token_usage": { "input_tokens": 1000 } }
+                }),
+            ),
+            line(
+                "event_msg",
+                json!({ "type": "task_complete", "last_agent_message": "All **green**." }),
+            ),
         ]);
         assert_eq!(st.session.status, Status::Done);
         assert_eq!(st.session.summary.as_deref(), Some("All green."));
         assert_eq!(st.session.context_pct, Some(15.0));
         let t = &totals.today_tokens;
-        assert_eq!((t.input, t.cache_read, t.output, t.messages), (400, 600, 500, 1));
+        assert_eq!(
+            (t.input, t.cache_read, t.output, t.messages),
+            (400, 600, 500, 1)
+        );
         assert_eq!(totals.daily[DAYS - 1], (1500, 1));
         let limits = limits.unwrap();
         assert_eq!(limits.primary.unwrap().resets_at, Some(4102444800));
@@ -566,9 +647,15 @@ mod tests {
     #[test]
     fn subagents_and_aborts() {
         let (st, _, _) = feed(&[
-            line("session_meta", json!({ "id": "t2", "cwd": "/x", "source": { "subagent": "review" } })),
+            line(
+                "session_meta",
+                json!({ "id": "t2", "cwd": "/x", "source": { "subagent": "review" } }),
+            ),
             line("event_msg", json!({ "type": "task_started" })),
-            line("event_msg", json!({ "type": "turn_aborted", "reason": "interrupted" })),
+            line(
+                "event_msg",
+                json!({ "type": "turn_aborted", "reason": "interrupted" }),
+            ),
         ]);
         assert!(st.hidden);
         assert_eq!(st.session.status, Status::Idle);
@@ -577,13 +664,19 @@ mod tests {
 
     #[test]
     fn patches_and_prompts() {
-        let a = describe("apply_patch", &json!("*** Begin Patch\n*** Add File: src/new.rs\n+fn main() {}\n"));
+        let a = describe(
+            "apply_patch",
+            &json!("*** Begin Patch\n*** Add File: src/new.rs\n+fn main() {}\n"),
+        );
         assert_eq!((a.kind, a.arg.as_deref()), ("write", Some("new.rs")));
         let mut s = Session::default();
         set_prompt(&mut s, "<environment_context>…</environment_context>");
         set_prompt(&mut s, "# AGENTS.md instructions for /x");
         assert!(s.prompt.is_none());
-        assert_eq!(command(&json!({ "command": ["powershell.exe", "-Command", "ls"] })), "ls");
+        assert_eq!(
+            command(&json!({ "command": ["powershell.exe", "-Command", "ls"] })),
+            "ls"
+        );
         assert_eq!(command(&json!({ "cmd": "git status" })), "git status");
     }
 }

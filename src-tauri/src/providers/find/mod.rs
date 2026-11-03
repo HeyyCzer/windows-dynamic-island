@@ -68,7 +68,10 @@ struct Session {
 impl Session {
     /// Ends the search: what was read is dropped.
     fn reset(&mut self) {
-        *self = Session { generation: self.generation + 1, ..Default::default() };
+        *self = Session {
+            generation: self.generation + 1,
+            ..Default::default()
+        };
     }
 
     fn rematch(&mut self) {
@@ -91,11 +94,20 @@ impl Session {
     fn marks(&self) -> Vec<Group> {
         let mut groups: BTreeMap<usize, Vec<Mark>> = BTreeMap::new();
         for (i, found) in self.matches.iter().enumerate() {
-            groups.entry(found.monitor).or_default().push(Mark { rect: found.rect, current: i == self.current });
+            groups.entry(found.monitor).or_default().push(Mark {
+                rect: found.rect,
+                current: i == self.current,
+            });
         }
         groups
             .into_iter()
-            .filter_map(|(monitor, marks)| Some(Group { monitor, rect: *self.monitors.get(monitor)?, marks }))
+            .filter_map(|(monitor, marks)| {
+                Some(Group {
+                    monitor,
+                    rect: *self.monitors.get(monitor)?,
+                    marks,
+                })
+            })
             .collect()
     }
 
@@ -107,7 +119,11 @@ impl Session {
             return None;
         }
         if self.visited {
-            self.current = if forward { (self.current + 1) % n } else { (self.current + n - 1) % n };
+            self.current = if forward {
+                (self.current + 1) % n
+            } else {
+                (self.current + n - 1) % n
+            };
         } else if !forward {
             self.current = n - 1;
         }
@@ -131,7 +147,10 @@ impl FindProvider {
     fn overlay(&self) -> Option<&Overlay> {
         self.overlay
             .get_or_init(|| {
-                let island = self.island().and_then(|w| w.hwnd().ok()).map(|h| h.0 as isize);
+                let island = self
+                    .island()
+                    .and_then(|w| w.hwnd().ok())
+                    .map(|h| h.0 as isize);
                 Overlay::start(island)
             })
             .as_ref()
@@ -154,7 +173,9 @@ impl FindProvider {
     /// Leaves the island out of screen captures, or puts it back. Done on
     /// the UI thread, which owns the window.
     fn exclude_island(&self, excluded: bool) {
-        let (Some(hub), Some(win)) = (self.hub.get(), self.island()) else { return };
+        let (Some(hub), Some(win)) = (self.hub.get(), self.island()) else {
+            return;
+        };
         let (done, wait) = mpsc::channel();
         let _ = hub.app().run_on_main_thread(move || {
             if let Ok(hwnd) = win.hwnd() {
@@ -172,7 +193,12 @@ impl FindProvider {
         std::thread::sleep(SETTLE);
         let shots = screen::monitors()
             .into_iter()
-            .filter_map(|rect| Some(Shot { rect, image: screen::area(rect)? }))
+            .filter_map(|rect| {
+                Some(Shot {
+                    rect,
+                    image: screen::area(rect)?,
+                })
+            })
             .collect();
         self.exclude_island(false);
         shots
@@ -283,10 +309,22 @@ mod tests {
             words: words
                 .iter()
                 .enumerate()
-                .map(|(i, w)| Word { text: w.to_string(), rect: Rect { x: i as f64 * 100.0, y: 0.0, w: 80.0, h: 20.0 } })
+                .map(|(i, w)| Word {
+                    text: w.to_string(),
+                    rect: Rect {
+                        x: i as f64 * 100.0,
+                        y: 0.0,
+                        w: 80.0,
+                        h: 20.0,
+                    },
+                })
                 .collect(),
         };
-        let mut s = Session { lines: vec![line], query: "go".into(), ..Default::default() };
+        let mut s = Session {
+            lines: vec![line],
+            query: "go".into(),
+            ..Default::default()
+        };
         s.rematch();
         s
     }
@@ -338,12 +376,28 @@ mod tests {
     #[test]
     fn marks_are_grouped_by_monitor() {
         let mut s = session(&["go", "go"]);
-        let other = Line { monitor: 1, ..s.lines[0].clone() };
+        let other = Line {
+            monitor: 1,
+            ..s.lines[0].clone()
+        };
         s.lines.push(other);
-        s.monitors = vec![RECT { right: 1920, bottom: 1080, ..Default::default() }; 2];
+        s.monitors = vec![
+            RECT {
+                right: 1920,
+                bottom: 1080,
+                ..Default::default()
+            };
+            2
+        ];
         s.rematch();
         let groups = s.marks();
-        assert_eq!(groups.iter().map(|g| (g.monitor, g.marks.len())).collect::<Vec<_>>(), [(0, 2), (1, 2)]);
+        assert_eq!(
+            groups
+                .iter()
+                .map(|g| (g.monitor, g.marks.len()))
+                .collect::<Vec<_>>(),
+            [(0, 2), (1, 2)]
+        );
         assert!(groups[0].marks[0].current && !groups[1].marks[0].current);
     }
 }

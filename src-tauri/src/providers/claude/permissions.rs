@@ -17,12 +17,12 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, Instant};
 
 use serde::Serialize;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tauri::Manager;
 use tiny_http::{Header, Request, Response};
 
 use super::activity::Activity;
-use super::{now_ms, Ctx, Status};
+use super::{Ctx, Status, now_ms};
 use crate::settings::Settings;
 
 /// Turned off: the island only shows that a session is waiting.
@@ -81,7 +81,12 @@ impl Decision {
 }
 
 fn enabled(ctx: &Ctx) -> bool {
-    ctx.hub.app().state::<Settings>().get(ENABLED_KEY).and_then(|v| v.as_bool()).unwrap_or(true)
+    ctx.hub
+        .app()
+        .state::<Settings>()
+        .get(ENABLED_KEY)
+        .and_then(|v| v.as_bool())
+        .unwrap_or(true)
 }
 
 /// Keeps a `PermissionRequest` open for the island to answer. Gives the
@@ -92,8 +97,13 @@ pub fn hold(ctx: &Ctx, v: &Value, request: Request) -> Option<Request> {
     if session_id.is_empty() || NOT_APPROVABLE.contains(&tool) || !enabled(ctx) {
         return Some(request);
     }
-    let tool_use_id = v["tool_use_id"].as_str().filter(|id| !id.is_empty()).map(str::to_string);
-    let id = tool_use_id.clone().unwrap_or_else(|| format!("{session_id}:{}", now_ms()));
+    let tool_use_id = v["tool_use_id"]
+        .as_str()
+        .filter(|id| !id.is_empty())
+        .map(str::to_string);
+    let id = tool_use_id
+        .clone()
+        .unwrap_or_else(|| format!("{session_id}:{}", now_ms()));
     let suggestions = v["permission_suggestions"].clone();
     let pending = Pending {
         view: PermissionView {
@@ -121,7 +131,10 @@ pub fn hold(ctx: &Ctx, v: &Value, request: Request) -> Option<Request> {
 pub fn decide(ctx: &Ctx, id: &str, decision: Decision) -> Result<(), String> {
     let pending = {
         let mut list = ctx.pending.lock().unwrap();
-        let i = list.iter().position(|p| p.view.id == id).ok_or("this request was already answered")?;
+        let i = list
+            .iter()
+            .position(|p| p.view.id == id)
+            .ok_or("this request was already answered")?;
         list.remove(i)
     };
     let session_id = pending.session_id.clone();
@@ -191,7 +204,13 @@ fn release(ctx: &Ctx, matches: impl Fn(&Pending) -> bool) {
 
 /// Mirrors the oldest pending request of a session into its public state.
 fn sync(ctx: &Ctx, session_id: &str) {
-    let view = ctx.pending.lock().unwrap().iter().find(|p| p.session_id == session_id).map(|p| p.view.clone());
+    let view = ctx
+        .pending
+        .lock()
+        .unwrap()
+        .iter()
+        .find(|p| p.session_id == session_id)
+        .map(|p| p.view.clone());
     if let Some(s) = ctx.store.lock().unwrap().sessions.get_mut(session_id) {
         s.permission = view;
     }
@@ -235,7 +254,9 @@ pub fn watch(ctx: Ctx) {
                 done.push(c.id);
                 continue;
             }
-            let Some(tail) = transcript_tail(&c.transcript) else { continue };
+            let Some(tail) = transcript_tail(&c.transcript) else {
+                continue;
+            };
             let tool_use_id = c.tool_use_id.or_else(|| {
                 let id = tool_use_in(&tail, &c.tool, &c.input)?;
                 found.push((c.id.clone(), id.clone()));
@@ -262,7 +283,8 @@ pub fn watch(ctx: Ctx) {
 fn transcript_tail(transcript: &Path) -> Option<String> {
     let mut file = std::fs::File::open(transcript).ok()?;
     let len = file.metadata().map(|m| m.len()).unwrap_or(0);
-    file.seek(SeekFrom::Start(len.saturating_sub(TRANSCRIPT_TAIL))).ok()?;
+    file.seek(SeekFrom::Start(len.saturating_sub(TRANSCRIPT_TAIL)))
+        .ok()?;
     let mut tail = Vec::new();
     file.read_to_end(&mut tail).ok()?;
     Some(String::from_utf8_lossy(&tail).into_owned())
@@ -270,28 +292,43 @@ fn transcript_tail(transcript: &Path) -> Option<String> {
 
 /// The transcript already has this tool call's result: it was answered.
 fn result_in(jsonl: &str, tool_use_id: &str) -> bool {
-    jsonl.lines().any(|line| line.contains("tool_result") && line.contains(tool_use_id))
+    jsonl
+        .lines()
+        .any(|line| line.contains("tool_result") && line.contains(tool_use_id))
 }
 
 /// The id of the latest `tool_use` of `tool` with these arguments.
 fn tool_use_in(jsonl: &str, tool: &str, input: &Value) -> Option<String> {
     let name = format!("\"name\":\"{tool}\"");
-    jsonl.lines().rev().filter(|l| l.contains("\"tool_use\"") && l.contains(&name)).find_map(|line| {
-        let entry: Value = serde_json::from_str(line).ok()?;
-        entry["message"]["content"].as_array()?.iter().rev().find_map(|item| {
-            if item["type"] == "tool_use" && item["name"] == tool && same_input(&item["input"], input) {
-                item["id"].as_str().map(str::to_string)
-            } else {
-                None
-            }
+    jsonl
+        .lines()
+        .rev()
+        .filter(|l| l.contains("\"tool_use\"") && l.contains(&name))
+        .find_map(|line| {
+            let entry: Value = serde_json::from_str(line).ok()?;
+            entry["message"]["content"]
+                .as_array()?
+                .iter()
+                .rev()
+                .find_map(|item| {
+                    if item["type"] == "tool_use"
+                        && item["name"] == tool
+                        && same_input(&item["input"], input)
+                    {
+                        item["id"].as_str().map(str::to_string)
+                    } else {
+                        None
+                    }
+                })
         })
-    })
 }
 
 /// Same tool arguments, give or take defaults one side fills in.
 fn same_input(a: &Value, b: &Value) -> bool {
     let within = |small: &Value, big: &Value| {
-        small.as_object().is_some_and(|o| !o.is_empty() && o.iter().all(|(k, v)| big.get(k) == Some(v)))
+        small
+            .as_object()
+            .is_some_and(|o| !o.is_empty() && o.iter().all(|(k, v)| big.get(k) == Some(v)))
     };
     a == b || within(a, b) || within(b, a)
 }
@@ -311,10 +348,17 @@ fn decision_body(decision: Decision, suggestions: &Value) -> Value {
 
 /// The part of the tool input a person decides on.
 fn detail(tool: &str, input: &Value) -> Option<String> {
-    let field = |k: &str| input.get(k).and_then(Value::as_str).filter(|s| !s.trim().is_empty());
+    let field = |k: &str| {
+        input
+            .get(k)
+            .and_then(Value::as_str)
+            .filter(|s| !s.trim().is_empty())
+    };
     let text = match tool {
         "Bash" | "PowerShell" => field("command").map(str::to_string),
-        "Edit" | "MultiEdit" | "Write" | "Read" | "NotebookEdit" => field("file_path").or(field("notebook_path")).map(str::to_string),
+        "Edit" | "MultiEdit" | "Write" | "Read" | "NotebookEdit" => field("file_path")
+            .or(field("notebook_path"))
+            .map(str::to_string),
         "WebFetch" => field("url").map(str::to_string),
         "WebSearch" => field("query").map(str::to_string),
         "Glob" | "Grep" => field("pattern").map(str::to_string),
@@ -322,11 +366,17 @@ fn detail(tool: &str, input: &Value) -> Option<String> {
     }
     .or_else(|| {
         // MCP and other tools: their arguments, compact.
-        input.as_object().filter(|o| !o.is_empty()).map(|_| input.to_string())
+        input
+            .as_object()
+            .filter(|o| !o.is_empty())
+            .map(|_| input.to_string())
     })?;
     let trimmed = text.trim();
     Some(if trimmed.chars().count() > DETAIL_CHARS {
-        format!("{}…", trimmed.chars().take(DETAIL_CHARS).collect::<String>())
+        format!(
+            "{}…",
+            trimmed.chars().take(DETAIL_CHARS).collect::<String>()
+        )
     } else {
         trimmed.to_string()
     })
@@ -345,7 +395,9 @@ fn always_label(suggestions: &Value) -> Option<String> {
             for r in rules {
                 let tool = r["toolName"].as_str().unwrap_or_default();
                 match r["ruleContent"].as_str() {
-                    Some(content) if !content.is_empty() => parts.push(format!("{tool}({content})")),
+                    Some(content) if !content.is_empty() => {
+                        parts.push(format!("{tool}({content})"))
+                    }
                     _ if !tool.is_empty() => parts.push(tool.to_string()),
                     _ => {}
                 }
@@ -365,24 +417,54 @@ mod tests {
 
     #[test]
     fn details() {
-        assert_eq!(detail("Bash", &json!({ "command": "  npm test  ", "description": "x" })), Some("npm test".into()));
-        assert_eq!(detail("Edit", &json!({ "file_path": "C:/a/b.rs", "old_string": "x" })), Some("C:/a/b.rs".into()));
-        assert_eq!(detail("WebFetch", &json!({ "url": "https://x.dev" })), Some("https://x.dev".into()));
-        assert_eq!(detail("mcp__github__create_issue", &json!({ "title": "t" })), Some(r#"{"title":"t"}"#.into()));
+        assert_eq!(
+            detail(
+                "Bash",
+                &json!({ "command": "  npm test  ", "description": "x" })
+            ),
+            Some("npm test".into())
+        );
+        assert_eq!(
+            detail(
+                "Edit",
+                &json!({ "file_path": "C:/a/b.rs", "old_string": "x" })
+            ),
+            Some("C:/a/b.rs".into())
+        );
+        assert_eq!(
+            detail("WebFetch", &json!({ "url": "https://x.dev" })),
+            Some("https://x.dev".into())
+        );
+        assert_eq!(
+            detail("mcp__github__create_issue", &json!({ "title": "t" })),
+            Some(r#"{"title":"t"}"#.into())
+        );
         assert_eq!(detail("Bash", &json!({})), None);
         let long = "x".repeat(DETAIL_CHARS + 10);
-        assert_eq!(detail("Bash", &json!({ "command": long })).unwrap().chars().count(), DETAIL_CHARS + 1);
+        assert_eq!(
+            detail("Bash", &json!({ "command": long }))
+                .unwrap()
+                .chars()
+                .count(),
+            DETAIL_CHARS + 1
+        );
     }
 
     #[test]
     fn always_labels() {
-        assert_eq!(always_label(&json!(["Bash(rm *)", "Bash(rm important.*)"])), Some("Bash(rm *), Bash(rm important.*)".into()));
+        assert_eq!(
+            always_label(&json!(["Bash(rm *)", "Bash(rm important.*)"])),
+            Some("Bash(rm *), Bash(rm important.*)".into())
+        );
         let updates = json!([
             { "type": "addRules", "rules": [{ "toolName": "Bash", "ruleContent": "npm test" }], "behavior": "allow", "destination": "localSettings" },
             { "type": "setMode", "mode": "acceptEdits", "destination": "session" },
             { "type": "addDirectories", "directories": ["C:/other"], "destination": "session" },
         ]);
-        assert_eq!(always_label(&updates), Some("Bash(npm test), acceptEdits, C:/other".into()));
+        assert_eq!(
+            always_label(&updates),
+            Some("Bash(npm test), acceptEdits, C:/other".into())
+        );
         assert_eq!(always_label(&json!([])), None);
         assert_eq!(always_label(&Value::Null), None);
     }
@@ -392,10 +474,19 @@ mod tests {
         let suggestions = json!(["Bash(npm test)"]);
         let d = |x| decision_body(x, &suggestions)["hookSpecificOutput"]["decision"].clone();
         assert_eq!(d(Decision::Allow), json!({ "behavior": "allow" }));
-        assert_eq!(d(Decision::Always), json!({ "behavior": "allow", "updatedPermissions": ["Bash(npm test)"] }));
+        assert_eq!(
+            d(Decision::Always),
+            json!({ "behavior": "allow", "updatedPermissions": ["Bash(npm test)"] })
+        );
         assert_eq!(d(Decision::Deny)["behavior"], "deny");
-        assert_eq!(decision_body(Decision::Always, &Value::Null)["hookSpecificOutput"]["decision"], json!({ "behavior": "allow" }));
-        assert_eq!(decision_body(Decision::Allow, &suggestions)["hookSpecificOutput"]["hookEventName"], "PermissionRequest");
+        assert_eq!(
+            decision_body(Decision::Always, &Value::Null)["hookSpecificOutput"]["decision"],
+            json!({ "behavior": "allow" })
+        );
+        assert_eq!(
+            decision_body(Decision::Allow, &suggestions)["hookSpecificOutput"]["hookEventName"],
+            "PermissionRequest"
+        );
     }
 
     #[test]
@@ -412,7 +503,10 @@ mod tests {
         // The latest matching call; defaults on the hook's side are ignored.
         assert_eq!(tool_use_in(jsonl, "Bash", &held), Some("toolu_new".into()));
         assert_eq!(tool_use_in(jsonl, "Write", &held), None);
-        assert_eq!(tool_use_in(jsonl, "Bash", &json!({ "command": "rm x" })), None);
+        assert_eq!(
+            tool_use_in(jsonl, "Bash", &json!({ "command": "rm x" })),
+            None
+        );
         assert!(same_input(&json!({ "a": 1 }), &json!({ "a": 1, "b": 2 })));
         assert!(!same_input(&json!({ "a": 1 }), &json!({ "a": 2, "b": 2 })));
         assert!(!same_input(&json!({}), &json!({ "a": 1 })));

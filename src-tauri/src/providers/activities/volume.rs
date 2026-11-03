@@ -4,12 +4,12 @@
 
 use std::time::Duration;
 
-use windows::core::Result;
 use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
-use windows::Win32::Media::Audio::{eMultimedia, eRender, IMMDeviceEnumerator, MMDeviceEnumerator};
+use windows::Win32::Media::Audio::{IMMDeviceEnumerator, MMDeviceEnumerator, eMultimedia, eRender};
 use windows::Win32::System::Com::{
-    CoCreateInstance, CoInitializeEx, CoTaskMemFree, CLSCTX_ALL, COINIT_MULTITHREADED,
+    CLSCTX_ALL, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx, CoTaskMemFree,
 };
+use windows::core::Result;
 
 use super::{Activities, Activity, Style};
 use crate::i18n;
@@ -28,8 +28,9 @@ pub fn watch(activities: Activities) {
     unsafe {
         let _ = CoInitializeEx(None, COINIT_MULTITHREADED);
     }
-    let Ok(enumerator) = (unsafe { CoCreateInstance::<_, IMMDeviceEnumerator>(&MMDeviceEnumerator, None, CLSCTX_ALL) })
-    else {
+    let Ok(enumerator) = (unsafe {
+        CoCreateInstance::<_, IMMDeviceEnumerator>(&MMDeviceEnumerator, None, CLSCTX_ALL)
+    }) else {
         log::warn!("volume: no audio device enumerator");
         return;
     };
@@ -82,14 +83,33 @@ fn default_endpoint(enumerator: &IMMDeviceEnumerator) -> Result<Endpoint> {
 }
 
 fn read(volume: &IAudioEndpointVolume) -> Result<(f32, bool)> {
-    unsafe { Ok((volume.GetMasterVolumeLevelScalar()?, volume.GetMute()?.as_bool())) }
+    unsafe {
+        Ok((
+            volume.GetMasterVolumeLevelScalar()?,
+            volume.GetMute()?.as_bool(),
+        ))
+    }
 }
 
 fn show(activities: &Activities, level: f32, muted: bool) {
     let app = activities.app();
     let mut alert = Activity::alert("system.volume", "volume", SHOW_FOR);
-    alert.title = i18n::t(app, if muted { "system.volume.muted" } else { "system.volume.title" });
-    alert.icon = Some(if muted || level <= 0.001 { "mute" } else { "volume" }.into());
+    alert.title = i18n::t(
+        app,
+        if muted {
+            "system.volume.muted"
+        } else {
+            "system.volume.title"
+        },
+    );
+    alert.icon = Some(
+        if muted || level <= 0.001 {
+            "mute"
+        } else {
+            "volume"
+        }
+        .into(),
+    );
     alert.progress = Some(if muted { 0.0 } else { level as f64 });
     alert.priority = 100;
     alert.style = Style::Level;

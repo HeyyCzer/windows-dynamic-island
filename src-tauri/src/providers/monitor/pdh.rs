@@ -2,9 +2,9 @@
 //! added by their English path, which works on any Windows display language.
 
 use windows::Win32::System::Performance::{
-    PdhAddEnglishCounterW, PdhCloseQuery, PdhCollectQueryData, PdhGetFormattedCounterArrayW,
-    PdhGetFormattedCounterValue, PdhOpenQueryW, PDH_FMT, PDH_FMT_COUNTERVALUE, PDH_FMT_COUNTERVALUE_ITEM_W,
-    PDH_FMT_DOUBLE, PDH_HCOUNTER, PDH_HQUERY,
+    PDH_FMT, PDH_FMT_COUNTERVALUE, PDH_FMT_COUNTERVALUE_ITEM_W, PDH_FMT_DOUBLE, PDH_HCOUNTER,
+    PDH_HQUERY, PdhAddEnglishCounterW, PdhCloseQuery, PdhCollectQueryData,
+    PdhGetFormattedCounterArrayW, PdhGetFormattedCounterValue, PdhOpenQueryW,
 };
 use windows::core::{HSTRING, PCWSTR};
 
@@ -58,14 +58,17 @@ impl Counter {
     pub fn values(&self) -> Vec<(String, f64)> {
         let format = FORMAT;
         let (mut size, mut count) = (0u32, 0u32);
-        let status = unsafe { PdhGetFormattedCounterArrayW(self.0, format, &mut size, &mut count, None) };
+        let status =
+            unsafe { PdhGetFormattedCounterArrayW(self.0, format, &mut size, &mut count, None) };
         if status != PDH_MORE_DATA || size == 0 {
             return Vec::new();
         }
         // u64 storage keeps the items aligned.
         let mut buf = vec![0u64; (size as usize).div_ceil(8)];
         let items = buf.as_mut_ptr() as *mut PDH_FMT_COUNTERVALUE_ITEM_W;
-        let status = unsafe { PdhGetFormattedCounterArrayW(self.0, format, &mut size, &mut count, Some(items)) };
+        let status = unsafe {
+            PdhGetFormattedCounterArrayW(self.0, format, &mut size, &mut count, Some(items))
+        };
         if status != OK {
             return Vec::new();
         }

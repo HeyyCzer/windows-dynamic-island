@@ -25,7 +25,7 @@ use windows::Win32::System::DataExchange::GetClipboardSequenceNumber;
 
 use self::image::Picture;
 use self::os::{Clip, Copied, Payload};
-use super::{now_ms, Provider};
+use super::{Provider, now_ms};
 use crate::hub::Hub;
 use crate::i18n;
 use crate::settings::Settings;
@@ -98,12 +98,23 @@ struct Ctx {
 
 impl Ctx {
     fn publish(&self) {
-        let items = self.entries.lock().unwrap().iter().map(|e| e.view.clone()).collect();
+        let items = self
+            .entries
+            .lock()
+            .unwrap()
+            .iter()
+            .map(|e| e.view.clone())
+            .collect();
         self.hub.publish(ID, &State { items });
     }
 
     fn enabled(&self) -> bool {
-        self.hub.app().state::<Settings>().get(ENABLED_KEY).and_then(|v| v.as_bool()).unwrap_or(true)
+        self.hub
+            .app()
+            .state::<Settings>()
+            .get(ENABLED_KEY)
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true)
     }
 
     /// Forgets everything. True if there was something.
@@ -120,7 +131,9 @@ impl Ctx {
         let same = |e: &Entry| match (&e.content, &copied.clip) {
             (Content::Text(a), Clip::Text(b)) => a == b,
             (Content::Files(a), Clip::Files(b)) => a == b,
-            (Content::Picture { fingerprint, .. }, Clip::Picture(p)) => *fingerprint == image::fingerprint(p),
+            (Content::Picture { fingerprint, .. }, Clip::Picture(p)) => {
+                *fingerprint == image::fingerprint(p)
+            }
             _ => false,
         };
         let existing = {
@@ -188,14 +201,19 @@ impl Ctx {
                 view.kind = Kind::Files;
                 view.names = paths
                     .iter()
-                    .map(|p| p.file_name().map_or_else(|| p.to_string_lossy(), |n| n.to_string_lossy()).to_string())
+                    .map(|p| {
+                        p.file_name()
+                            .map_or_else(|| p.to_string_lossy(), |n| n.to_string_lossy())
+                            .to_string()
+                    })
                     .collect();
                 Content::Files(paths)
             }
             Clip::Picture(picture) => {
                 view.kind = Kind::Image;
                 let path = self.dir.join(format!("clip-{id}.png"));
-                let saved = image::encode_png(&picture).and_then(|png| std::fs::write(&path, png).map_err(|e| e.to_string()));
+                let saved = image::encode_png(&picture)
+                    .and_then(|png| std::fs::write(&path, png).map_err(|e| e.to_string()));
                 if let Err(e) = saved {
                     log::warn!("clipboard: can't save picture: {e}");
                     return None;
@@ -204,14 +222,23 @@ impl Ctx {
                 view.width = Some(picture.width);
                 view.height = Some(picture.height);
                 view.path = Some(path.to_string_lossy().to_string());
-                Content::Picture { path, fingerprint: image::fingerprint(&picture) }
+                Content::Picture {
+                    path,
+                    fingerprint: image::fingerprint(&picture),
+                }
             }
         };
         Some(Entry { view, content })
     }
 
     fn find<T>(&self, id: u64, f: impl FnOnce(&Entry) -> T) -> Result<T, String> {
-        self.entries.lock().unwrap().iter().find(|e| e.view.id == id).map(f).ok_or_else(|| "no such item".into())
+        self.entries
+            .lock()
+            .unwrap()
+            .iter()
+            .find(|e| e.view.id == id)
+            .map(f)
+            .ok_or_else(|| "no such item".into())
     }
 
     /// Puts an item back on the clipboard.
@@ -226,7 +253,11 @@ impl Ctx {
             Content::Picture { path, .. } => Owned::Picture(path.clone()),
             Content::Files(p) => Owned::Files(p.clone()),
         })?;
-        let win = self.hub.app().get_webview_window(crate::window::ISLAND_LABEL).ok_or("no island window")?;
+        let win = self
+            .hub
+            .app()
+            .get_webview_window(crate::window::ISLAND_LABEL)
+            .ok_or("no island window")?;
         let owner = HWND(win.hwnd().map_err(|e| e.to_string())?.0);
         match content {
             Owned::Text(text) => os::write(owner, Payload::Text(&text)),
@@ -234,7 +265,13 @@ impl Ctx {
             Owned::Picture(path) => {
                 let png = std::fs::read(&path).map_err(|e| e.to_string())?;
                 let picture = image::decode_png(&png).ok_or("unreadable picture")?;
-                os::write(owner, Payload::Picture { picture: &picture, png: &png })
+                os::write(
+                    owner,
+                    Payload::Picture {
+                        picture: &picture,
+                        png: &png,
+                    },
+                )
             }
         }
     }
@@ -242,7 +279,10 @@ impl Ctx {
     fn remove(&self, id: u64) {
         let removed = {
             let mut entries = self.entries.lock().unwrap();
-            entries.iter().position(|e| e.view.id == id).map(|i| entries.remove(i))
+            entries
+                .iter()
+                .position(|e| e.view.id == id)
+                .map(|i| entries.remove(i))
         };
         if let Some(entry) = removed {
             delete_file(entry);
@@ -271,7 +311,12 @@ impl Ctx {
             (content, e.view.clone())
         })?;
         let picture = match content {
-            Err(files) => return Ok(files.iter().map(|p| p.to_string_lossy().to_string()).collect()),
+            Err(files) => {
+                return Ok(files
+                    .iter()
+                    .map(|p| p.to_string_lossy().to_string())
+                    .collect());
+            }
             Ok(p) if p.as_os_str().is_empty() => return Err("text can't go on the shelf".into()),
             Ok(p) => p,
         };
@@ -325,20 +370,26 @@ fn preview(text: &str) -> String {
 
 fn thumb_url(picture: &Picture) -> Option<String> {
     let png = image::encode_png(&image::thumbnail(picture, THUMB_SIDE)).ok()?;
-    Some(format!("data:image/png;base64,{}", base64::engine::general_purpose::STANDARD.encode(png)))
+    Some(format!(
+        "data:image/png;base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(png)
+    ))
 }
 
 /// `Pictures\Screenshots` (where Windows saves screenshots).
 fn screenshots_folder() -> Option<PathBuf> {
     use windows::Win32::System::Com::CoTaskMemFree;
-    use windows::Win32::UI::Shell::{FOLDERID_Pictures, FOLDERID_Screenshots, KF_FLAG_DEFAULT, SHGetKnownFolderPath};
+    use windows::Win32::UI::Shell::{
+        FOLDERID_Pictures, FOLDERID_Screenshots, KF_FLAG_DEFAULT, SHGetKnownFolderPath,
+    };
     let known = |id| unsafe {
         let path = SHGetKnownFolderPath(id, KF_FLAG_DEFAULT, None).ok()?;
         let out = path.to_string().ok().map(PathBuf::from);
         CoTaskMemFree(Some(path.0 as *const _));
         out
     };
-    known(&FOLDERID_Screenshots).or_else(|| known(&FOLDERID_Pictures).map(|p| p.join("Screenshots")))
+    known(&FOLDERID_Screenshots)
+        .or_else(|| known(&FOLDERID_Pictures).map(|p| p.join("Screenshots")))
 }
 
 fn watch(ctx: Arc<Ctx>) {
@@ -396,19 +447,38 @@ impl Provider for ClipboardProvider {
     }
 
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
-        let dir = hub.app().path().app_data_dir().unwrap_or_else(|_| std::env::temp_dir()).join("clipboard");
+        let dir = hub
+            .app()
+            .path()
+            .app_data_dir()
+            .unwrap_or_else(|_| std::env::temp_dir())
+            .join("clipboard");
         // Pictures from the previous run.
         let _ = std::fs::remove_dir_all(&dir);
         let _ = std::fs::create_dir_all(&dir);
-        let ctx = Arc::new(Ctx { hub, dir, entries: Mutex::default(), next_id: AtomicU64::new(1) });
+        let ctx = Arc::new(Ctx {
+            hub,
+            dir,
+            entries: Mutex::default(),
+            next_id: AtomicU64::new(1),
+        });
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         ctx.publish();
         std::thread::spawn(move || watch(ctx));
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
-        let ctx = self.ctx.lock().unwrap().clone().ok_or("clipboard not started")?;
-        let id = || payload.as_u64().ok_or_else(|| "missing item id".to_string());
+        let ctx = self
+            .ctx
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or("clipboard not started")?;
+        let id = || {
+            payload
+                .as_u64()
+                .ok_or_else(|| "missing item id".to_string())
+        };
         match action {
             "copy" => ctx.copy(id()?)?,
             "remove" => ctx.remove(id()?),

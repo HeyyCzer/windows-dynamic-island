@@ -5,10 +5,14 @@ use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
 use windows::Win32::Foundation::{HWND, POINT, RECT};
-use windows::Win32::Graphics::Dwm::{DwmGetWindowAttribute, DWMWA_EXTENDED_FRAME_BOUNDS};
-use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MonitorFromPoint, MONITORINFO, MONITOR_DEFAULTTONEAREST};
-use windows::Win32::Storage::Xps::{PrintWindow, PRINT_WINDOW_FLAGS};
-use windows::Win32::UI::WindowsAndMessaging::{GetCursorPos, GetWindowRect, GetWindowTextW, IsIconic, IsWindowVisible};
+use windows::Win32::Graphics::Dwm::{DWMWA_EXTENDED_FRAME_BOUNDS, DwmGetWindowAttribute};
+use windows::Win32::Graphics::Gdi::{
+    GetMonitorInfoW, MONITOR_DEFAULTTONEAREST, MONITORINFO, MonitorFromPoint,
+};
+use windows::Win32::Storage::Xps::{PRINT_WINDOW_FLAGS, PrintWindow};
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetCursorPos, GetWindowRect, GetWindowTextW, IsIconic, IsWindowVisible,
+};
 
 use crate::screen::{self, Image};
 
@@ -27,9 +31,13 @@ pub struct Shot {
 pub fn capture(hwnd: Option<HWND>, folder: &Path) -> Option<Shot> {
     std::fs::create_dir_all(folder).ok()?;
     delete_old(folder);
-    let path = folder.join(format!("shot-{}.png", chrono::Local::now().format("%Y%m%d-%H%M%S")));
+    let path = folder.join(format!(
+        "shot-{}.png",
+        chrono::Local::now().format("%Y%m%d-%H%M%S")
+    ));
 
-    let window = hwnd.filter(|&h| unsafe { IsWindowVisible(h).as_bool() && !IsIconic(h).as_bool() });
+    let window =
+        hwnd.filter(|&h| unsafe { IsWindowVisible(h).as_bool() && !IsIconic(h).as_bool() });
     let (image, title) = match window.and_then(capture_window) {
         Some(image) => (image, window.map(window_title).filter(|t| !t.is_empty())),
         None => (capture_monitor()?, None),
@@ -63,7 +71,9 @@ fn capture_window(hwnd: HWND) -> Option<Image> {
         }
 
         // PrintWindow draws the window itself, even if something (like the island) covers it.
-        let printed = screen::grab(w, h, |dc| PrintWindow(hwnd, dc, PRINT_WINDOW_FLAGS(PW_RENDERFULLCONTENT)).as_bool());
+        let printed = screen::grab(w, h, |dc| {
+            PrintWindow(hwnd, dc, PRINT_WINDOW_FLAGS(PW_RENDERFULLCONTENT)).as_bool()
+        });
         let (x, y) = (frame.left - window.left, frame.top - window.top);
         if let Some(full) = printed
             && let Some(image) = full.crop(x, y, frame.right - frame.left, frame.bottom - frame.top)
@@ -81,7 +91,10 @@ fn capture_monitor() -> Option<Image> {
         let mut cursor = POINT::default();
         GetCursorPos(&mut cursor).ok()?;
         let monitor = MonitorFromPoint(cursor, MONITOR_DEFAULTTONEAREST);
-        let mut info = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+        let mut info = MONITORINFO {
+            cbSize: std::mem::size_of::<MONITORINFO>() as u32,
+            ..Default::default()
+        };
         if !GetMonitorInfoW(monitor, &mut info).as_bool() {
             return None;
         }
@@ -92,8 +105,8 @@ fn capture_monitor() -> Option<Image> {
 /// All one color (typically black): the window didn't draw into PrintWindow.
 fn is_blank(image: &Image) -> bool {
     let pixel = |x: u32, y: u32| {
-        let i = ((y * image.height / 12).min(image.height - 1) * image.width + (x * image.width / 12).min(image.width - 1))
-            as usize
+        let i = ((y * image.height / 12).min(image.height - 1) * image.width
+            + (x * image.width / 12).min(image.width - 1)) as usize
             * 4;
         [image.bgra[i], image.bgra[i + 1], image.bgra[i + 2]]
     };
@@ -145,10 +158,15 @@ fn window_title(hwnd: HWND) -> String {
 
 /// Screenshots only matter for the conversation at hand: keep a day's worth.
 fn delete_old(folder: &Path) {
-    let Ok(entries) = std::fs::read_dir(folder) else { return };
+    let Ok(entries) = std::fs::read_dir(folder) else {
+        return;
+    };
     let cutoff = SystemTime::now() - Duration::from_secs(24 * 3600);
     for entry in entries.flatten() {
-        let old = entry.metadata().and_then(|m| m.modified()).is_ok_and(|t| t < cutoff);
+        let old = entry
+            .metadata()
+            .and_then(|m| m.modified())
+            .is_ok_and(|t| t < cutoff);
         if old && entry.file_name().to_string_lossy().starts_with("shot-") {
             let _ = std::fs::remove_file(entry.path());
         }

@@ -21,7 +21,7 @@ use windows::Win32::System::SystemInformation::{GlobalMemoryStatusEx, MEMORYSTAT
 
 use self::pdh::{Counter, Query};
 use super::activities::{self, Activity, ORANGE, RED};
-use super::{process, Provider};
+use super::{Provider, process};
 use crate::hub::Hub;
 use crate::i18n;
 use crate::settings::Settings;
@@ -114,14 +114,28 @@ impl Sampler {
         let down = query.add(r"\Network Interface(*)\Bytes Received/sec");
         let up = query.add(r"\Network Interface(*)\Bytes Sent/sec");
         query.collect();
-        Some(Sampler { query, cpu, gpu, down, up })
+        Some(Sampler {
+            query,
+            cpu,
+            gpu,
+            down,
+            up,
+        })
     }
 
     fn sample(&self) -> Sample {
         self.query.collect();
         Sample {
-            cpu: self.cpu.as_ref().and_then(Counter::value).map(|v| round(v.clamp(0.0, 100.0))),
-            gpu: self.gpu.as_ref().and_then(|c| gpu_usage(&c.values())).map(round),
+            cpu: self
+                .cpu
+                .as_ref()
+                .and_then(Counter::value)
+                .map(|v| round(v.clamp(0.0, 100.0))),
+            gpu: self
+                .gpu
+                .as_ref()
+                .and_then(|c| gpu_usage(&c.values()))
+                .map(round),
             memory: memory(),
             down: self.down.as_ref().map(|c| network_total(&c.values())),
             up: self.up.as_ref().map(|c| network_total(&c.values())),
@@ -134,9 +148,15 @@ fn round(v: f64) -> f32 {
 }
 
 fn memory() -> Option<(u64, u64)> {
-    let mut status = MEMORYSTATUSEX { dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32, ..Default::default() };
+    let mut status = MEMORYSTATUSEX {
+        dwLength: std::mem::size_of::<MEMORYSTATUSEX>() as u32,
+        ..Default::default()
+    };
     unsafe { GlobalMemoryStatusEx(&mut status) }.ok()?;
-    Some((status.ullTotalPhys.saturating_sub(status.ullAvailPhys), status.ullTotalPhys))
+    Some((
+        status.ullTotalPhys.saturating_sub(status.ullAvailPhys),
+        status.ullTotalPhys,
+    ))
 }
 
 /// Like Task Manager: each engine (3D, copy, video…) sums its processes'
@@ -148,7 +168,9 @@ fn gpu_usage(instances: &[(String, f64)]) -> Option<f64> {
     let mut engines: HashMap<&str, f64> = HashMap::new();
     for (name, value) in instances {
         // `pid_1234_luid_0x…_0x…_phys_0_eng_3_engtype_3D` → the engine part.
-        let engine = name.split_once("_luid_").map_or(name.as_str(), |(_, rest)| rest);
+        let engine = name
+            .split_once("_luid_")
+            .map_or(name.as_str(), |(_, rest)| rest);
         *engines.entry(engine).or_default() += value;
     }
     Some(engines.into_values().fold(0.0, f64::max).min(100.0))
@@ -170,7 +192,11 @@ fn network_total(instances: &[(String, f64)]) -> f64 {
 fn heaviest(instances: &[(String, f64)]) -> Option<(String, f64, String)> {
     let mut apps: HashMap<String, (f64, &str, f64)> = HashMap::new();
     for (instance, value) in instances {
-        let base = instance.split('#').next().unwrap_or(instance).to_lowercase();
+        let base = instance
+            .split('#')
+            .next()
+            .unwrap_or(instance)
+            .to_lowercase();
         if NOT_APPS.contains(&base.as_str()) {
             continue;
         }
@@ -189,16 +215,34 @@ fn heaviest(instances: &[(String, f64)]) -> Option<(String, f64, String)> {
 /// The app using the most CPU (percent of the whole machine) or memory (bytes).
 fn top_app(memory: bool, cores: usize) -> Option<(String, f64)> {
     let query = Query::open()?;
-    let counter = query.add(if memory { r"\Process(*)\Working Set - Private" } else { r"\Process(*)\% Processor Time" })?;
+    let counter = query.add(if memory {
+        r"\Process(*)\Working Set - Private"
+    } else {
+        r"\Process(*)\% Processor Time"
+    })?;
     let pids = query.add(r"\Process(*)\ID Process")?;
     // Rates need two samples.
     query.collect();
     std::thread::sleep(Duration::from_secs(1));
     query.collect();
     let (name, total, instance) = heaviest(&counter.values())?;
-    let pid = pids.values().into_iter().find(|(n, _)| *n == instance).map(|(_, p)| p as u32);
-    let name = pid.and_then(process::exe_path).map(|p| process::app_name(&p)).unwrap_or(name);
-    Some((name, if memory { total } else { total / cores.max(1) as f64 }))
+    let pid = pids
+        .values()
+        .into_iter()
+        .find(|(n, _)| *n == instance)
+        .map(|(_, p)| p as u32);
+    let name = pid
+        .and_then(process::exe_path)
+        .map(|p| process::app_name(&p))
+        .unwrap_or(name);
+    Some((
+        name,
+        if memory {
+            total
+        } else {
+            total / cores.max(1) as f64
+        },
+    ))
 }
 
 /// Fires once a value has stayed high for `SUSTAINED`; again only after it
@@ -220,7 +264,10 @@ impl Watch {
             return false;
         }
         let since = *self.high_since.get_or_insert(now);
-        if self.fired || now.duration_since(since) < SUSTAINED || self.last.is_some_and(|t| now.duration_since(t) < COOLDOWN) {
+        if self.fired
+            || now.duration_since(since) < SUSTAINED
+            || self.last.is_some_and(|t| now.duration_since(t) < COOLDOWN)
+        {
             return false;
         }
         self.fired = true;
@@ -231,12 +278,18 @@ impl Watch {
 
 fn gb(app: &AppHandle, bytes: f64) -> String {
     let v = bytes / GIB;
-    let n = if v >= 10.0 { format!("{v:.0}") } else { format!("{v:.1}").replace('.', &i18n::t(app, "system.decimal")) };
+    let n = if v >= 10.0 {
+        format!("{v:.0}")
+    } else {
+        format!("{v:.1}").replace('.', &i18n::t(app, "system.decimal"))
+    };
     format!("{n} GB")
 }
 
 fn alert(id: &str, title: String, subtitle: String, level: f64) {
-    let Some(activities) = activities::handle() else { return };
+    let Some(activities) = activities::handle() else {
+        return;
+    };
     let mut alert = Activity::alert(format!("system.monitor.{id}"), ID, Duration::from_secs(8));
     alert.title = title;
     alert.subtitle = Some(subtitle);
@@ -250,22 +303,34 @@ fn alert(id: &str, title: String, subtitle: String, level: f64) {
 
 fn alert_cpu(app: &AppHandle, cpu: f64, cores: usize) {
     let subtitle = match top_app(false, cores) {
-        Some((name, share)) => {
-            i18n::t(app, "system.cpu.top").replace("{app}", &name).replace("{n}", &format!("{share:.0}"))
-        }
+        Some((name, share)) => i18n::t(app, "system.cpu.top")
+            .replace("{app}", &name)
+            .replace("{n}", &format!("{share:.0}")),
         None => i18n::t(app, "system.cpu.detail").replace("{n}", &format!("{cpu:.0}")),
     };
-    alert("cpu", i18n::t(app, "system.cpu.high"), subtitle, cpu / 100.0);
+    alert(
+        "cpu",
+        i18n::t(app, "system.cpu.high"),
+        subtitle,
+        cpu / 100.0,
+    );
 }
 
 fn alert_memory(app: &AppHandle, used: u64, total: u64) {
     let subtitle = match top_app(true, 1) {
-        Some((name, bytes)) => i18n::t(app, "system.memory.top").replace("{app}", &name).replace("{size}", &gb(app, bytes)),
+        Some((name, bytes)) => i18n::t(app, "system.memory.top")
+            .replace("{app}", &name)
+            .replace("{size}", &gb(app, bytes)),
         None => i18n::t(app, "system.memory.detail")
             .replace("{used}", &gb(app, used as f64))
             .replace("{total}", &gb(app, total as f64)),
     };
-    alert("memory", i18n::t(app, "system.memory.high"), subtitle, used as f64 / total.max(1) as f64);
+    alert(
+        "memory",
+        i18n::t(app, "system.memory.high"),
+        subtitle,
+        used as f64 / total.max(1) as f64,
+    );
 }
 
 struct Ctx {
@@ -276,7 +341,12 @@ struct Ctx {
 
 impl Ctx {
     fn setting(&self, key: &str, default: bool) -> bool {
-        self.hub.app().state::<Settings>().get(key).and_then(|v| v.as_bool()).unwrap_or(default)
+        self.hub
+            .app()
+            .state::<Settings>()
+            .get(key)
+            .and_then(|v| v.as_bool())
+            .unwrap_or(default)
     }
 
     fn publish(&self) {
@@ -297,7 +367,10 @@ fn snapshot(history: &VecDeque<Sample>, cores: usize) -> MonitorState {
         up: last.up,
         history: History {
             cpu: history.iter().map(|s| s.cpu.unwrap_or(0.0)).collect(),
-            memory: history.iter().map(|s| s.memory.map_or(0.0, percent)).collect(),
+            memory: history
+                .iter()
+                .map(|s| s.memory.map_or(0.0, percent))
+                .collect(),
             gpu: history.iter().map(|s| s.gpu.unwrap_or(0.0)).collect(),
             down: history.iter().map(|s| s.down.unwrap_or(0.0)).collect(),
             up: history.iter().map(|s| s.up.unwrap_or(0.0)).collect(),
@@ -307,7 +380,9 @@ fn snapshot(history: &VecDeque<Sample>, cores: usize) -> MonitorState {
 }
 
 fn run(ctx: Arc<Ctx>) {
-    let cores = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(1);
+    let cores = std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(1);
     let mut sampler: Option<Sampler> = None;
     let mut history: VecDeque<Sample> = VecDeque::with_capacity(HISTORY);
     let (mut cpu_watch, mut memory_watch) = (Watch::default(), Watch::default());
@@ -337,7 +412,12 @@ fn run(ctx: Arc<Ctx>) {
                 alert_cpu(app, cpu as f64, cores);
             }
             if let Some((used, total)) = sample.memory
-                && memory_watch.update(used as f64 * 100.0 / total.max(1) as f64, MEMORY_HIGH, MEMORY_RESET, now)
+                && memory_watch.update(
+                    used as f64 * 100.0 / total.max(1) as f64,
+                    MEMORY_HIGH,
+                    MEMORY_RESET,
+                    now,
+                )
             {
                 alert_memory(app, used, total);
             }
@@ -361,14 +441,23 @@ impl Provider for MonitorProvider {
     }
 
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
-        let ctx = Arc::new(Ctx { hub, state: Mutex::default(), watching: AtomicBool::new(false) });
+        let ctx = Arc::new(Ctx {
+            hub,
+            state: Mutex::default(),
+            watching: AtomicBool::new(false),
+        });
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         ctx.publish();
         std::thread::spawn(move || run(ctx));
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
-        let ctx = self.ctx.lock().unwrap().clone().ok_or("monitor not started")?;
+        let ctx = self
+            .ctx
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or("monitor not started")?;
         match action {
             // The panel is on screen: publish every sample (and the history now).
             "watch" => {
@@ -401,7 +490,13 @@ mod tests {
         ]);
         assert_eq!(gpu_usage(&engines), Some(55.0));
         assert_eq!(gpu_usage(&[]), None);
-        assert_eq!(gpu_usage(&named(&[("pid_1_luid_a_eng_0", 70.0), ("pid_2_luid_a_eng_0", 60.0)])), Some(100.0));
+        assert_eq!(
+            gpu_usage(&named(&[
+                ("pid_1_luid_a_eng_0", 70.0),
+                ("pid_2_luid_a_eng_0", 60.0)
+            ])),
+            Some(100.0)
+        );
     }
 
     #[test]
@@ -425,7 +520,10 @@ mod tests {
             ("chrome#2", 10.0),
             ("code", 50.0),
         ]);
-        assert_eq!(heaviest(&processes), Some(("chrome".to_string(), 65.0, "chrome#1".to_string())));
+        assert_eq!(
+            heaviest(&processes),
+            Some(("chrome".to_string(), 65.0, "chrome#1".to_string()))
+        );
         assert_eq!(heaviest(&named(&[("_Total", 1.0)])), None);
     }
 

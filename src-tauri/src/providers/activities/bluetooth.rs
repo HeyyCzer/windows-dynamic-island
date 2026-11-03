@@ -11,11 +11,11 @@
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
 
-use windows::core::{Interface, GUID, HSTRING};
 use windows::Devices::Enumeration::{DeviceInformation, DeviceInformationKind};
-use windows_collections::{IIterable, IMapView};
 use windows::Foundation::IPropertyValue;
-use windows::Win32::System::Com::{CoInitializeEx, COINIT_MULTITHREADED};
+use windows::Win32::System::Com::{COINIT_MULTITHREADED, CoInitializeEx};
+use windows::core::{GUID, HSTRING, Interface};
+use windows_collections::{IIterable, IMapView};
 
 use super::{Activities, Activity, BLUE, GREEN, ORANGE, RED};
 use crate::i18n;
@@ -58,7 +58,13 @@ pub fn watch(activities: Activities) {
     loop {
         match scan() {
             Ok(found) => {
-                for Paired { id, name, container, connected } in found {
+                for Paired {
+                    id,
+                    name,
+                    container,
+                    connected,
+                } in found
+                {
                     let device = devices.entry(id.clone()).or_insert_with(|| Headset {
                         name: name.clone(),
                         container,
@@ -79,7 +85,11 @@ pub fn watch(activities: Activities) {
                         device.battery = read_battery(device.container);
                         device.battery_read_at = Some(Instant::now());
                     }
-                    if device.connected && device.battery_read_at.is_none_or(|t| t.elapsed() >= BATTERY_EVERY) {
+                    if device.connected
+                        && device
+                            .battery_read_at
+                            .is_none_or(|t| t.elapsed() >= BATTERY_EVERY)
+                    {
                         poll_battery(&activities, &id, device);
                     }
                 }
@@ -123,19 +133,34 @@ fn scan() -> windows::core::Result<Vec<Paired>> {
     for i in 0..found.Size()? {
         let info = found.GetAt(i)?;
         let props = info.Properties()?;
-        let is_audio = value(&props, MAJOR_CLASS).and_then(|v| v.GetUInt16().ok()) == Some(AUDIO_VIDEO);
+        let is_audio =
+            value(&props, MAJOR_CLASS).and_then(|v| v.GetUInt16().ok()) == Some(AUDIO_VIDEO);
         if !is_audio {
             continue;
         }
-        let connected = value(&props, IS_CONNECTED).and_then(|v| v.GetBoolean().ok()).unwrap_or(false);
+        let connected = value(&props, IS_CONNECTED)
+            .and_then(|v| v.GetBoolean().ok())
+            .unwrap_or(false);
         let container = value(&props, CONTAINER_ID).and_then(|v| v.GetGuid().ok());
-        out.push(Paired { id: info.Id()?.to_string(), name: info.Name()?.to_string(), container, connected });
+        out.push(Paired {
+            id: info.Id()?.to_string(),
+            name: info.Name()?.to_string(),
+            container,
+            connected,
+        });
     }
     Ok(out)
 }
 
-fn value(props: &IMapView<HSTRING, windows::core::IInspectable>, key: &str) -> Option<IPropertyValue> {
-    props.Lookup(&HSTRING::from(key)).ok()?.cast::<IPropertyValue>().ok()
+fn value(
+    props: &IMapView<HSTRING, windows::core::IInspectable>,
+    key: &str,
+) -> Option<IPropertyValue> {
+    props
+        .Lookup(&HSTRING::from(key))
+        .ok()?
+        .cast::<IPropertyValue>()
+        .ok()
 }
 
 fn read_battery(container: Option<GUID>) -> Option<u8> {
@@ -152,7 +177,10 @@ fn read_battery(container: Option<GUID>) -> Option<u8> {
     .ok()?;
     (0..nodes.Size().ok()?).find_map(|i| {
         let props = nodes.GetAt(i).ok()?.Properties().ok()?;
-        value(&props, BATTERY_LEVEL)?.GetUInt8().ok().filter(|&l| l <= 100)
+        value(&props, BATTERY_LEVEL)?
+            .GetUInt8()
+            .ok()
+            .filter(|&l| l <= 100)
     })
 }
 
@@ -165,7 +193,9 @@ fn on_connected(activities: &Activities, id: &str, device: &mut Headset) {
             device.battery = Some(level);
             device.battery_read_at = Some(Instant::now());
             // Fill in the level while the pill is still up; the clock isn't restarted.
-            let left = CONNECTED_FOR.saturating_sub(started.elapsed()).max(Duration::from_secs(1));
+            let left = CONNECTED_FOR
+                .saturating_sub(started.elapsed())
+                .max(Duration::from_secs(1));
             show_connected(activities, id, device, Some(level), left);
             return;
         }
@@ -176,12 +206,20 @@ fn on_connected(activities: &Activities, id: &str, device: &mut Headset) {
     device.battery_read_at = Some(Instant::now());
 }
 
-fn show_connected(activities: &Activities, id: &str, device: &Headset, battery: Option<u8>, duration: Duration) {
+fn show_connected(
+    activities: &Activities,
+    id: &str,
+    device: &Headset,
+    battery: Option<u8>,
+    duration: Duration,
+) {
     let app = activities.app();
     let mut alert = Activity::alert(alert_id("connected", id), "bluetooth", duration);
     alert.title = device.name.clone();
     alert.subtitle = Some(match battery {
-        Some(level) => i18n::t(app, "system.bluetooth.connectedBattery").replace("{n}", &level.to_string()),
+        Some(level) => {
+            i18n::t(app, "system.bluetooth.connectedBattery").replace("{n}", &level.to_string())
+        }
         None => i18n::t(app, "system.bluetooth.connected"),
     });
     alert.icon = Some("headphones".into());
@@ -194,7 +232,11 @@ fn show_connected(activities: &Activities, id: &str, device: &Headset, battery: 
 
 fn on_disconnected(activities: &Activities, id: &str, device: &Headset) {
     let app = activities.app();
-    let mut alert = Activity::alert(alert_id("disconnected", id), "bluetooth", Duration::from_millis(2500));
+    let mut alert = Activity::alert(
+        alert_id("disconnected", id),
+        "bluetooth",
+        Duration::from_millis(2500),
+    );
     alert.title = device.name.clone();
     alert.subtitle = Some(i18n::t(app, "system.bluetooth.disconnected"));
     alert.icon = Some("headphones".into());
@@ -204,7 +246,9 @@ fn on_disconnected(activities: &Activities, id: &str, device: &Headset) {
 
 fn poll_battery(activities: &Activities, id: &str, device: &mut Headset) {
     device.battery_read_at = Some(Instant::now());
-    let Some(level) = read_battery(device.container) else { return };
+    let Some(level) = read_battery(device.container) else {
+        return;
+    };
     let crossed = low_battery_crossed(device.battery, level);
     device.battery = Some(level);
     if crossed.is_none() {

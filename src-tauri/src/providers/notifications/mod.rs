@@ -19,11 +19,13 @@ use serde_json::Value;
 use tauri::Manager;
 use windows::Foundation::Size;
 use windows::Storage::Streams::{DataReader, RandomAccessStreamReference};
-use windows::UI::Notifications::Management::{UserNotificationListener, UserNotificationListenerAccessStatus};
+use windows::UI::Notifications::Management::{
+    UserNotificationListener, UserNotificationListenerAccessStatus,
+};
 use windows::UI::Notifications::{KnownNotificationBindings, NotificationKinds, UserNotification};
 
 use super::activities::{self, Activity, BLUE};
-use super::{now_ms, Provider};
+use super::{Provider, now_ms};
 use crate::hub::Hub;
 
 pub const ID: &str = "notifications";
@@ -90,7 +92,10 @@ impl Provider for NotificationsProvider {
     }
 
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
-        let ctx = Arc::new(Ctx { hub, state: Mutex::default() });
+        let ctx = Arc::new(Ctx {
+            hub,
+            state: Mutex::default(),
+        });
         *self.ctx.lock().unwrap() = Some(ctx.clone());
         ctx.publish();
         std::thread::spawn(move || {
@@ -101,7 +106,12 @@ impl Provider for NotificationsProvider {
     }
 
     fn action(&self, action: &str, payload: Value) -> Result<Value, String> {
-        let ctx = self.ctx.lock().unwrap().clone().ok_or("notifications not started")?;
+        let ctx = self
+            .ctx
+            .lock()
+            .unwrap()
+            .clone()
+            .ok_or("notifications not started")?;
         match action {
             "open" => {
                 let id = payload.as_u64().unwrap_or_default() as u32;
@@ -152,10 +162,16 @@ fn run(ctx: Arc<Ctx>) {
     if access != Access::Allowed {
         return;
     }
-    let Ok(listener) = UserNotificationListener::Current() else { return };
+    let Ok(listener) = UserNotificationListener::Current() else {
+        return;
+    };
 
     // Don't replay what is already sitting in the Notification Center.
-    let mut known: HashSet<u32> = toasts(&listener).unwrap_or_default().iter().filter_map(|n| n.Id().ok()).collect();
+    let mut known: HashSet<u32> = toasts(&listener)
+        .unwrap_or_default()
+        .iter()
+        .filter_map(|n| n.Id().ok())
+        .collect();
     let mut logos: HashMap<String, Option<String>> = HashMap::new();
 
     loop {
@@ -163,11 +179,15 @@ fn run(ctx: Arc<Ctx>) {
         if !enabled(&ctx) {
             continue;
         }
-        let Ok(current) = toasts(&listener) else { continue };
+        let Ok(current) = toasts(&listener) else {
+            continue;
+        };
         let present: HashSet<u32> = current.iter().filter_map(|n| n.Id().ok()).collect();
 
-        let mut arrived: Vec<&UserNotification> =
-            current.iter().filter(|n| n.Id().is_ok_and(|id| !known.contains(&id))).collect();
+        let mut arrived: Vec<&UserNotification> = current
+            .iter()
+            .filter(|n| n.Id().is_ok_and(|id| !known.contains(&id)))
+            .collect();
         arrived.sort_by_key(|n| n.CreationTime().map(|t| t.UniversalTime).unwrap_or(0));
         let skip = arrived.len().saturating_sub(MAX_BURST);
         for n in &arrived {
@@ -182,7 +202,11 @@ fn run(ctx: Arc<Ctx>) {
         }
 
         // Dismissed in the Notification Center (or by the app): drop it here too.
-        let gone: Vec<u32> = known.iter().copied().filter(|id| !present.contains(id)).collect();
+        let gone: Vec<u32> = known
+            .iter()
+            .copied()
+            .filter(|id| !present.contains(id))
+            .collect();
         if !gone.is_empty() {
             for id in &gone {
                 known.remove(id);
@@ -190,7 +214,11 @@ fn run(ctx: Arc<Ctx>) {
                     a.remove(&activity_id(*id));
                 }
             }
-            ctx.state.lock().unwrap().items.retain(|i| !gone.contains(&i.id));
+            ctx.state
+                .lock()
+                .unwrap()
+                .items
+                .retain(|i| !gone.contains(&i.id));
             ctx.publish();
         }
     }
@@ -221,7 +249,9 @@ fn request_access() -> Access {
 }
 
 fn toasts(listener: &UserNotificationListener) -> windows::core::Result<Vec<UserNotification>> {
-    let list = listener.GetNotificationsAsync(NotificationKinds::Toast)?.join()?;
+    let list = listener
+        .GetNotificationsAsync(NotificationKinds::Toast)?
+        .join()?;
     (0..list.Size()?).map(|i| list.GetAt(i)).collect()
 }
 
@@ -230,7 +260,10 @@ fn read_item(n: &UserNotification, logos: &mut HashMap<String, Option<String>>) 
     // Some Win32 senders expose no AppInfo; show the text anyway.
     let (app, aumid, logo) = match n.AppInfo() {
         Ok(info) => {
-            let aumid = info.AppUserModelId().map(|s| s.to_string()).unwrap_or_default();
+            let aumid = info
+                .AppUserModelId()
+                .map(|s| s.to_string())
+                .unwrap_or_default();
             let display = info.DisplayInfo().ok();
             let app = display
                 .as_ref()
@@ -241,7 +274,13 @@ fn read_item(n: &UserNotification, logos: &mut HashMap<String, Option<String>>) 
                 .entry(app.clone())
                 .or_insert_with(|| {
                     display
-                        .and_then(|d| d.GetLogo(Size { Width: 64.0, Height: 64.0 }).ok())
+                        .and_then(|d| {
+                            d.GetLogo(Size {
+                                Width: 64.0,
+                                Height: 64.0,
+                            })
+                            .ok()
+                        })
                         .and_then(|r| read_image(&r))
                 })
                 .clone();
@@ -250,7 +289,10 @@ fn read_item(n: &UserNotification, logos: &mut HashMap<String, Option<String>>) 
         Err(_) => (String::new(), String::new(), None),
     };
     // The package keeps its old display name until it is re-registered.
-    if ["Island for Windows", "Dynamic Island"].iter().any(|own| app.eq_ignore_ascii_case(own)) {
+    if ["Island for Windows", "Dynamic Island"]
+        .iter()
+        .any(|own| app.eq_ignore_ascii_case(own))
+    {
         return None;
     }
 
@@ -271,7 +313,16 @@ fn read_item(n: &UserNotification, logos: &mut HashMap<String, Option<String>>) 
     }
     let title = texts.first().cloned().unwrap_or_else(|| app.clone());
     let body = (texts.len() > 1).then(|| texts[1..].join(" · "));
-    Some(Item { id, app, aumid, logo, title, body, received_at: now_ms(), read: false })
+    Some(Item {
+        id,
+        app,
+        aumid,
+        logo,
+        title,
+        body,
+        received_at: now_ms(),
+        read: false,
+    })
 }
 
 fn show(ctx: &Ctx, item: Item) {
@@ -282,7 +333,9 @@ fn show(ctx: &Ctx, item: Item) {
     }
     ctx.publish();
 
-    let Some(activities) = activities::handle() else { return };
+    let Some(activities) = activities::handle() else {
+        return;
+    };
     let mut alert = Activity::alert(activity_id(item.id), "notification", Duration::from_secs(6));
     alert.caption = (!item.app.is_empty()).then(|| item.app.clone());
     alert.title = item.title;
@@ -315,11 +368,21 @@ fn read_image(reference: &RandomAccessStreamReference) -> Option<String> {
     if size == 0 || size > 2 * 1024 * 1024 {
         return None;
     }
-    let mime = stream.ContentType().map(|s| s.to_string()).unwrap_or_default();
+    let mime = stream
+        .ContentType()
+        .map(|s| s.to_string())
+        .unwrap_or_default();
     let reader = DataReader::CreateDataReader(&stream.GetInputStreamAt(0).ok()?).ok()?;
     reader.LoadAsync(size).ok()?.join().ok()?;
     let mut buf = vec![0u8; size as usize];
     reader.ReadBytes(&mut buf).ok()?;
-    let mime = if mime.is_empty() { "image/png".to_string() } else { mime };
-    Some(format!("data:{mime};base64,{}", base64::engine::general_purpose::STANDARD.encode(&buf)))
+    let mime = if mime.is_empty() {
+        "image/png".to_string()
+    } else {
+        mime
+    };
+    Some(format!(
+        "data:{mime};base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(&buf)
+    ))
 }

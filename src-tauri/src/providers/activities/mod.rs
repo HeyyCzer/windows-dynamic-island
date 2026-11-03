@@ -20,7 +20,7 @@ use serde::Serialize;
 use serde_json::Value;
 use tauri::AppHandle;
 
-use super::{now_ms, Provider};
+use super::{Provider, now_ms};
 use crate::hub::Hub;
 
 pub const ID: &str = "activities";
@@ -122,7 +122,11 @@ impl Activities {
     /// Adds or replaces an activity (same id = update).
     pub fn upsert(&self, mut activity: Activity) {
         activity.updated_at = now_ms();
-        self.0.items.lock().unwrap().insert(activity.id.clone(), activity);
+        self.0
+            .items
+            .lock()
+            .unwrap()
+            .insert(activity.id.clone(), activity);
         self.publish();
     }
 
@@ -204,9 +208,11 @@ impl Provider for ActivitiesProvider {
         activities.publish();
 
         let expiry = activities.clone();
-        std::thread::spawn(move || loop {
-            std::thread::sleep(Duration::from_millis(200));
-            expiry.expire();
+        std::thread::spawn(move || {
+            loop {
+                std::thread::sleep(Duration::from_millis(200));
+                expiry.expire();
+            }
         });
 
         let server = activities.clone();

@@ -5,13 +5,15 @@ use std::path::PathBuf;
 
 use serde::Serialize;
 use serde_json::Value;
-use windows::core::{Interface, Result};
 use windows::Win32::Media::Audio::Endpoints::IAudioEndpointVolume;
 use windows::Win32::Media::Audio::{
-    eConsole, eRender, AudioSessionStateExpired, IAudioSessionControl2, IAudioSessionManager2, IMMDeviceEnumerator,
-    ISimpleAudioVolume, MMDeviceEnumerator, DEVICE_STATE_ACTIVE,
+    AudioSessionStateExpired, DEVICE_STATE_ACTIVE, IAudioSessionControl2, IAudioSessionManager2,
+    IMMDeviceEnumerator, ISimpleAudioVolume, MMDeviceEnumerator, eConsole, eRender,
 };
-use windows::Win32::System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED};
+use windows::Win32::System::Com::{
+    CLSCTX_ALL, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx,
+};
+use windows::core::{Interface, Result};
 
 use crate::providers::process;
 
@@ -36,7 +38,11 @@ fn enumerator() -> Result<IMMDeviceEnumerator> {
 }
 
 fn endpoint() -> Result<IAudioEndpointVolume> {
-    unsafe { enumerator()?.GetDefaultAudioEndpoint(eRender, eConsole)?.Activate(CLSCTX_ALL, None) }
+    unsafe {
+        enumerator()?
+            .GetDefaultAudioEndpoint(eRender, eConsole)?
+            .Activate(CLSCTX_ALL, None)
+    }
 }
 
 /// The computer's volume.
@@ -99,21 +105,39 @@ pub fn set(payload: &Value) -> Result<()> {
 fn app_sessions(app_id: &str) -> Vec<(ISimpleAudioVolume, PathBuf)> {
     let app_id = app_id.to_lowercase();
     let mut found = Vec::new();
-    let Ok(enumerator) = enumerator() else { return found };
+    let Ok(enumerator) = enumerator() else {
+        return found;
+    };
     unsafe {
-        let Ok(devices) = enumerator.EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE) else { return found };
+        let Ok(devices) = enumerator.EnumAudioEndpoints(eRender, DEVICE_STATE_ACTIVE) else {
+            return found;
+        };
         for i in 0..devices.GetCount().unwrap_or(0) {
-            let Ok(device) = devices.Item(i) else { continue };
-            let Ok(manager) = device.Activate::<IAudioSessionManager2>(CLSCTX_ALL, None) else { continue };
-            let Ok(sessions) = manager.GetSessionEnumerator() else { continue };
+            let Ok(device) = devices.Item(i) else {
+                continue;
+            };
+            let Ok(manager) = device.Activate::<IAudioSessionManager2>(CLSCTX_ALL, None) else {
+                continue;
+            };
+            let Ok(sessions) = manager.GetSessionEnumerator() else {
+                continue;
+            };
             for j in 0..sessions.GetCount().unwrap_or(0) {
-                let Ok(session) = sessions.GetSession(j) else { continue };
+                let Ok(session) = sessions.GetSession(j) else {
+                    continue;
+                };
                 if session.GetState().ok() == Some(AudioSessionStateExpired) {
                     continue;
                 }
-                let Ok(control) = session.cast::<IAudioSessionControl2>() else { continue };
-                let Some(pid) = control.GetProcessId().ok().filter(|&pid| pid != 0) else { continue };
-                let Some(path) = process::exe_path(pid) else { continue };
+                let Ok(control) = session.cast::<IAudioSessionControl2>() else {
+                    continue;
+                };
+                let Some(pid) = control.GetProcessId().ok().filter(|&pid| pid != 0) else {
+                    continue;
+                };
+                let Some(path) = process::exe_path(pid) else {
+                    continue;
+                };
                 let stem = process::exe_stem(&path);
                 if stem.len() < 3 || !app_id.contains(&stem) {
                     continue;

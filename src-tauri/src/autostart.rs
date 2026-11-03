@@ -26,7 +26,11 @@ mod imp {
 
     pub fn set(app: &AppHandle, enabled: bool) -> Result<(), String> {
         let launcher = app.autolaunch();
-        let result = if enabled { launcher.enable() } else { launcher.disable() };
+        let result = if enabled {
+            launcher.enable()
+        } else {
+            launcher.disable()
+        };
         result.map_err(|e| e.to_string())
     }
 }
@@ -52,7 +56,10 @@ mod imp {
     pub fn set(_app: &AppHandle, enabled: bool) -> Result<(), String> {
         let task = task().map_err(|e| e.message())?;
         if enabled {
-            let state = task.RequestEnableAsync().and_then(|op| op.join()).map_err(|e| e.message())?;
+            let state = task
+                .RequestEnableAsync()
+                .and_then(|op| op.join())
+                .map_err(|e| e.message())?;
             if state == StartupTaskState::DisabledByUser {
                 return Err("disabledByUser".into());
             }

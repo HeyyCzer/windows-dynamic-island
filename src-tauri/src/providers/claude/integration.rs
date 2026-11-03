@@ -7,11 +7,11 @@
 
 use std::path::PathBuf;
 
-use serde_json::{json, Map, Value};
+use serde_json::{Map, Value, json};
 
-use super::hooks::hook_url;
-use super::statusline::{config_dir, BRIDGE_FLAG, ORIGINAL_FILE};
 use super::Integration;
+use super::hooks::hook_url;
+use super::statusline::{BRIDGE_FLAG, ORIGINAL_FILE, config_dir};
 
 /// Hook events the island listens to.
 const EVENTS: &[&str] = &[
@@ -32,7 +32,11 @@ const HOOK_TIMEOUT_S: u64 = 3;
 pub const PERMISSION_TIMEOUT_S: u64 = 600;
 
 fn timeout_for(event: &str) -> u64 {
-    if event == "PermissionRequest" { PERMISSION_TIMEOUT_S } else { HOOK_TIMEOUT_S }
+    if event == "PermissionRequest" {
+        PERMISSION_TIMEOUT_S
+    } else {
+        HOOK_TIMEOUT_S
+    }
 }
 
 pub fn claude_dir() -> PathBuf {
@@ -77,7 +81,9 @@ fn is_our_hook(hook: &Value) -> bool {
 }
 
 fn is_our_statusline(v: &Value) -> bool {
-    v["command"].as_str().is_some_and(|c| c.contains(BRIDGE_FLAG))
+    v["command"]
+        .as_str()
+        .is_some_and(|c| c.contains(BRIDGE_FLAG))
 }
 
 fn bridge_command() -> Result<String, String> {
@@ -89,15 +95,28 @@ fn bridge_command() -> Result<String, String> {
 pub fn status() -> Integration {
     let settings = read_settings().unwrap_or(Value::Null);
     let hooks = EVENTS.iter().all(|event| {
-        settings["hooks"][event]
-            .as_array()
-            .is_some_and(|groups| groups.iter().any(|g| g["hooks"].as_array().is_some_and(|h| h.iter().any(is_our_hook))))
-    });
-    let permissions = settings["hooks"]["PermissionRequest"].as_array().is_some_and(|groups| {
-        groups.iter().filter_map(|g| g["hooks"].as_array()).flatten().any(|h| {
-            is_our_hook(h) && h["timeout"].as_u64().is_none_or(|t| t >= PERMISSION_TIMEOUT_S)
+        settings["hooks"][event].as_array().is_some_and(|groups| {
+            groups.iter().any(|g| {
+                g["hooks"]
+                    .as_array()
+                    .is_some_and(|h| h.iter().any(is_our_hook))
+            })
         })
     });
+    let permissions = settings["hooks"]["PermissionRequest"]
+        .as_array()
+        .is_some_and(|groups| {
+            groups
+                .iter()
+                .filter_map(|g| g["hooks"].as_array())
+                .flatten()
+                .any(|h| {
+                    is_our_hook(h)
+                        && h["timeout"]
+                            .as_u64()
+                            .is_none_or(|t| t >= PERMISSION_TIMEOUT_S)
+                })
+        });
     Integration {
         hooks,
         statusline: is_our_statusline(&settings["statusLine"]),
@@ -108,7 +127,9 @@ pub fn status() -> Integration {
 
 pub fn install() -> Result<(), String> {
     let mut settings = read_settings()?;
-    let root = settings.as_object_mut().ok_or("settings.json is not an object")?;
+    let root = settings
+        .as_object_mut()
+        .ok_or("settings.json is not an object")?;
 
     // --- hooks ---------------------------------------------------------------
     let hooks = root.entry("hooks").or_insert_with(|| json!({}));
@@ -118,7 +139,12 @@ pub fn install() -> Result<(), String> {
         let groups = groups.as_array_mut().ok_or("invalid hooks group")?;
         let mut present = false;
         // Already there (an older version): bring its timeout up to date.
-        for hook in groups.iter_mut().filter_map(|g| g["hooks"].as_array_mut()).flatten().filter(|h| is_our_hook(h)) {
+        for hook in groups
+            .iter_mut()
+            .filter_map(|g| g["hooks"].as_array_mut())
+            .flatten()
+            .filter(|h| is_our_hook(h))
+        {
             hook["timeout"] = json!(timeout_for(event));
             present = true;
         }
@@ -135,8 +161,11 @@ pub fn install() -> Result<(), String> {
         let dir = config_dir();
         std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
         let original = existing.clone().unwrap_or(Value::Null);
-        std::fs::write(dir.join(ORIGINAL_FILE), serde_json::to_string_pretty(&original).unwrap())
-            .map_err(|e| e.to_string())?;
+        std::fs::write(
+            dir.join(ORIGINAL_FILE),
+            serde_json::to_string_pretty(&original).unwrap(),
+        )
+        .map_err(|e| e.to_string())?;
     }
     let mut line = Map::new();
     line.insert("type".into(), json!("command"));

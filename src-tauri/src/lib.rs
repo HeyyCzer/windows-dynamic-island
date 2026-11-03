@@ -42,8 +42,12 @@ pub fn run() {
                         && let Some(target) = providers::shortcuts::event_for(shortcut)
                     {
                         match target {
-                            providers::shortcuts::ShortcutTarget::Event(event) => open_page(app, event),
-                            providers::shortcuts::ShortcutTarget::Module(id) => open_module(app, &id),
+                            providers::shortcuts::ShortcutTarget::Event(event) => {
+                                open_page(app, event)
+                            }
+                            providers::shortcuts::ShortcutTarget::Module(id) => {
+                                open_module(app, &id)
+                            }
                         }
                     }
                 })

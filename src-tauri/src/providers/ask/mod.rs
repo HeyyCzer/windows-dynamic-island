@@ -17,11 +17,11 @@ use std::time::{Duration, Instant};
 
 use base64::Engine;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use tauri::Manager;
 
-use super::activities::{self, Activity};
 use super::Provider;
+use super::activities::{self, Activity};
 use crate::hub::Hub;
 use crate::i18n;
 
@@ -123,7 +123,10 @@ impl Provider for AskProvider {
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
         let ctx = Arc::new(Ctx {
             hub,
-            state: Mutex::new(State { available: find_claude().is_some(), ..Default::default() }),
+            state: Mutex::new(State {
+                available: find_claude().is_some(),
+                ..Default::default()
+            }),
             session_id: Mutex::default(),
             child: Mutex::default(),
             viewing: Mutex::default(),
@@ -136,7 +139,8 @@ impl Provider for AskProvider {
         let ctx = self.ctx.lock().unwrap().clone().ok_or("ask not started")?;
         match action {
             "send" => {
-                let request: SendRequest = serde_json::from_value(payload).map_err(|e| e.to_string())?;
+                let request: SendRequest =
+                    serde_json::from_value(payload).map_err(|e| e.to_string())?;
                 send(&ctx, request.text, request.attachments);
             }
             "cancel" => cancel(&ctx),
@@ -161,8 +165,15 @@ impl Provider for AskProvider {
             }
             // Screenshot of the window used before coming to the island.
             "screenshot" => {
-                let folder = ctx.hub.app().path().app_data_dir().map_err(|e| e.to_string())?.join("attachments");
-                let shot = capture::capture(crate::window::last_foreground(), &folder).ok_or("capture failed")?;
+                let folder = ctx
+                    .hub
+                    .app()
+                    .path()
+                    .app_data_dir()
+                    .map_err(|e| e.to_string())?
+                    .join("attachments");
+                let shot = capture::capture(crate::window::last_foreground(), &folder)
+                    .ok_or("capture failed")?;
                 let app = ctx.hub.app();
                 let label = match shot.title {
                     Some(title) => i18n::t(app, "ask.screenOf").replace("{title}", &title),
@@ -174,8 +185,10 @@ impl Provider for AskProvider {
             }
             // Files dropped on the island → attachments (with thumbnails).
             "attachments" => {
-                let paths: Vec<String> = serde_json::from_value(payload).map_err(|e| e.to_string())?;
-                let list: Vec<Attachment> = paths.iter().map(|p| attachment_for(Path::new(p))).collect();
+                let paths: Vec<String> =
+                    serde_json::from_value(payload).map_err(|e| e.to_string())?;
+                let list: Vec<Attachment> =
+                    paths.iter().map(|p| attachment_for(Path::new(p))).collect();
                 return serde_json::to_value(list).map_err(|e| e.to_string());
             }
             _ => return Err(format!("{ID}: unknown action '{action}'")),
@@ -189,10 +202,15 @@ pub fn attachment_for(path: &Path) -> Attachment {
     let size = std::fs::metadata(path).map(|m| m.len()).unwrap_or(u64::MAX);
     Attachment {
         path: path.to_string_lossy().to_string(),
-        name: path.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default(),
+        name: path
+            .file_name()
+            .map(|n| n.to_string_lossy().to_string())
+            .unwrap_or_default(),
         is_image: media.is_some() && size <= MAX_IMAGE_BYTES,
         label: None,
-        thumb: media.filter(|_| size <= MAX_THUMB_BYTES).and_then(|m| data_url(path, m)),
+        thumb: media
+            .filter(|_| size <= MAX_THUMB_BYTES)
+            .and_then(|m| data_url(path, m)),
     }
 }
 
@@ -209,7 +227,10 @@ pub fn image_media_type(path: &Path) -> Option<&'static str> {
 
 pub fn data_url(path: &Path, media: &str) -> Option<String> {
     let bytes = std::fs::read(path).ok()?;
-    Some(format!("data:{media};base64,{}", base64::engine::general_purpose::STANDARD.encode(bytes)))
+    Some(format!(
+        "data:{media};base64,{}",
+        base64::engine::general_purpose::STANDARD.encode(bytes)
+    ))
 }
 
 fn send(ctx: &Arc<Ctx>, text: String, attachments: Vec<Attachment>) {
@@ -222,13 +243,27 @@ fn send(ctx: &Arc<Ctx>, text: String, attachments: Vec<Attachment>) {
         return;
     }
     if prompt.is_empty() {
-        let key = if attachments.iter().any(|a| a.is_image) { "ask.defaultImage" } else { "ask.defaultFile" };
+        let key = if attachments.iter().any(|a| a.is_image) {
+            "ask.defaultImage"
+        } else {
+            "ask.defaultFile"
+        };
         prompt = i18n::t(&app, key);
     }
 
     ctx.update(|s| {
-        s.messages.push(Message { from_user: true, text: prompt.clone(), error: false, attachments: attachments.clone() });
-        s.messages.push(Message { from_user: false, text: String::new(), error: false, attachments: vec![] });
+        s.messages.push(Message {
+            from_user: true,
+            text: prompt.clone(),
+            error: false,
+            attachments: attachments.clone(),
+        });
+        s.messages.push(Message {
+            from_user: false,
+            text: String::new(),
+            error: false,
+            attachments: vec![],
+        });
         s.unread = false;
     });
 
@@ -239,21 +274,36 @@ fn send(ctx: &Arc<Ctx>, text: String, attachments: Vec<Attachment>) {
     let input = match build_input(&prompt, &attachments) {
         Ok(input) => input,
         Err(e) => {
-            fail(ctx, i18n::t(&app, "ask.attachmentFailed").replace("{error}", &e));
+            fail(
+                ctx,
+                i18n::t(&app, "ask.attachmentFailed").replace("{error}", &e),
+            );
             return;
         }
     };
 
-    let home = std::env::var_os("USERPROFILE").map(PathBuf::from).unwrap_or_else(std::env::temp_dir);
+    let home = std::env::var_os("USERPROFILE")
+        .map(PathBuf::from)
+        .unwrap_or_else(std::env::temp_dir);
     let language = i18n::t(&app, "language.name");
     let mut command = Command::new(&claude);
     command
         .current_dir(home)
-        .args(["-p", "--input-format", "stream-json", "--output-format", "stream-json", "--verbose"])
+        .args([
+            "-p",
+            "--input-format",
+            "stream-json",
+            "--output-format",
+            "stream-json",
+            "--verbose",
+        ])
         .arg("--include-partial-messages")
         // The island's own questions shouldn't show up as sessions in the island.
         .args(["--settings", r#"{"disableAllHooks":true}"#])
-        .args(["--append-system-prompt", &SYSTEM_PROMPT.replace("{language}", &language)])
+        .args([
+            "--append-system-prompt",
+            &SYSTEM_PROMPT.replace("{language}", &language),
+        ])
         // Read-only tools work without asking; the web needs an explicit allowance headless.
         .args(["--allowedTools", "WebSearch", "WebFetch"])
         .stdin(Stdio::piped())
@@ -267,7 +317,10 @@ fn send(ctx: &Arc<Ctx>, text: String, attachments: Vec<Attachment>) {
     let mut child = match command.spawn() {
         Ok(child) => child,
         Err(e) => {
-            fail(ctx, i18n::t(&app, "ask.startFailed").replace("{error}", &e.to_string()));
+            fail(
+                ctx,
+                i18n::t(&app, "ask.startFailed").replace("{error}", &e.to_string()),
+            );
             return;
         }
     };
@@ -277,7 +330,10 @@ fn send(ctx: &Arc<Ctx>, text: String, attachments: Vec<Attachment>) {
     *ctx.child.lock().unwrap() = Some(child);
     ctx.update(|s| {
         s.running = true;
-        s.status = Some(Status { kind: "thinking", arg: None });
+        s.status = Some(Status {
+            kind: "thinking",
+            arg: None,
+        });
     });
 
     let ctx = ctx.clone();
@@ -295,10 +351,20 @@ fn send(ctx: &Arc<Ctx>, text: String, attachments: Vec<Attachment>) {
             });
         }
         let outcome = stdout.map(|out| stream(&ctx, out)).unwrap_or_default();
-        let status = ctx.child.lock().unwrap().take().and_then(|mut c| c.wait().ok());
+        let status = ctx
+            .child
+            .lock()
+            .unwrap()
+            .take()
+            .and_then(|mut c| c.wait().ok());
         // Give stderr a moment to be collected.
         std::thread::sleep(Duration::from_millis(50));
-        finish(&ctx, outcome, status.is_some_and(|s| s.success()), &errors.lock().unwrap());
+        finish(
+            &ctx,
+            outcome,
+            status.is_some_and(|s| s.success()),
+            &errors.lock().unwrap(),
+        );
     });
 }
 
@@ -319,7 +385,9 @@ fn stream(ctx: &Ctx, stdout: impl Read) -> Outcome {
         if !line.starts_with('{') {
             continue;
         }
-        let Ok(v) = serde_json::from_str::<Value>(&line) else { continue };
+        let Ok(v) = serde_json::from_str::<Value>(&line) else {
+            continue;
+        };
         if let Some(id) = v["session_id"].as_str().filter(|s| !s.is_empty()) {
             *ctx.session_id.lock().unwrap() = Some(id.to_string());
         }
@@ -330,8 +398,14 @@ fn stream(ctx: &Ctx, stdout: impl Read) -> Outcome {
                 match ev["type"].as_str() {
                     Some("content_block_start") => match ev["content_block"]["type"].as_str() {
                         Some("tool_use") => {
-                            let tool = ev["content_block"]["name"].as_str().unwrap_or("").to_string();
-                            state.status = Some(Status { kind: "tool", arg: Some(tool) });
+                            let tool = ev["content_block"]["name"]
+                                .as_str()
+                                .unwrap_or("")
+                                .to_string();
+                            state.status = Some(Status {
+                                kind: "tool",
+                                arg: Some(tool),
+                            });
                             text_in_block = false;
                         }
                         Some("text") => {
@@ -343,13 +417,18 @@ fn stream(ctx: &Ctx, stdout: impl Read) -> Outcome {
                                 reply.text.push_str("\n\n");
                             }
                             text_in_block = true;
-                            state.status = Some(Status { kind: "writing", arg: None });
+                            state.status = Some(Status {
+                                kind: "writing",
+                                arg: None,
+                            });
                         }
                         _ => {}
                     },
                     Some("content_block_delta") if ev["delta"]["type"] == "text_delta" => {
                         if let Some(reply) = state.messages.last_mut() {
-                            reply.text.push_str(ev["delta"]["text"].as_str().unwrap_or(""));
+                            reply
+                                .text
+                                .push_str(ev["delta"]["text"].as_str().unwrap_or(""));
                         }
                     }
                     _ => {}
@@ -383,7 +462,9 @@ fn finish(ctx: &Ctx, outcome: Outcome, success: bool, errors: &str) {
     ctx.update(|s| {
         s.running = false;
         s.status = None;
-        let Some(reply) = s.messages.last_mut() else { return };
+        let Some(reply) = s.messages.last_mut() else {
+            return;
+        };
         let cancelled = !success && outcome.result.is_none() && errors.trim().is_empty();
         if reply.text.is_empty()
             && let Some(result) = outcome.result.as_deref().filter(|r| !r.trim().is_empty())
@@ -401,7 +482,11 @@ fn finish(ctx: &Ctx, outcome: Outcome, success: bool, errors: &str) {
                 .unwrap_or_else(|| i18n::t(&app, "ask.noAnswer"));
             log::warn!("ask: {detail}");
             reply.error = true;
-            reply.text = if reply.text.is_empty() { detail } else { format!("{}\n\n{detail}", reply.text) };
+            reply.text = if reply.text.is_empty() {
+                detail
+            } else {
+                format!("{}\n\n{detail}", reply.text)
+            };
         } else if cancelled && reply.text.is_empty() {
             reply.text = i18n::t(&app, "ask.interrupted");
             reply.error = true;
@@ -421,7 +506,12 @@ fn finish(ctx: &Ctx, outcome: Outcome, success: bool, errors: &str) {
         && !*ctx.viewing.lock().unwrap()
         && let Some(activities) = activities::handle()
     {
-        let flat = text.replace("**", "").replace('`', "").split_whitespace().collect::<Vec<_>>().join(" ");
+        let flat = text
+            .replace("**", "")
+            .replace('`', "")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
         let mut preview: String = flat.chars().take(140).collect();
         if flat.chars().count() > 140 {
             preview.push('…');
@@ -472,7 +562,10 @@ fn build_input(prompt: &str, attachments: &[Attachment]) -> Result<String, Strin
         }
     }
     content.push(json!({ "type": "text", "text": text }));
-    Ok(json!({ "type": "user", "message": { "role": "user", "content": content } }).to_string() + "\n")
+    Ok(
+        json!({ "type": "user", "message": { "role": "user", "content": content } }).to_string()
+            + "\n",
+    )
 }
 
 /// The Claude Code CLI: on PATH, the standalone install (`~/.local/bin`), or
@@ -494,8 +587,17 @@ pub fn find_claude() -> Option<PathBuf> {
     std::fs::read_dir(home.join(".vscode").join("extensions"))
         .ok()?
         .flatten()
-        .filter(|e| e.file_name().to_string_lossy().starts_with("anthropic.claude-code-"))
-        .map(|e| e.path().join("resources").join("native-binary").join("claude.exe"))
+        .filter(|e| {
+            e.file_name()
+                .to_string_lossy()
+                .starts_with("anthropic.claude-code-")
+        })
+        .map(|e| {
+            e.path()
+                .join("resources")
+                .join("native-binary")
+                .join("claude.exe")
+        })
         .filter(|p| p.is_file())
         .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())
 }

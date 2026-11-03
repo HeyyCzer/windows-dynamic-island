@@ -42,7 +42,11 @@ struct Screen {
 }
 
 fn screens(win: &WebviewWindow) -> Vec<Screen> {
-    let primary = win.primary_monitor().ok().flatten().and_then(|m| m.name().cloned());
+    let primary = win
+        .primary_monitor()
+        .ok()
+        .flatten()
+        .and_then(|m| m.name().cloned());
     let names = display_names();
     win.available_monitors()
         .unwrap_or_default()
@@ -50,7 +54,10 @@ fn screens(win: &WebviewWindow) -> Vec<Screen> {
         .map(|monitor| {
             let gdi = monitor.name().cloned().unwrap_or_default();
             let (id, name) = match names.iter().find(|n| n.gdi == gdi) {
-                Some(n) => (n.path.clone().unwrap_or_else(|| gdi.clone()), n.friendly.clone()),
+                Some(n) => (
+                    n.path.clone().unwrap_or_else(|| gdi.clone()),
+                    n.friendly.clone(),
+                ),
                 None => (gdi.clone(), None),
             };
             Screen {
@@ -120,7 +127,10 @@ fn target(app: &AppHandle, win: &WebviewWindow) -> Option<Monitor> {
 /// Window rect (physical px) that stretches the strip across `monitor`'s top.
 fn strip_rect(monitor: &Monitor) -> (PhysicalPosition<i32>, PhysicalSize<u32>) {
     let height = (STRIP_HEIGHT * monitor.scale_factor()).round() as u32;
-    (*monitor.position(), PhysicalSize::new(monitor.size().width, height))
+    (
+        *monitor.position(),
+        PhysicalSize::new(monitor.size().width, height),
+    )
 }
 
 fn apply(win: &WebviewWindow, monitor: &Monitor) -> tauri::Result<()> {
@@ -194,14 +204,17 @@ fn display_names() -> Vec<DisplayName> {
     use windows::Win32::Devices::Display::{
         DISPLAYCONFIG_DEVICE_INFO_GET_SOURCE_NAME, DISPLAYCONFIG_DEVICE_INFO_GET_TARGET_NAME,
         DISPLAYCONFIG_DEVICE_INFO_HEADER, DISPLAYCONFIG_MODE_INFO, DISPLAYCONFIG_PATH_INFO,
-        DISPLAYCONFIG_SOURCE_DEVICE_NAME, DISPLAYCONFIG_TARGET_DEVICE_NAME, DisplayConfigGetDeviceInfo,
-        GetDisplayConfigBufferSizes, QDC_ONLY_ACTIVE_PATHS, QueryDisplayConfig,
+        DISPLAYCONFIG_SOURCE_DEVICE_NAME, DISPLAYCONFIG_TARGET_DEVICE_NAME,
+        DisplayConfigGetDeviceInfo, GetDisplayConfigBufferSizes, QDC_ONLY_ACTIVE_PATHS,
+        QueryDisplayConfig,
     };
     use windows::Win32::Foundation::ERROR_SUCCESS;
 
     unsafe {
         let (mut path_count, mut mode_count) = (0u32, 0u32);
-        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count) != ERROR_SUCCESS {
+        if GetDisplayConfigBufferSizes(QDC_ONLY_ACTIVE_PATHS, &mut path_count, &mut mode_count)
+            != ERROR_SUCCESS
+        {
             return Vec::new();
         }
         let mut paths = vec![DISPLAYCONFIG_PATH_INFO::default(); path_count as usize];
@@ -258,7 +271,11 @@ fn display_names() -> Vec<DisplayName> {
             } else {
                 (None, None)
             };
-            out.push(DisplayName { gdi, friendly, path: device });
+            out.push(DisplayName {
+                gdi,
+                friendly,
+                path: device,
+            });
         }
         out
     }
@@ -278,13 +295,17 @@ fn display_names() -> Vec<DisplayName> {
 fn covered_monitors(app: &AppHandle) -> Vec<(i32, i32)> {
     use windows::Win32::Foundation::{HWND, LPARAM, RECT};
     use windows::Win32::Graphics::Dwm::{DWMWA_CLOAKED, DwmGetWindowAttribute};
-    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MONITOR_DEFAULTTONULL, MONITORINFO, MonitorFromWindow};
+    use windows::Win32::Graphics::Gdi::{
+        GetMonitorInfoW, MONITOR_DEFAULTTONULL, MONITORINFO, MonitorFromWindow,
+    };
     use windows::Win32::UI::Shell::{
-        QUNS_BUSY, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN, SHQueryUserNotificationState,
+        QUNS_BUSY, QUNS_PRESENTATION_MODE, QUNS_RUNNING_D3D_FULL_SCREEN,
+        SHQueryUserNotificationState,
     };
     use windows::Win32::UI::WindowsAndMessaging::{
-        EnumWindows, GWL_EXSTYLE, GetClassNameW, GetForegroundWindow, GetWindowLongPtrW, GetWindowRect, IsIconic,
-        IsWindowVisible, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW, WS_EX_TRANSPARENT,
+        EnumWindows, GWL_EXSTYLE, GetClassNameW, GetForegroundWindow, GetWindowLongPtrW,
+        GetWindowRect, IsIconic, IsWindowVisible, WS_EX_NOACTIVATE, WS_EX_TOOLWINDOW,
+        WS_EX_TRANSPARENT,
     };
     use windows::core::BOOL;
 
@@ -299,7 +320,10 @@ fn covered_monitors(app: &AppHandle) -> Vec<(i32, i32)> {
     unsafe extern "system" fn visit(hwnd: HWND, lparam: LPARAM) -> BOOL {
         let ctx = unsafe { &mut *(lparam.0 as *mut Ctx) };
         unsafe {
-            if ctx.ours.contains(&(hwnd.0 as isize)) || !IsWindowVisible(hwnd).as_bool() || IsIconic(hwnd).as_bool() {
+            if ctx.ours.contains(&(hwnd.0 as isize))
+                || !IsWindowVisible(hwnd).as_bool()
+                || IsIconic(hwnd).as_bool()
+            {
                 return true.into();
             }
             // Overlays, tool palettes and click-through layers aren't apps.
@@ -309,7 +333,13 @@ fn covered_monitors(app: &AppHandle) -> Vec<(i32, i32)> {
             }
             // Windows on other virtual desktops (and suspended UWP frames) are cloaked.
             let mut cloaked = 0u32;
-            if DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, (&raw mut cloaked).cast(), size_of::<u32>() as u32).is_ok()
+            if DwmGetWindowAttribute(
+                hwnd,
+                DWMWA_CLOAKED,
+                (&raw mut cloaked).cast(),
+                size_of::<u32>() as u32,
+            )
+            .is_ok()
                 && cloaked != 0
             {
                 return true.into();
@@ -317,7 +347,10 @@ fn covered_monitors(app: &AppHandle) -> Vec<(i32, i32)> {
             let mut class = [0u16; 64];
             let len = GetClassNameW(hwnd, &mut class) as usize;
             let class = String::from_utf16_lossy(&class[..len]);
-            if matches!(class.as_str(), "Progman" | "WorkerW" | "Shell_TrayWnd" | "Shell_SecondaryTrayWnd") {
+            if matches!(
+                class.as_str(),
+                "Progman" | "WorkerW" | "Shell_TrayWnd" | "Shell_SecondaryTrayWnd"
+            ) {
                 return true.into();
             }
 
@@ -360,7 +393,9 @@ fn covered_monitors(app: &AppHandle) -> Vec<(i32, i32)> {
         busy_fg: unsafe {
             let fg = GetForegroundWindow();
             let busy = SHQueryUserNotificationState().is_ok_and(|state| {
-                state == QUNS_BUSY || state == QUNS_RUNNING_D3D_FULL_SCREEN || state == QUNS_PRESENTATION_MODE
+                state == QUNS_BUSY
+                    || state == QUNS_RUNNING_D3D_FULL_SCREEN
+                    || state == QUNS_PRESENTATION_MODE
             });
             (busy && !fg.is_invalid()).then_some(fg.0 as isize)
         },

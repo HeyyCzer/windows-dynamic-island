@@ -11,8 +11,8 @@
 
 mod api;
 
-use std::sync::Mutex;
 use std::sync::Arc;
+use std::sync::Mutex;
 use std::sync::mpsc::{self, RecvTimeoutError, Sender};
 use std::time::Duration;
 
@@ -129,7 +129,11 @@ impl Provider for GithubProvider {
                 match reason {
                     // Some other setting changed.
                     Some(Wake::Settings) if signature == w.signature => continue,
-                    Some(Wake::Refresh) if now_ms().saturating_sub(w.last_round) < MIN_REFRESH_GAP_MS => continue,
+                    Some(Wake::Refresh)
+                        if now_ms().saturating_sub(w.last_round) < MIN_REFRESH_GAP_MS =>
+                    {
+                        continue;
+                    }
                     Some(Wake::Auth) => w.auth_dirty = true,
                     _ => {}
                 }
@@ -185,9 +189,16 @@ struct Worker {
 impl Worker {
     fn config(&self) -> (bool, Vec<String>) {
         let settings = self.hub.app().state::<Settings>();
-        let enabled = settings.get(ENABLED_KEY).and_then(|v| v.as_bool()).unwrap_or(true);
+        let enabled = settings
+            .get(ENABLED_KEY)
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
         let mut repos: Vec<String> = Vec::new();
-        for v in settings.get(REPOS_KEY).and_then(|v| v.as_array().cloned()).unwrap_or_default() {
+        for v in settings
+            .get(REPOS_KEY)
+            .and_then(|v| v.as_array().cloned())
+            .unwrap_or_default()
+        {
             if let Some(r) = v.as_str().map(str::trim)
                 && valid_repo(r)
                 && !repos.iter().any(|x| x.eq_ignore_ascii_case(r))
@@ -240,7 +251,10 @@ impl Worker {
                     .iter()
                     .position(|r| r.name.eq_ignore_ascii_case(name))
                     .map(|i| previous.swap_remove(i))
-                    .map(|r| RepoState { name: name.clone(), ..r })
+                    .map(|r| RepoState {
+                        name: name.clone(),
+                        ..r
+                    })
                     .unwrap_or_else(|| RepoState {
                         name: name.clone(),
                         ..Default::default()
@@ -297,7 +311,11 @@ impl Worker {
 
 /// `owner/name` with GitHub's allowed characters.
 fn valid_repo(r: &str) -> bool {
-    let ok = |s: &str| !s.is_empty() && s.chars().all(|c| c.is_ascii_alphanumeric() || "-_.".contains(c));
+    let ok = |s: &str| {
+        !s.is_empty()
+            && s.chars()
+                .all(|c| c.is_ascii_alphanumeric() || "-_.".contains(c))
+    };
     matches!(r.split_once('/'), Some((owner, name)) if ok(owner) && ok(name))
 }
 
