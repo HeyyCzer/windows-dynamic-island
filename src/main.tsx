@@ -21,8 +21,19 @@ if (import.meta.env.PROD) document.addEventListener("contextmenu", (e) => e.prev
 // Browser preview only: fake wallpaper so the black island is visible.
 if (!isTauri && label === "island") document.body.classList.add("preview");
 
+// Browser preview only: the panel that drives the mock (not in `?demo`, the README GIF).
+const DevTools =
+	import.meta.env.DEV && !isTauri && label === "island" && !new URLSearchParams(location.search).has("demo")
+		? React.lazy(() => import("./dev/DevTools").then((m) => ({ default: m.DevTools })))
+		: null;
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
 		{label === "settings" ? <SettingsApp /> : label === "pip" ? <PipApp /> : <Island />}
+		{DevTools && (
+			<React.Suspense>
+				<DevTools />
+			</React.Suspense>
+		)}
 	</React.StrictMode>,
 );
