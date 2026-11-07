@@ -253,6 +253,12 @@ export const appearanceSettings = {
 		description: "appearance.glow.desc",
 		default: true,
 	} satisfies SettingDef,
+	glass: {
+		key: "appearance.glass",
+		label: "appearance.glass.label",
+		description: "appearance.glass.desc",
+		default: false,
+	} satisfies SettingDef,
 	idleClock: {
 		key: "appearance.idleClock",
 		label: "appearance.idleClock.label",

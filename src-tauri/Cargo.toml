@@ -50,12 +50,16 @@ drag = "2"
 windows-collections = "0.3"
 # `#[implement]` (the drop target in `file_drop.rs`) expands to `windows_core::…`.
 windows-core = "0.62"
+# `Vector2` / `Vector3` for the glass's composition visuals and Direct2D path.
+windows-numerics = "0.3"
 windows = { version = "0.62", features = [
   "ApplicationModel",
   "Devices_Enumeration",
   "Win32_Devices_Display",
   "Foundation",
   "Foundation_Collections",
+  "Foundation_Numerics",
+  "Graphics",
   "Graphics_Imaging",
   "Management_Deployment",
   "Media_Control",
@@ -63,6 +67,8 @@ windows = { version = "0.62", features = [
   "Storage_Streams",
   "Win32_Foundation",
   "Win32_Graphics_Dwm",
+  "Win32_Graphics_Direct2D",
+  "Win32_Graphics_Direct2D_Common",
   "Win32_Graphics_Gdi",
   "Win32_System_Com",
   "Win32_System_Com_StructuredStorage",
@@ -82,11 +88,17 @@ windows = { version = "0.62", features = [
   "Win32_System_Power",
   "Win32_System_SystemInformation",
   "Win32_System_SystemServices",
+  "Win32_System_WinRT",
+  "Win32_System_WinRT_Composition",
+  "Win32_System_WinRT_Graphics_Direct2D",
+  "System",
   "Win32_System_Threading",
   "Win32_UI_Shell",
   "Win32_UI_Shell_Common",
   "Win32_UI_Input_KeyboardAndMouse",
   "Win32_UI_WindowsAndMessaging",
+  "UI_Composition",
+  "UI_Composition_Desktop",
   "UI_Notifications",
   "UI_Notifications_Management",
 ] }

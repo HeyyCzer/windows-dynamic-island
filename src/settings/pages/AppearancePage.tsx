@@ -133,6 +133,7 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 				</Row>
 				<ToggleRow def={appearanceSettings.animate} value={readSetting(values, appearanceSettings.animate)} />
 				<ToggleRow def={appearanceSettings.glow} value={readSetting(values, appearanceSettings.glow)} />
+				<ToggleRow def={appearanceSettings.glass} value={readSetting(values, appearanceSettings.glass)} />
 				<ToggleRow def={appearanceSettings.idleClock} value={readSetting(values, appearanceSettings.idleClock)} />
 				<Row
 					label={t("appearance.tabsPosition.label")}

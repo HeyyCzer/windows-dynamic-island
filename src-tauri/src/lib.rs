@@ -2,6 +2,7 @@ mod autostart;
 mod dialog;
 mod display;
 mod file_drop;
+mod glass;
 mod hub;
 mod i18n;
 mod pip;
@@ -75,6 +76,7 @@ pub fn run() {
                 win.show()?;
                 file_drop::hook(&handle, &win);
             }
+            glass::setup(&handle);
             window::spawn_hit_test(handle.clone());
             display::spawn_placement(handle.clone());
 
@@ -87,6 +89,7 @@ pub fn run() {
             providers::get_snapshot,
             providers::provider_action,
             window::set_hit_rects,
+            glass::set_glass_shapes,
             window::set_dragging,
             window::is_fullscreen_active,
             window::focus_island,

@@ -307,6 +307,8 @@ export type MessageKey =
 	| "appearance.animate.desc"
 	| "appearance.glow.label"
 	| "appearance.glow.desc"
+	| "appearance.glass.label"
+	| "appearance.glass.desc"
 	| "appearance.idleClock.label"
 	| "appearance.idleClock.desc"
 	| "appearance.hide.label"

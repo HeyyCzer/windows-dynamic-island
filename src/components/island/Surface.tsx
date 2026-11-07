@@ -2,6 +2,7 @@ import { AnimatePresence, motion, type Transition } from "motion/react";
 import type { ReactNode } from "react";
 import type { Appearance } from "../../core/appearance";
 import { cn } from "../../core/cn";
+import { GlassProbes } from "./GlassProbes";
 import { cornerRadius, type Geo } from "./geometry";
 import { glowStyle } from "./Rim";
 
@@ -26,6 +27,7 @@ export function Surface({
 	const windows = look.style === "windows";
 	return (
 		<motion.div
+			data-glass
 			className={cn(
 				"absolute inset-0 overflow-hidden bg-island shadow-[0_14px_34px_-14px_rgba(0,0,0,0.7)] transition-shadow duration-400 ease-[ease]",
 				big && "shadow-[0_26px_60px_-18px_rgba(0,0,0,0.85),inset_0_-1px_0_rgba(255,255,255,0.06)]",
@@ -58,6 +60,7 @@ export function Surface({
 				</motion.div>
 			</AnimatePresence>
 			{rim}
+			<GlassProbes />
 		</motion.div>
 	);
 }

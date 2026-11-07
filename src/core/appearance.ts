@@ -48,6 +48,8 @@ export interface Appearance {
 	thickness: number;
 	animate: boolean;
 	glow: boolean;
+	/** Frosted glass: the desktop behind the island shows through, blurred. */
+	glass: boolean;
 	idleClock: boolean;
 }
 
@@ -67,6 +69,7 @@ export function useAppearance(): Appearance {
 		thickness: Math.min(3, Math.max(1, Number(readSetting(s, appearanceSettings.thickness)) || 2)),
 		animate: readSetting(s, appearanceSettings.animate),
 		glow: readSetting(s, appearanceSettings.glow),
+		glass: readSetting(s, appearanceSettings.glass),
 		idleClock: readSetting(s, appearanceSettings.idleClock),
 	};
 }
