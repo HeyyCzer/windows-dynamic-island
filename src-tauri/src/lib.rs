@@ -90,6 +90,8 @@ pub fn run() {
             providers::provider_action,
             window::set_hit_rects,
             glass::set_glass_shapes,
+            glass::set_glass_level,
+            glass::glass_supported,
             window::set_dragging,
             window::is_fullscreen_active,
             window::focus_island,

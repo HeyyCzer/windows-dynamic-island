@@ -103,14 +103,54 @@ pub fn to_physical(shapes: &[GlassShape], scale: f64) -> Vec<PhysicalShape> {
         .collect()
 }
 
-/// Sync on purpose: Tauri runs it on the main thread, where the composition
-/// objects live.
+/// How strongly the desktop behind the island is blurred.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum GlassLevel {
+    Subtle,
+    Moderate,
+    Strong,
+}
+
+impl GlassLevel {
+    /// Blur added on top of the system's own (fixed) backdrop blur: standard
+    /// deviation in CSS px.
+    pub fn extra_blur(self) -> f32 {
+        match self {
+            GlassLevel::Subtle => 0.0,
+            GlassLevel::Moderate => 10.0,
+            GlassLevel::Strong => 24.0,
+        }
+    }
+}
+
+// Both commands are sync on purpose: Tauri runs them on the main thread,
+// where the composition objects live.
+
 #[tauri::command]
 pub fn set_glass_shapes(app: tauri::AppHandle, shapes: Vec<GlassShape>) {
     #[cfg(windows)]
     imp::apply(&app, &shapes);
     #[cfg(not(windows))]
     let _ = (app, shapes);
+}
+
+/// Whether the glass could be set up (Windows 11): the frontend hides the
+/// option otherwise, rather than tinting the island with nothing behind it.
+#[tauri::command]
+pub fn glass_supported() -> bool {
+    #[cfg(windows)]
+    return imp::supported();
+    #[cfg(not(windows))]
+    false
+}
+
+#[tauri::command]
+pub fn set_glass_level(app: tauri::AppHandle, level: GlassLevel) {
+    #[cfg(windows)]
+    imp::set_level(&app, level);
+    #[cfg(not(windows))]
+    let _ = (app, level);
 }
 
 #[cfg(windows)]
@@ -129,18 +169,27 @@ mod imp {
     use std::sync::atomic::{AtomicIsize, Ordering};
 
     use tauri::{AppHandle, Manager};
+    use windows::Foundation::{IPropertyValue, PropertyValue};
+    use windows::Graphics::Effects::{
+        IGraphicsEffect, IGraphicsEffect_Impl, IGraphicsEffectSource, IGraphicsEffectSource_Impl,
+    };
     use windows::Graphics::{IGeometrySource2D, IGeometrySource2D_Impl};
     use windows::System::DispatcherQueueController;
     use windows::UI::Composition::Desktop::DesktopWindowTarget;
     use windows::UI::Composition::{
+        CompositionBackdropBrush, CompositionBrush, CompositionEffectSourceParameter,
         CompositionGeometricClip, CompositionPath, Compositor, SpriteVisual,
     };
-    use windows::Win32::Foundation::{E_NOTIMPL, HWND, LPARAM, LRESULT, WPARAM};
+    use windows::Win32::Foundation::{
+        E_BOUNDS, E_INVALIDARG, E_NOTIMPL, HWND, LPARAM, LRESULT, WPARAM,
+    };
     use windows::Win32::Graphics::Direct2D::Common::{
-        D2D_SIZE_F, D2D1_FIGURE_BEGIN_FILLED, D2D1_FIGURE_END_CLOSED, D2D1_FILL_MODE_WINDING,
+        D2D_SIZE_F, D2D1_BORDER_MODE_HARD, D2D1_FIGURE_BEGIN_FILLED, D2D1_FIGURE_END_CLOSED,
+        D2D1_FILL_MODE_WINDING,
     };
     use windows::Win32::Graphics::Direct2D::{
-        D2D1_ARC_SEGMENT, D2D1_ARC_SIZE_SMALL, D2D1_FACTORY_TYPE_SINGLE_THREADED,
+        CLSID_D2D1GaussianBlur, D2D1_ARC_SEGMENT, D2D1_ARC_SIZE_SMALL,
+        D2D1_DIRECTIONALBLUR_OPTIMIZATION_BALANCED, D2D1_FACTORY_TYPE_SINGLE_THREADED,
         D2D1_SWEEP_DIRECTION, D2D1_SWEEP_DIRECTION_CLOCKWISE,
         D2D1_SWEEP_DIRECTION_COUNTER_CLOCKWISE, D2D1CreateFactory, ID2D1Factory, ID2D1Geometry,
         ID2D1GeometrySink,
@@ -152,7 +201,8 @@ mod imp {
     use windows::Win32::System::LibraryLoader::GetModuleHandleW;
     use windows::Win32::System::WinRT::Composition::ICompositorDesktopInterop;
     use windows::Win32::System::WinRT::Graphics::Direct2D::{
-        IGeometrySource2DInterop, IGeometrySource2DInterop_Impl,
+        GRAPHICS_EFFECT_PROPERTY_MAPPING, IGeometrySource2DInterop, IGeometrySource2DInterop_Impl,
+        IGraphicsEffectD2D1Interop, IGraphicsEffectD2D1Interop_Impl,
     };
     use windows::Win32::System::WinRT::{
         CreateDispatcherQueueController, DQTAT_COM_NONE, DQTYPE_THREAD_CURRENT,
@@ -165,10 +215,10 @@ mod imp {
         WNDCLASSW, WS_EX_NOACTIVATE, WS_EX_NOREDIRECTIONBITMAP, WS_EX_TOOLWINDOW, WS_EX_TOPMOST,
         WS_POPUP,
     };
-    use windows::core::{BOOL, Interface, Ref, implement, w};
+    use windows::core::{BOOL, GUID, HSTRING, Interface, PCWSTR, Ref, implement, w};
     use windows_numerics::{Matrix3x2, Vector2};
 
-    use super::{GlassShape, PhysicalShape, ShapeKind, to_physical};
+    use super::{GlassLevel, GlassShape, PhysicalShape, ShapeKind, to_physical};
     use crate::window::ISLAND_LABEL;
 
     /// The glass window (0 until created), readable from any thread.
@@ -189,7 +239,9 @@ mod imp {
         _queue: Option<DispatcherQueueController>,
         compositor: Compositor,
         _target: DesktopWindowTarget,
-        _sprite: SpriteVisual,
+        sprite: SpriteVisual,
+        /// The blurred desktop, as the system draws it.
+        backdrop: CompositionBackdropBrush,
         clip: CompositionGeometricClip,
         d2d: ID2D1Factory,
     }
@@ -294,7 +346,8 @@ mod imp {
                 .CreateDesktopWindowTarget(hwnd, false)?;
             let sprite = compositor.CreateSpriteVisual()?;
             sprite.SetRelativeSizeAdjustment(Vector2 { X: 1.0, Y: 1.0 })?;
-            sprite.SetBrush(&compositor.CreateHostBackdropBrush()?)?;
+            let backdrop = compositor.CreateHostBackdropBrush()?;
+            sprite.SetBrush(&backdrop)?;
             let clip = compositor.CreateGeometricClip()?;
             sprite.SetClip(&clip)?;
             target.SetRoot(&sprite)?;
@@ -303,11 +356,119 @@ mod imp {
                 _queue: queue,
                 compositor,
                 _target: target,
-                _sprite: sprite,
+                sprite,
+                backdrop,
                 clip,
                 d2d,
             })
         }
+    }
+
+    /// A Direct2D effect described for composition: what Win2D's effect
+    /// classes do in C#. Composition reads the effect id, its properties (in
+    /// the effect's own index order) and its sources.
+    #[implement(IGraphicsEffect, IGraphicsEffectSource, IGraphicsEffectD2D1Interop)]
+    struct Effect {
+        id: GUID,
+        properties: Vec<IPropertyValue>,
+        sources: Vec<IGraphicsEffectSource>,
+        name: RefCell<HSTRING>,
+    }
+
+    impl IGraphicsEffectSource_Impl for Effect_Impl {}
+
+    impl IGraphicsEffect_Impl for Effect_Impl {
+        fn Name(&self) -> windows::core::Result<HSTRING> {
+            Ok(self.name.borrow().clone())
+        }
+
+        fn SetName(&self, name: &HSTRING) -> windows::core::Result<()> {
+            *self.name.borrow_mut() = name.clone();
+            Ok(())
+        }
+    }
+
+    impl IGraphicsEffectD2D1Interop_Impl for Effect_Impl {
+        fn GetEffectId(&self) -> windows::core::Result<GUID> {
+            Ok(self.id)
+        }
+
+        // Only asked for properties that get animated, and none are.
+        fn GetNamedPropertyMapping(
+            &self,
+            _name: &PCWSTR,
+            _index: *mut u32,
+            _mapping: *mut GRAPHICS_EFFECT_PROPERTY_MAPPING,
+        ) -> windows::core::Result<()> {
+            Err(E_INVALIDARG.into())
+        }
+
+        fn GetPropertyCount(&self) -> windows::core::Result<u32> {
+            Ok(self.properties.len() as u32)
+        }
+
+        fn GetProperty(&self, index: u32) -> windows::core::Result<IPropertyValue> {
+            self.properties
+                .get(index as usize)
+                .cloned()
+                .ok_or_else(|| E_BOUNDS.into())
+        }
+
+        fn GetSource(&self, index: u32) -> windows::core::Result<IGraphicsEffectSource> {
+            self.sources
+                .get(index as usize)
+                .cloned()
+                .ok_or_else(|| E_BOUNDS.into())
+        }
+
+        fn GetSourceCount(&self) -> windows::core::Result<u32> {
+            Ok(self.sources.len() as u32)
+        }
+    }
+
+    /// The backdrop with `deviation` px of Gaussian blur on top.
+    fn blurred(scene: &Scene, deviation: f32) -> windows::core::Result<CompositionBrush> {
+        const SOURCE: &str = "backdrop";
+        let float = |v: f32| PropertyValue::CreateSingle(v)?.cast::<IPropertyValue>();
+        let uint = |v: u32| PropertyValue::CreateUInt32(v)?.cast::<IPropertyValue>();
+        let blur: IGraphicsEffect = Effect {
+            id: CLSID_D2D1GaussianBlur,
+            // Standard deviation, optimization, border mode. A hard border
+            // keeps the window's edges (the top of the screen) from fading.
+            properties: vec![
+                float(deviation)?,
+                uint(D2D1_DIRECTIONALBLUR_OPTIMIZATION_BALANCED.0 as u32)?,
+                uint(D2D1_BORDER_MODE_HARD.0 as u32)?,
+            ],
+            sources: vec![CompositionEffectSourceParameter::Create(&SOURCE.into())?.cast()?],
+            name: RefCell::default(),
+        }
+        .into();
+        let brush = scene.compositor.CreateEffectFactory(&blur)?.CreateBrush()?;
+        brush.SetSourceParameter(&SOURCE.into(), &scene.backdrop)?;
+        brush.cast()
+    }
+
+    pub fn set_level(app: &AppHandle, level: GlassLevel) {
+        let scale = app
+            .get_webview_window(ISLAND_LABEL)
+            .and_then(|w| w.scale_factor().ok())
+            .unwrap_or(1.0) as f32;
+        SCENE.with(|scene| {
+            let scene = scene.borrow();
+            let Some(scene) = scene.as_ref() else {
+                return;
+            };
+            let deviation = level.extra_blur() * scale;
+            let brush = if deviation > 0.0 {
+                blurred(scene, deviation)
+            } else {
+                scene.backdrop.cast()
+            };
+            if let Err(e) = brush.and_then(|b| scene.sprite.SetBrush(&b)) {
+                log::warn!("glass: could not change the blur: {e}");
+            }
+        });
     }
 
     /// Hands a Direct2D geometry to composition, which reads it through these
@@ -455,6 +616,10 @@ mod imp {
         }
     }
 
+    pub fn supported() -> bool {
+        glass().is_some()
+    }
+
     fn glass() -> Option<HWND> {
         let raw = GLASS.load(Ordering::Relaxed);
         (raw != 0).then_some(HWND(raw as *mut _))
@@ -594,6 +759,15 @@ mod tests {
         s.radius_top = -3.0;
         let p = to_physical(&[s], 2.0);
         assert_eq!((p[0].radius_top, p[0].radius_bottom), (0.0, 10.0));
+    }
+
+    #[test]
+    fn levels_blur_more_as_they_go_up() {
+        let levels: Vec<GlassLevel> =
+            serde_json::from_str(r#"["subtle","moderate","strong"]"#).unwrap();
+        let blur: Vec<f32> = levels.iter().map(|l| l.extra_blur()).collect();
+        assert_eq!(blur[0], 0.0);
+        assert!(blur[0] < blur[1] && blur[1] < blur[2]);
     }
 
     #[test]

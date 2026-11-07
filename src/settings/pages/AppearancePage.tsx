@@ -5,6 +5,7 @@ import { Segmented } from "../../components/ui/form";
 import {
 	BORDER_PRESETS,
 	borderColors,
+	glassLevel,
 	PALETTE,
 	rimBackground,
 	swatchBackground,
@@ -12,7 +13,15 @@ import {
 } from "../../core/appearance";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
-import { appearanceSettings, ISLAND_HIDDEN_KEY, type IslandStyle, readSetting, setSetting } from "../../core/settings";
+import {
+	appearanceSettings,
+	GLASS_LEVELS,
+	ISLAND_HIDDEN_KEY,
+	type IslandStyle,
+	readSetting,
+	setSetting,
+} from "../../core/settings";
+import { useGlassSupported } from "../../core/useGlass";
 import { Title } from "../components/Heading";
 import { Toggle, ToggleRow } from "../components/Toggle";
 
@@ -28,6 +37,7 @@ const STYLES: {
 /** Look of the island: the visual style and, for Windows Island, its rim. */
 export function AppearancePage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
+	const glassSupported = useGlassSupported();
 	const style = readSetting(values, appearanceSettings.style);
 	const border = readSetting(values, appearanceSettings.border);
 	const custom = readSetting(values, appearanceSettings.customColors);
@@ -133,7 +143,15 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 				</Row>
 				<ToggleRow def={appearanceSettings.animate} value={readSetting(values, appearanceSettings.animate)} />
 				<ToggleRow def={appearanceSettings.glow} value={readSetting(values, appearanceSettings.glow)} />
-				<ToggleRow def={appearanceSettings.glass} value={readSetting(values, appearanceSettings.glass)} />
+				{glassSupported && (
+					<Row label={t("appearance.glass.label")} desc={t("appearance.glass.desc")}>
+						<Segmented
+							options={GLASS_LEVELS.map((level) => ({ value: level, label: t(`appearance.glass.${level}`) }))}
+							value={glassLevel(readSetting(values, appearanceSettings.glass))}
+							onChange={(level) => setSetting(appearanceSettings.glass, level)}
+						/>
+					</Row>
+				)}
 				<ToggleRow def={appearanceSettings.idleClock} value={readSetting(values, appearanceSettings.idleClock)} />
 				<Row
 					label={t("appearance.tabsPosition.label")}

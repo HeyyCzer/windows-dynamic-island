@@ -501,6 +501,10 @@
     glass: {
       label: "毛玻璃",
       desc: "灵动岛变为半透明，并模糊其后方的桌面。",
+      off: "关闭",
+      subtle: "轻微",
+      moderate: "适中",
+      strong: "强烈",
     },
     idleClock: {
       label: "静止时钟",

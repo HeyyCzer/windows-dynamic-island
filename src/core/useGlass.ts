@@ -1,5 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { command, isTauri } from "./bridge";
+import type { GlassLevel } from "./settings";
 
 /** The island's fill while the glass is on: dark enough to read, clear enough to see the blur. */
 const GLASS_TINT = "rgb(0 0 0 / 0.55)";
@@ -46,6 +47,24 @@ function measure(el: HTMLElement): GlassShape | undefined {
 	};
 }
 
+/** Asked once: the backend knows whether it could set the glass up (Windows 11). */
+let supportCheck: Promise<boolean> | undefined;
+
+/** Whether this system has frosted glass; `false` until known. The browser preview always does. */
+export function useGlassSupported() {
+	const [supported, setSupported] = useState(!isTauri);
+	useEffect(() => {
+		if (!isTauri) return;
+		supportCheck ??= command<boolean>("glass_supported").catch(() => false);
+		let live = true;
+		supportCheck.then((ok) => live && setSupported(ok));
+		return () => {
+			live = false;
+		};
+	}, []);
+	return supported;
+}
+
 /**
  * Frosted glass behind the island. The blur itself is a native window the
  * backend keeps cut to the island's outline: every element marked with
@@ -53,7 +72,15 @@ function measure(el: HTMLElement): GlassShape | undefined {
  * while the island spins away). Measured every frame so the blur follows the
  * springs; only changes are sent.
  */
-export function useGlass(enabled: boolean) {
+export function useGlass(level: GlassLevel) {
+	// Without the glass (Windows 10) the island stays solid, whatever is saved.
+	const enabled = useGlassSupported() && level !== "off";
+
+	// How much blur the backend adds on top of the system's.
+	useEffect(() => {
+		if (isTauri && enabled) command("set_glass_level", { level });
+	}, [enabled, level]);
+
 	useEffect(() => {
 		const root = document.documentElement.style;
 		if (enabled) root.setProperty("--island", GLASS_TINT);

@@ -505,6 +505,10 @@
     glass: {
       label: "Frosted glass",
       desc: "The island turns translucent and blurs the desktop behind it.",
+      off: "Off",
+      subtle: "Subtle",
+      moderate: "Moderate",
+      strong: "Strong",
     },
     idleClock: {
       label: "Clock at rest",

@@ -37,7 +37,7 @@ export const mocks: Mock[] = [
 ];
 
 /** Sent every few frames while the island animates: would drown the log. */
-const UNLOGGED = new Set(["set_hit_rects", "set_glass_shapes"]);
+const UNLOGGED = new Set(["set_hit_rects"]);
 
 function answer(target: "provider" | "command", id: string, name: string, payload: unknown) {
 	const handler = target === "provider" ? mocks.find((m) => m.actions?.[id]?.[name])?.actions?.[id][name] : undefined;
