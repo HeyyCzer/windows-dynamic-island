@@ -975,6 +975,7 @@ dependencies = [
  "tiny_http",
  "ureq",
  "url",
+ "webview2-com",
  "windows 0.62.2",
  "windows-collections",
  "windows-core 0.62.2",

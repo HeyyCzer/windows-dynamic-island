@@ -44,6 +44,8 @@ export function PluginFrame({
 			ref={ref}
 			src={src}
 			title={title}
+			// The backend keeps frames with this name on the plugin protocol (`plugins/frames.rs`).
+			name="island-plugin"
 			sandbox="allow-scripts"
 			referrerPolicy="no-referrer"
 			// Same scheme as the plugin's page, or Chromium paints the frame opaque.

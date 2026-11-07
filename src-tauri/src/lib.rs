@@ -88,6 +88,8 @@ pub fn run() {
                 win.set_ignore_cursor_events(true)?;
                 win.show()?;
                 file_drop::hook(&handle, &win);
+                #[cfg(windows)]
+                plugins::frames::guard(&win);
             }
             glass::setup(&handle);
             window::spawn_hit_test(handle.clone());

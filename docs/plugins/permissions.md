@@ -37,9 +37,10 @@ Several layers, so a mistake in one doesn't open everything:
 
 1. **Sandboxed iframe** (`sandbox="allow-scripts"`). Each page gets an opaque origin, so it has no access to the island's page, no cookies or storage, no popups, no forms, and no top-level navigation.
 2. **Content Security Policy** on every file the `plugin://` protocol serves. It allows only the plugin's own files and the SDK: `connect-src 'none'` blocks fetch, XHR, WebSocket and EventSource, remote images, fonts and media are blocked, and so are frames and workers. The SDK also removes WebRTC, which CSP doesn't cover.
-3. **No app API.** The app's IPC isn't available inside plugin frames. A plugin only reaches the app through `postMessage` to the island's host, which identifies it by the frame the message came from, never by anything the message claims.
-4. **The backend checks again.** Network, file and clipboard calls are checked in Rust against the permissions the user granted, so even a bug in the host can't widen them. Network requests don't follow redirects, so a granted host can't bounce the plugin elsewhere.
-5. **Integrity.**
+3. **Navigation guard.** On Windows, a plugin frame can't navigate away from the `plugin://` protocol.
+4. **No app API.** The app's IPC isn't available inside plugin frames. A plugin only reaches the app through `postMessage` to the island's host, which identifies it by the frame the message came from, never by anything the message claims.
+5. **The backend checks again.** Network, file and clipboard calls are checked in Rust against the permissions the user granted, so even a bug in the host can't widen them. Network requests don't follow redirects, so a granted host can't bounce the plugin elsewhere.
+6. **Integrity.**
    - When installing, the package's SHA-256 has to match the one in the source's index, or nothing is unpacked.
    - Unpacking rejects entries that would land outside the plugin's folder, links, and oversized archives.
    - The SHA-256 of every file is recorded. At every start, a plugin whose files changed or went missing doesn't load ("its files changed after it was installed"), and every file served to it is checked against its hash again.
@@ -54,5 +55,5 @@ Plugins loaded from a folder are served as they are, without hashes, so you can 
 
 ### Known limits
 
-- A page can still navigate *itself* to another URL, which carries data out through the address. The sandbox stops it from touching the island, but on Windows this kind of navigation isn't blocked yet (on the roadmap).
+- CSP doesn't cover a page navigating *itself* to another URL, which could carry data out through the address. On Windows the app cancels any navigation of a plugin frame that leaves the `plugin://` protocol (WebView2 frame events). Other platforms aren't supported by the app.
 - Plugin panels share the island's renderer budget: a plugin that spins the CPU slows the island down. Turn it off or remove it.
