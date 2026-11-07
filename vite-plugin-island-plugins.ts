@@ -14,6 +14,8 @@ import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import type { ServerResponse } from "node:http";
 import { extname, join, resolve, sep } from "node:path";
 import type { Plugin } from "vite";
+// @ts-expect-error plain JS, no types
+import { validate } from "./packages/plugin-sdk/cli.mjs";
 import { flatten } from "./vite-plugin-locales.ts";
 
 const ROOT = resolve(import.meta.dirname, "examples/plugins");
@@ -129,19 +131,23 @@ export function islandPlugins(): Plugin {
 
 				const rest = path.slice("/__plugins/".length);
 				if (rest === "__list.json") {
-					const list = [...packages().values()].map(({ dir, manifest }) => ({
-						id: manifest.id,
-						version: manifest.version,
-						manifest: normalize(manifest),
-						messages: messages(dir),
-						source: null,
-						dev: true,
-						devPath: dir,
-						granted: manifest.permissions ?? [],
-						installedAt: 0,
-						problem: null,
-						error: null,
-					}));
+					const list = [...packages().values()].map(({ dir, manifest }) => {
+						// Same checks as the app, so the preview doesn't run what the app would refuse.
+						const { errors } = validate(dir) as { errors: string[] };
+						return {
+							id: manifest.id,
+							version: manifest.version,
+							manifest: errors.length ? null : normalize(manifest),
+							messages: messages(dir),
+							source: null,
+							dev: true,
+							devPath: dir,
+							granted: manifest.permissions ?? [],
+							installedAt: 0,
+							problem: errors.length ? "invalid" : null,
+							error: errors.length ? errors.join("; ") : null,
+						};
+					});
 					return send(res, 200, TYPES[".json"], JSON.stringify(list));
 				}
 				if (rest === "__index.json") {

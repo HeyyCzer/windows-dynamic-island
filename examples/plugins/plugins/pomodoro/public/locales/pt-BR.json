@@ -1,0 +1,19 @@
+{
+	"meta": {
+		"name": "Pomodoro",
+		"description": "Foque em rodadas: um timer na ilha e uma pausa quando ele tocar."
+	},
+	"module": { "title": "Pomodoro" },
+	"phase": { "work": "Foco", "break": "Pausa" },
+	"actions": { "start": "Começar", "pause": "Pausar", "resume": "Continuar", "reset": "Zerar", "skip": "Pular" },
+	"done": { "work": "Hora da pausa", "break": "De volta ao trabalho" },
+	"rounds": "{n} rodadas hoje",
+	"settings": {
+		"work": "Tempo de foco",
+		"break": "Tempo de pausa",
+		"autoBreak": "Começar pausas sozinhas",
+		"autoBreakDesc": "Quando o foco acaba, a pausa começa na hora."
+	},
+	"units": { "min": "min" },
+	"shortcuts": { "toggle": "Começar ou pausar", "reset": "Zerar o timer" }
+}

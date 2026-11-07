@@ -144,5 +144,6 @@ declare global {
 	const island: IslandSDK;
 }
 
+// biome-ignore lint/suspicious/noRedeclare: the module export is the same object as the global above
 export declare const island: IslandSDK;
 export default island;

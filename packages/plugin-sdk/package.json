@@ -9,5 +9,11 @@
 	"bin": {
 		"island-plugin": "cli.mjs"
 	},
-	"files": ["index.js", "index.d.ts", "cli.mjs", "plugin.schema.json", "runtime"]
+	"files": [
+		"index.js",
+		"index.d.ts",
+		"cli.mjs",
+		"plugin.schema.json",
+		"runtime"
+	]
 }
