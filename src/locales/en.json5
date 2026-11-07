@@ -953,6 +953,7 @@
       pick: "Choose…",
       load: "Load",
       reload: "Reload plugins",
+      docs: "How to write a plugin",
     },
     module: {
       // {name}: the plugin's name
