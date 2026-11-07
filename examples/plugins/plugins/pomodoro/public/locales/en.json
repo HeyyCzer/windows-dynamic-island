@@ -1,0 +1,19 @@
+{
+	"meta": {
+		"name": "Pomodoro",
+		"description": "Focus in rounds: a timer in the island, a break when it rings."
+	},
+	"module": { "title": "Pomodoro" },
+	"phase": { "work": "Focus", "break": "Break" },
+	"actions": { "start": "Start", "pause": "Pause", "resume": "Resume", "reset": "Reset", "skip": "Skip" },
+	"done": { "work": "Time for a break", "break": "Back to work" },
+	"rounds": "{n} rounds today",
+	"settings": {
+		"work": "Focus time",
+		"break": "Break time",
+		"autoBreak": "Start breaks by themselves",
+		"autoBreakDesc": "When focus time ends, the break starts right away."
+	},
+	"units": { "min": "min" },
+	"shortcuts": { "toggle": "Start or pause", "reset": "Reset the timer" }
+}

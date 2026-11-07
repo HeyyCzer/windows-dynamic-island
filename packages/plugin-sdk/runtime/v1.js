@@ -10,8 +10,6 @@
  * Types: `@windows-island/plugin-sdk` (packages/plugin-sdk/index.d.ts).
  */
 (() => {
-	"use strict";
-
 	const SDK = "1.0";
 	const PROTOCOL = 1;
 

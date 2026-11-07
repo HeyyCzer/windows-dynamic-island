@@ -104,7 +104,8 @@ export function validate(dir) {
 	const list = files(dir);
 	const has = (p) => list.includes(p);
 	const id = (what, value, max = 32) => {
-		if (typeof value !== "string" || !ID.test(value) || value.length > max) errors.push(`${what}: '${value}' must be a-z, 0-9 and -`);
+		if (typeof value !== "string" || !ID.test(value) || value.length > max)
+			errors.push(`${what}: '${value}' must be a-z, 0-9 and -`);
 	};
 
 	id("id", m.id, 48);
@@ -121,7 +122,8 @@ export function validate(dir) {
 
 	const paths = [m.icon, m.background, ...modules.flatMap((x) => [x.icon, x.panel])].filter(Boolean);
 	for (const p of paths) {
-		if (p.startsWith("/") || p.includes("..") || p.includes("\\") || p.includes(":")) errors.push(`path '${p}' must stay in the package`);
+		if (p.startsWith("/") || p.includes("..") || p.includes("\\") || p.includes(":"))
+			errors.push(`path '${p}' must stay in the package`);
 		else if (!has(p)) errors.push(`plugin.json points at '${p}', which isn't in ${dir}`);
 	}
 	for (const x of modules) id("module id", x.id);
@@ -151,7 +153,8 @@ export function validate(dir) {
 		for (const key of keys) if (!(key in messages.en)) warnings.push(`'${key}' isn't in locales/en.json`);
 		for (const [code, entries] of Object.entries(messages)) {
 			const missing = Object.keys(messages.en).filter((k) => !(k in entries));
-			if (missing.length) warnings.push(`locales/${code}.json is missing ${missing.length} key(s): ${missing.join(", ")}`);
+			if (missing.length)
+				warnings.push(`locales/${code}.json is missing ${missing.length} key(s): ${missing.join(", ")}`);
 		}
 	}
 	return { errors, warnings, manifest: m, messages };

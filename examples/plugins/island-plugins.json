@@ -22,6 +22,24 @@
 			"permissions": [],
 			"package": "packages/counter-1.0.0.zip",
 			"sha256": "a92a7992dd86b7aef8e6b5737a309928a3437ac367b200ec2a2d2e4e9d8cb4a1"
+		},
+		{
+			"id": "pomodoro",
+			"version": "1.0.0",
+			"sdk": "1.0",
+			"name": {
+				"en": "Pomodoro",
+				"pt-BR": "Pomodoro"
+			},
+			"description": {
+				"en": "Focus in rounds: a timer in the island, a break when it rings.",
+				"pt-BR": "Foque em rodadas: um timer na ilha e uma pausa quando ele tocar."
+			},
+			"author": "Island for Windows",
+			"icon": "plugins/pomodoro/dist/icon.svg",
+			"permissions": [],
+			"package": "packages/pomodoro-1.0.0.zip",
+			"sha256": "00c5628dbc9ea08a09438e860a412dc62c9fdf713a3a845d5fe3f8b0aa6f7ada"
 		}
 	]
 }
