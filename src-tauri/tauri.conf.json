@@ -28,7 +28,8 @@
         "minimizable": false,
         "shadow": false,
         "focus": false,
-        "visible": false
+        "visible": false,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection,SpareRendererForSitePerProcess,Translate,OptimizationHints,MediaRouter,AutofillServerCommunication --disable-background-networking --disable-component-update --disable-default-apps --disable-extensions --disable-sync"
       }
     ],
     "security": {

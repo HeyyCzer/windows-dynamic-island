@@ -5,6 +5,7 @@ mod file_drop;
 mod glass;
 mod hub;
 mod i18n;
+mod memory;
 mod pip;
 mod portable;
 mod providers;
@@ -76,6 +77,7 @@ pub fn run() {
                 win.show()?;
                 file_drop::hook(&handle, &win);
             }
+            memory::sync_island(&handle);
             glass::setup(&handle);
             window::spawn_hit_test(handle.clone());
             display::spawn_placement(handle.clone());

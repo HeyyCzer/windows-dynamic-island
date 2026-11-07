@@ -76,6 +76,7 @@ pub fn set(app: &AppHandle, key: &str, value: Value) {
     let _ = app.emit(CHANGED_EVENT, snapshot);
     if key == crate::tray::HIDDEN_KEY {
         crate::tray::sync_hidden(app);
+        crate::memory::sync_island(app);
     }
 }
 
@@ -105,7 +106,7 @@ pub fn open(app: &AppHandle) -> tauri::Result<()> {
 }
 
 fn create(app: &AppHandle) -> tauri::Result<()> {
-    let _win = WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
+    let win = WebviewWindowBuilder::new(app, SETTINGS_LABEL, WebviewUrl::App("index.html".into()))
         .title(crate::i18n::t(app, "window.settings"))
         .inner_size(SIZE.0, SIZE.1)
         .resizable(false)
@@ -113,7 +114,9 @@ fn create(app: &AppHandle) -> tauri::Result<()> {
         // Custom titlebar lives in the webview (see `SettingsApp.tsx`).
         .decorations(false)
         .background_color(tauri::webview::Color(12, 12, 16, 255))
+        .additional_browser_args(crate::memory::BROWSER_ARGS)
         .build()?;
+    crate::memory::trim_when_minimized(&win);
     Ok(())
 }
 

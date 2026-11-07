@@ -1,11 +1,8 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Island } from "./components/Island";
 import { isTauri, startBridge } from "./core/bridge";
 import { startSettings } from "./core/settings";
-import { PipApp } from "./pip/PipApp";
-import { SettingsApp } from "./settings/SettingsApp";
 import "./styles.css";
 
 startBridge();
@@ -21,19 +18,28 @@ if (import.meta.env.PROD) document.addEventListener("contextmenu", (e) => e.prev
 // Browser preview only: fake wallpaper so the black island is visible.
 if (!isTauri && label === "island") document.body.classList.add("preview");
 
+type LoadUi = () => Promise<{ default: React.ComponentType }>;
+
+// Each window loads only its own UI, so a webview doesn't keep the others' code in memory.
+const windows: Record<string, LoadUi> = {
+	island: async () => ({ default: (await import("./components/Island")).Island }),
+	settings: async () => ({ default: (await import("./settings/SettingsApp")).SettingsApp }),
+	pip: async () => ({ default: (await import("./pip/PipApp")).PipApp }),
+};
+
+const App = React.lazy(windows[label] ?? windows.island);
+
 // Browser preview only: the panel that drives the mock (not in `?demo`, the README GIF).
-const DevTools =
-	import.meta.env.DEV && !isTauri && label === "island" && !new URLSearchParams(location.search).has("demo")
-		? React.lazy(() => import("./dev/DevTools").then((m) => ({ default: m.DevTools })))
-		: null;
+// `import.meta.env.DEV` first, so release builds drop the chunk.
+const showDevTools =
+	import.meta.env.DEV && !isTauri && label === "island" && !new URLSearchParams(location.search).has("demo");
+const DevTools = showDevTools && React.lazy(async () => ({ default: (await import("./dev/DevTools")).DevTools }));
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
-		{label === "settings" ? <SettingsApp /> : label === "pip" ? <PipApp /> : <Island />}
-		{DevTools && (
-			<React.Suspense>
-				<DevTools />
-			</React.Suspense>
-		)}
+		<React.Suspense>
+			<App />
+			{DevTools && <DevTools />}
+		</React.Suspense>
 	</React.StrictMode>,
 );
