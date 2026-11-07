@@ -1,11 +1,8 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { Island } from "./components/Island";
 import { isTauri, startBridge } from "./core/bridge";
 import { startSettings } from "./core/settings";
-import { PipApp } from "./pip/PipApp";
-import { SettingsApp } from "./settings/SettingsApp";
 import "./styles.css";
 
 startBridge();
@@ -21,6 +18,15 @@ if (import.meta.env.PROD) document.addEventListener("contextmenu", (e) => e.prev
 // Browser preview only: fake wallpaper so the black island is visible.
 if (!isTauri && label === "island") document.body.classList.add("preview");
 
+// Each window loads only its own UI: the settings and PiP webviews don't parse
+// and keep in memory every island module, and the island skips the settings pages.
+const App =
+	label === "settings"
+		? React.lazy(() => import("./settings/SettingsApp").then((m) => ({ default: m.SettingsApp })))
+		: label === "pip"
+			? React.lazy(() => import("./pip/PipApp").then((m) => ({ default: m.PipApp })))
+			: React.lazy(() => import("./components/Island").then((m) => ({ default: m.Island })));
+
 // Browser preview only: the panel that drives the mock (not in `?demo`, the README GIF).
 const DevTools =
 	import.meta.env.DEV && !isTauri && label === "island" && !new URLSearchParams(location.search).has("demo")
@@ -29,7 +35,9 @@ const DevTools =
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
-		{label === "settings" ? <SettingsApp /> : label === "pip" ? <PipApp /> : <Island />}
+		<React.Suspense>
+			<App />
+		</React.Suspense>
 		{DevTools && (
 			<React.Suspense>
 				<DevTools />
