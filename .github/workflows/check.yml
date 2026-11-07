@@ -1,10 +1,12 @@
 name: Check
 
 # Lints, type-checks and builds the frontend, then compiles and lints the backend on
-# every push and pull request, so breakage shows up before a release tag.
+# every pull request and on pushes to main, so breakage shows up before a release tag.
+# Feature branches are only checked through their pull request, so a push to a branch
+# with an open PR doesn't run the same checks twice.
 on:
   push:
-    branches-ignore: ["main"]
+    branches: ["main"]
     paths-ignore:
       - website/**
   pull_request:
