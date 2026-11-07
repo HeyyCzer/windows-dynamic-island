@@ -75,14 +75,16 @@ export const pluginsMock = defineMock({
 					if (!source.indexUrl)
 						return { source, name: null, plugins: [], error: "can't reach this source in the preview" };
 					const index = await (await fetch(source.indexUrl)).json();
-					const installed = new Map(getPlugins().map((p) => [p.id, p.version]));
 					return {
 						source,
 						name: index.name ?? null,
-						plugins: index.plugins.map((p: { id: string; version: string }) => ({
+						plugins: index.plugins.map((p: { id: string; icon?: string }) => ({
 							...p,
+							// `plugins/<name>/icon.svg` in the repo; the dev server serves it by plugin id.
+							icon: p.icon && `/__plugins/${p.id}/${p.icon.split("/").slice(2).join("/")}`,
 							compatible: true,
-							installed: installed.get(p.id) ?? null,
+							// Like the backend: only a plugin installed from this source counts, not dev folders.
+							installed: null,
 							update: false,
 						})),
 						error: null,

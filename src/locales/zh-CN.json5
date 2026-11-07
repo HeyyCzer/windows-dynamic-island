@@ -904,6 +904,7 @@
       provider: "查看 {provider} 模块的数据",
     },
     page: {
+      version: "版本",
       about: "关于",
       source: "来源",
       folder: "文件夹（开发者模式）",

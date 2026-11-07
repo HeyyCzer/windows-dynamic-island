@@ -917,6 +917,7 @@
       provider: "See what the {provider} module sees",
     },
     page: {
+      version: "Version",
       about: "About",
       source: "Source",
       folder: "Folder (developer mode)",

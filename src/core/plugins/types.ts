@@ -66,6 +66,8 @@ export interface PluginInfo {
 	/** Source id, `null` for a folder loaded in developer mode. */
 	source: string | null;
 	dev: boolean;
+	/** The folder a developer-mode plugin is served from. */
+	devPath: string | null;
 	granted: string[];
 	installedAt: number;
 	problem: "tampered" | "invalid" | null;

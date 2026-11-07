@@ -1,0 +1,27 @@
+{
+	"schema": 1,
+	"name": {
+		"en": "Example plugins",
+		"pt-BR": "Plugins de exemplo"
+	},
+	"plugins": [
+		{
+			"id": "counter",
+			"version": "1.0.0",
+			"sdk": "1.0",
+			"name": {
+				"en": "Counter",
+				"pt-BR": "Contador"
+			},
+			"description": {
+				"en": "The smallest plugin there is: a number you can count up, kept between restarts.",
+				"pt-BR": "O menor plugin possível: um número que você aumenta, guardado entre reinícios."
+			},
+			"author": "Island for Windows",
+			"icon": "plugins/counter/icon.svg",
+			"permissions": [],
+			"package": "packages/counter-1.0.0.zip",
+			"sha256": "a92a7992dd86b7aef8e6b5737a309928a3437ac367b200ec2a2d2e4e9d8cb4a1"
+		}
+	]
+}
