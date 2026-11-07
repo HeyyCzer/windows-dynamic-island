@@ -498,6 +498,14 @@
       label: "光晕效果",
       desc: "在边框颜色周围显示一层柔和的晕光。",
     },
+    glass: {
+      label: "毛玻璃",
+      desc: "灵动岛变为半透明，并模糊其后方的桌面。",
+      off: "关闭",
+      subtle: "轻微",
+      moderate: "适中",
+      strong: "强烈",
+    },
     idleClock: {
       label: "静止时钟",
       desc: "灵动岛无活动任务时显示当前时间。",

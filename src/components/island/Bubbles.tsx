@@ -2,6 +2,7 @@ import { AnimatePresence, motion, type Transition } from "motion/react";
 import type { ReactNode } from "react";
 import { tv } from "tailwind-variants";
 import type { ModuleEntry } from "../../core/types";
+import { GlassProbes } from "./GlassProbes";
 
 interface BubbleProps {
 	transition: Transition;
@@ -77,6 +78,7 @@ function Bubble({
 		<motion.button
 			className={bubble({ ambient })}
 			data-hit
+			data-glass
 			layout={layout}
 			initial={{ opacity: 0, scale: 0.3, x: from }}
 			animate={{ opacity: 1, scale, x: 0 }}
@@ -89,6 +91,7 @@ function Bubble({
 		>
 			{children}
 			{rim}
+			<GlassProbes />
 		</motion.button>
 	);
 }

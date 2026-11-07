@@ -352,6 +352,7 @@ fn ensure_topmost(win: &WebviewWindow, force: bool) {
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER,
         );
     }
+    crate::glass::restack();
 }
 
 #[cfg(not(windows))]

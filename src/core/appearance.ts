@@ -4,7 +4,14 @@
  */
 
 import type { MessageKey } from "./i18n";
-import { appearanceSettings, type IslandStyle, readSetting, useSettings } from "./settings";
+import {
+	appearanceSettings,
+	GLASS_LEVELS,
+	type GlassLevel,
+	type IslandStyle,
+	readSetting,
+	useSettings,
+} from "./settings";
 
 export interface BorderPreset {
 	id: string;
@@ -48,6 +55,8 @@ export interface Appearance {
 	thickness: number;
 	animate: boolean;
 	glow: boolean;
+	/** Frosted glass: the desktop behind the island shows through, blurred. */
+	glass: GlassLevel;
 	idleClock: boolean;
 }
 
@@ -67,8 +76,14 @@ export function useAppearance(): Appearance {
 		thickness: Math.min(3, Math.max(1, Number(readSetting(s, appearanceSettings.thickness)) || 2)),
 		animate: readSetting(s, appearanceSettings.animate),
 		glow: readSetting(s, appearanceSettings.glow),
+		glass: glassLevel(readSetting(s, appearanceSettings.glass)),
 		idleClock: readSetting(s, appearanceSettings.idleClock),
 	};
+}
+
+/** Anything else stored (an older on/off value) falls back to off. */
+export function glassLevel(value: unknown): GlassLevel {
+	return GLASS_LEVELS.includes(value as GlassLevel) ? (value as GlassLevel) : "off";
 }
 
 /** CSS for the rim: a conic gradient (first color repeated, so it can spin seamlessly). */

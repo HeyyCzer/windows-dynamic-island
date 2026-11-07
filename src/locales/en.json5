@@ -502,6 +502,14 @@
       label: "Glow",
       desc: "A soft halo in the rim's color.",
     },
+    glass: {
+      label: "Frosted glass",
+      desc: "The island turns translucent and blurs the desktop behind it.",
+      off: "Off",
+      subtle: "Subtle",
+      moderate: "Moderate",
+      strong: "Strong",
+    },
     idleClock: {
       label: "Clock at rest",
       desc: "Shows the time in the island when nothing else is going on.",

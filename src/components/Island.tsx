@@ -5,6 +5,7 @@ import { useTauriEvent } from "../core/bridge";
 import { cn } from "../core/cn";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
+import { useGlass } from "../core/useGlass";
 import { useHitRects } from "../core/useHitRects";
 import { useIslandController } from "../core/useIslandController";
 import { useIslandDrag } from "../core/useIslandDrag";
@@ -13,6 +14,7 @@ import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
 import { islandContent } from "./island/content";
+import { GlassProbes } from "./island/GlassProbes";
 import { ambientWidth, BUBBLE, BUBBLE_GAP, geometry, variantOf } from "./island/geometry";
 import { launcherSize } from "./island/Launcher";
 import { Rim } from "./island/Rim";
@@ -26,6 +28,7 @@ export function Island() {
 	const windows = look.style === "windows";
 	const v = variantOf(look);
 	useHitRects();
+	useGlass(look.glass);
 	useSyncLocale();
 	useIslandFileDrop(ctl);
 
@@ -65,6 +68,8 @@ export function Island() {
 				{/* The tray's black hole: the island spins into its own center and comes back out. */}
 				<motion.div
 					className="pointer-events-none relative flex origin-center justify-center"
+					// Spinning away can't be followed by a rectangular cutout.
+					{...(swallowed ? { "data-glass-off": true } : {})}
 					initial={false}
 					animate={swallowed ? { scale: 0, rotate: -200, opacity: 0 } : { scale: 1, rotate: 0, opacity: 1 }}
 					transition={
@@ -99,17 +104,23 @@ export function Island() {
 						{!windows && (
 							<>
 								<motion.span
+									data-glass="earLeft"
 									className="pointer-events-none absolute top-0 right-full bg-[radial-gradient(circle_at_0_100%,transparent_70%,var(--island)_71%)]"
 									initial={false}
 									animate={{ width: g.ear, height: g.ear }}
 									transition={v.shellSpring}
-								/>
+								>
+									<GlassProbes />
+								</motion.span>
 								<motion.span
+									data-glass="earRight"
 									className="pointer-events-none absolute top-0 left-full bg-[radial-gradient(circle_at_100%_100%,transparent_70%,var(--island)_71%)]"
 									initial={false}
 									animate={{ width: g.ear, height: g.ear }}
 									transition={v.shellSpring}
-								/>
+								>
+									<GlassProbes />
+								</motion.span>
 							</>
 						)}
 

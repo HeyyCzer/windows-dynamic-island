@@ -467,6 +467,14 @@
       label: "Brilho na borda",
       desc: "Um halo suave na cor da borda.",
     },
+    glass: {
+      label: "Vidro fosco",
+      desc: "A ilha fica translúcida e desfoca a área de trabalho atrás dela.",
+      off: "Desligado",
+      subtle: "Suave",
+      moderate: "Moderado",
+      strong: "Forte",
+    },
     idleClock: {
       label: "Relógio em repouso",
       desc: "Mostra a hora na ilha quando não há mais nada acontecendo.",

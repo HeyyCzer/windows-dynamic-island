@@ -13,6 +13,10 @@ import { command, isTauri } from "./bridge";
 import type { MessageKey } from "./i18n";
 import type { IslandModule } from "./types";
 
+/** Frosted glass behind the island, from none to the strongest blur. */
+export type GlassLevel = "off" | "subtle" | "moderate" | "strong";
+export const GLASS_LEVELS: GlassLevel[] = ["off", "subtle", "moderate", "strong"];
+
 export interface SettingDef<T = boolean> {
 	key: string;
 	/** Translation keys (see `src/locales`). */
@@ -253,6 +257,12 @@ export const appearanceSettings = {
 		description: "appearance.glow.desc",
 		default: true,
 	} satisfies SettingDef,
+	glass: {
+		key: "appearance.glass",
+		label: "appearance.glass.label",
+		description: "appearance.glass.desc",
+		default: "off" as GlassLevel,
+	} satisfies SettingDef<GlassLevel>,
 	idleClock: {
 		key: "appearance.idleClock",
 		label: "appearance.idleClock.label",
