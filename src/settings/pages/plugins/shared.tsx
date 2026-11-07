@@ -1,4 +1,4 @@
-import { ShieldAlertIcon } from "lucide-react";
+import { ActivityIcon, ShieldAlertIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Button } from "../../../components/ui/button";
@@ -54,7 +54,7 @@ export function PermissionList({ permissions }: { permissions: string[] }) {
 export function PersistentChip() {
 	const t = useT();
 	return (
-		<Chip className="text-warn" title={t("plugins.background.persistentHint")}>
+		<Chip className="text-warn" icon={<ActivityIcon size={12} />} title={t("plugins.background.persistentHint")}>
 			{t("plugins.background.persistent")}
 		</Chip>
 	);
