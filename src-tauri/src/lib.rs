@@ -6,6 +6,7 @@ mod glass;
 mod hub;
 mod i18n;
 mod pip;
+mod plugins;
 mod portable;
 mod providers;
 mod screen;
@@ -49,6 +50,12 @@ pub fn run() {
                             providers::shortcuts::ShortcutTarget::Module(id) => {
                                 open_module(app, &id)
                             }
+                            providers::shortcuts::ShortcutTarget::Plugin { plugin, shortcut } => {
+                                let _ = app.emit(
+                                    "plugin://shortcut",
+                                    serde_json::json!({ "plugin": plugin, "shortcut": shortcut }),
+                                );
+                            }
                         }
                     }
                 })
@@ -57,9 +64,15 @@ pub fn run() {
         .manage(window::HitState::default())
         .manage(window::DragState::default())
         .manage(i18n::Locale::default())
+        // Plugins' files, for their sandboxed iframes (see `plugins/protocol.rs`).
+        .register_asynchronous_uri_scheme_protocol(
+            plugins::protocol::SCHEME,
+            plugins::protocol::handle,
+        )
         .setup(|app| {
             let handle = app.handle().clone();
             app.manage(settings::Settings::load(&handle));
+            app.manage(plugins::Plugins::load(&handle));
 
             let hub = Arc::new(Hub::new(handle.clone()));
             let providers = providers::registry();
@@ -112,6 +125,22 @@ pub fn run() {
             pip::is_pip_open,
             pip::pip_snap,
             pip::pip_resize,
+            plugins::plugins_list,
+            plugins::plugin_sources,
+            plugins::plugin_source_add,
+            plugins::plugin_source_remove,
+            plugins::plugin_catalog,
+            plugins::plugin_install,
+            plugins::plugin_uninstall,
+            plugins::plugin_load_dev,
+            plugins::plugin_pick_dev_folder,
+            plugins::plugins_reload,
+            plugins::api::plugin_fetch,
+            plugins::api::plugin_storage,
+            plugins::api::plugin_read_file,
+            plugins::api::plugin_clipboard,
+            plugins::api::plugin_open_url,
+            plugins::api::plugin_can_read_provider,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

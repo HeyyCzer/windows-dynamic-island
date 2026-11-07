@@ -392,6 +392,27 @@ fn screenshots_folder() -> Option<PathBuf> {
         .or_else(|| known(&FOLDERID_Pictures).map(|p| p.join("Screenshots")))
 }
 
+/// The clipboard's text, if it holds text (plugins' `clipboard.readText`).
+/// What password managers mark as private reads as nothing.
+pub fn read_text() -> Result<Option<String>, String> {
+    Ok(match os::read()? {
+        Some(Copied {
+            clip: Clip::Text(text),
+            ..
+        }) => Some(text),
+        _ => None,
+    })
+}
+
+/// Puts text on the clipboard (plugins' `clipboard.writeText`).
+pub fn write_text(app: &tauri::AppHandle, text: &str) -> Result<(), String> {
+    let win = app
+        .get_webview_window(crate::window::ISLAND_LABEL)
+        .ok_or("no island window")?;
+    let owner = HWND(win.hwnd().map_err(|e| e.to_string())?.0);
+    os::write(owner, Payload::Text(text))
+}
+
 fn watch(ctx: Arc<Ctx>) {
     // `None`: nothing read since start (or since the module was turned on);
     // what's on the clipboard then is listed without the "copied" pill.
