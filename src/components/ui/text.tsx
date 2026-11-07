@@ -1,3 +1,4 @@
+import { CheckIcon, XIcon } from "lucide-react";
 import type { ComponentProps, ReactNode } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
@@ -25,23 +26,17 @@ export function Empty({ className, ...rest }: ComponentProps<"div">) {
 }
 
 const chip = tv({
-	base: "rounded-full bg-white/6 px-2.5 py-0.75 text-[11.5px] font-semibold text-text-faint",
+	base: "inline-flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-0.75 text-[11.5px] font-semibold text-text-faint",
 	variants: {
 		ok: {
 			true: "bg-[rgba(52,199,89,0.12)] text-ok",
 		},
-		// A status shows a dot; a label with an icon doesn't.
-		dot: {
-			true: "before:content-['○_']",
-			false: "inline-flex items-center gap-1",
-		},
 	},
-	compoundVariants: [{ ok: true, dot: true, class: "before:content-['●_']" }],
 });
 
 /**
- * A status tag: hollow when off, filled green when `ok`. With an `icon` it's
- * a plain label (developer mode, runs in the background…), no dot.
+ * A tag. As a status it shows a check (green) when `ok` and a cross when
+ * not; a label passes its own `icon` (developer mode, runs in the background…).
  */
 export function Chip({
 	ok,
@@ -51,8 +46,8 @@ export function Chip({
 	...rest
 }: ComponentProps<"span"> & { ok?: boolean; icon?: ReactNode }) {
 	return (
-		<span className={chip({ ok, dot: !icon, class: className })} {...rest}>
-			{icon}
+		<span className={chip({ ok, class: className })} {...rest}>
+			{icon ?? (ok ? <CheckIcon size={12} strokeWidth={2.5} /> : <XIcon size={12} strokeWidth={2.5} />)}
 			{children}
 		</span>
 	);
