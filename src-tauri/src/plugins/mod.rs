@@ -8,6 +8,8 @@
 //! the permissions the user granted. See `docs/plugins/`.
 
 pub mod api;
+#[cfg(windows)]
+pub mod frames;
 mod manifest;
 mod net;
 mod package;
