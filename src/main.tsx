@@ -18,14 +18,16 @@ if (import.meta.env.PROD) document.addEventListener("contextmenu", (e) => e.prev
 // Browser preview only: fake wallpaper so the black island is visible.
 if (!isTauri && label === "island") document.body.classList.add("preview");
 
-// Each window loads only its own UI: the settings and PiP webviews don't parse
-// and keep in memory every island module, and the island skips the settings pages.
-const App =
-	label === "settings"
-		? React.lazy(() => import("./settings/SettingsApp").then((m) => ({ default: m.SettingsApp })))
-		: label === "pip"
-			? React.lazy(() => import("./pip/PipApp").then((m) => ({ default: m.PipApp })))
-			: React.lazy(() => import("./components/Island").then((m) => ({ default: m.Island })));
+type LoadUi = () => Promise<{ default: React.ComponentType }>;
+
+// Each window loads only its own UI, so a webview doesn't keep the others' code in memory.
+const windows: Record<string, LoadUi> = {
+	island: async () => ({ default: (await import("./components/Island")).Island }),
+	settings: async () => ({ default: (await import("./settings/SettingsApp")).SettingsApp }),
+	pip: async () => ({ default: (await import("./pip/PipApp")).PipApp }),
+};
+
+const App = React.lazy(windows[label] ?? windows.island);
 
 // Browser preview only: the panel that drives the mock (not in `?demo`, the README GIF).
 const DevTools =
