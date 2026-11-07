@@ -30,20 +30,16 @@ const windows: Record<string, LoadUi> = {
 const App = React.lazy(windows[label] ?? windows.island);
 
 // Browser preview only: the panel that drives the mock (not in `?demo`, the README GIF).
-const DevTools =
-	import.meta.env.DEV && !isTauri && label === "island" && !new URLSearchParams(location.search).has("demo")
-		? React.lazy(() => import("./dev/DevTools").then((m) => ({ default: m.DevTools })))
-		: null;
+// `import.meta.env.DEV` first, so release builds drop the chunk.
+const showDevTools =
+	import.meta.env.DEV && !isTauri && label === "island" && !new URLSearchParams(location.search).has("demo");
+const DevTools = showDevTools && React.lazy(async () => ({ default: (await import("./dev/DevTools")).DevTools }));
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 	<React.StrictMode>
 		<React.Suspense>
 			<App />
+			{DevTools && <DevTools />}
 		</React.Suspense>
-		{DevTools && (
-			<React.Suspense>
-				<DevTools />
-			</React.Suspense>
-		)}
 	</React.StrictMode>,
 );
