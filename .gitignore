@@ -12,3 +12,6 @@ src-tauri/gen
 website/.astro/
 
 .astro
+
+# Built plugin packages (`island-plugin index`); published as release assets, not committed
+examples/plugins/packages/

@@ -561,6 +561,7 @@ export type MessageKey =
 	| "plugins.permission.openUrl"
 	| "plugins.permission.fsRead"
 	| "plugins.permission.provider"
+	| "plugins.page.version"
 	| "plugins.page.about"
 	| "plugins.page.source"
 	| "plugins.page.folder"

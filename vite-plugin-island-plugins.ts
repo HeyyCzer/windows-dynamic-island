@@ -136,6 +136,7 @@ export function islandPlugins(): Plugin {
 						messages: messages(dir),
 						source: null,
 						dev: true,
+						devPath: dir,
 						granted: manifest.permissions ?? [],
 						installedAt: 0,
 						problem: null,

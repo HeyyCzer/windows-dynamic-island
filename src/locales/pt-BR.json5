@@ -830,6 +830,7 @@
       provider: "Ver o que o módulo {provider} vê",
     },
     page: {
+      version: "Versão",
       about: "Sobre",
       source: "Fonte",
       folder: "Pasta (modo desenvolvedor)",
