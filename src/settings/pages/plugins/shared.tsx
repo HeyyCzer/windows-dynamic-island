@@ -1,3 +1,4 @@
+import { ShieldAlertIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 import { Button } from "../../../components/ui/button";
@@ -56,6 +57,23 @@ export function PersistentChip() {
 		<Chip className="text-warn" title={t("plugins.background.persistentHint")}>
 			{t("plugins.background.persistent")}
 		</Chip>
+	);
+}
+
+/** Plugins and sources are third-party: say so where people get them. */
+export function TrustNotice() {
+	const t = useT();
+	return (
+		<div
+			role="note"
+			className="flex items-start gap-3 rounded-xl bg-warn/8 px-4 py-3 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-warn)_22%,transparent)]"
+		>
+			<ShieldAlertIcon size={16} className="mt-0.5 flex-none text-warn" />
+			<div className="flex flex-col gap-0.5">
+				<span className="text-[13px] font-semibold text-warn">{t("plugins.trust.title")}</span>
+				<span className="text-[12.5px]/snug text-text-dim">{t("plugins.trust.body")}</span>
+			</div>
+		</div>
 	);
 }
 
@@ -123,7 +141,10 @@ export function ConfirmInstall({
 				<p className="text-[13px] text-text-dim">{t("plugins.confirm.none")}</p>
 			)}
 			{persistent && <p className="text-[13px] text-warn">{t("plugins.confirm.persistent")}</p>}
-			<p className="text-[12px] text-text-faint">{t("plugins.confirm.warning")}</p>
+			<p className="flex items-start gap-2 rounded-lg bg-warn/8 px-3 py-2 text-[12.5px]/snug text-text-dim">
+				<ShieldAlertIcon size={14} className="mt-0.5 flex-none text-warn" />
+				{t("plugins.confirm.warning")}
+			</p>
 			{error && <p className="text-[12px] text-[#ff5f57] select-text">{error}</p>}
 			<div className="mt-1 flex justify-end gap-2">
 				<Button onClick={onCancel} disabled={busy}>
