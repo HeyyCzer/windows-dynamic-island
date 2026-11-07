@@ -61,7 +61,7 @@ function normalize(manifest: Record<string, unknown>) {
 		enabledByDefault: true,
 		...m,
 	}));
-	return { settings: [], shortcuts: [], permissions: [], ...manifest, modules };
+	return { settings: [], shortcuts: [], permissions: [], persistent: false, ...manifest, modules };
 }
 
 function messages(dir: string) {

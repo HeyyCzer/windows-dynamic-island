@@ -17,6 +17,7 @@ Add `"$schema": "https://raw.githubusercontent.com/HeyyCzer/windows-island/main/
   "homepage": "https://github.com/you/your-plugins",
   "icon": "icon.svg",
   "background": "background.js",
+  "persistent": false,
   "modules": [ … ],
   "settings": [ … ],
   "shortcuts": [ … ],
@@ -34,13 +35,28 @@ Add `"$schema": "https://raw.githubusercontent.com/HeyyCzer/windows-island/main/
 | `author` | | Shown as is. |
 | `homepage` | | `https://` link. |
 | `icon` | | Path of an image in the package (SVG or PNG, square). Used in the settings and as the default module icon. |
-| `background` | | Path of a `.js` file (the app wraps it in a page, as an ES module) or an `.html` page. Runs while the plugin is on. |
+| `background` | | Path of a `.js` file (the app wraps it in a page, as an ES module) or an `.html` page. Runs when something happens, see below. |
+| `persistent` | | `true` keeps the background running for as long as the plugin is on. Default `false`. See below. |
 | `modules` | | Tabs the plugin adds. |
 | `settings` | | Settings shown on the plugin's page. |
 | `shortcuts` | | Global shortcuts the plugin reacts to. |
 | `permissions` | | See [permissions.md](permissions.md). |
 
 A plugin needs at least a module or a background script. Paths are relative to the package root, use `/`, and can't leave the package.
+
+## Background: on demand or persistent
+
+Every running page costs memory (a few MB each, more with a framework like React), and the island runs all day. So by default a background is **on demand**: the island starts it when there's something for it, delivers the events, and stops it about 5 seconds after its last call or event (60 seconds at most per run). It's started when:
+
+- the plugin turns on (app start, install, update, turned back on), so it can set its views and alarms,
+- one of its [alarms](sdk.md#alarms) fires,
+- one of its shortcuts is pressed,
+- a panel changes `island.state`,
+- its settings or the app's language change.
+
+Views, `island.state` and alarms are kept by the island, so they stay while the background is stopped. Variables and timers in the page don't: keep what has to last in `island.state` or `island.storage`, and use `island.alarms` instead of `setInterval`.
+
+Set `"persistent": true` only when the background has to keep running, like a timer that updates the pill every second. The marketplace and the settings show **Runs in the background** for these plugins.
 
 ## `modules`
 

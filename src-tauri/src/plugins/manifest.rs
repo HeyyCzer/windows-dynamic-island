@@ -38,9 +38,14 @@ pub struct Manifest {
     /// Path to an image in the package.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub icon: Option<String>,
-    /// Script (or HTML page) that runs for as long as the plugin is on.
+    /// Script (or HTML page) the island runs for the plugin, out of sight.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub background: Option<String>,
+    /// Keep the background running for as long as the plugin is on. Without
+    /// it the background only runs when something happens (an alarm, a
+    /// shortcut, a panel's state…) and stops once idle, which saves memory.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub persistent: bool,
     #[serde(default)]
     pub modules: Vec<ModuleDef>,
     #[serde(default)]
@@ -174,6 +179,9 @@ impl Manifest {
         }
         if self.modules.is_empty() && self.background.is_none() {
             return Err("a plugin needs a module or a background script".into());
+        }
+        if self.persistent && self.background.is_none() {
+            return Err("'persistent' needs a background script".into());
         }
 
         unique("setting", self.settings.iter().map(|s| s.key.as_str()))?;
@@ -435,6 +443,17 @@ mod tests {
         assert!(parse(m.clone()).is_err());
         m["background"] = "bg.js".into();
         assert!(parse(m).is_ok());
+    }
+
+    #[test]
+    fn persistent_needs_a_background() {
+        let mut m = minimal();
+        m["persistent"] = true.into();
+        assert!(parse(m.clone()).unwrap_err().contains("persistent"));
+        m["background"] = "bg.js".into();
+        assert!(parse(m.clone()).unwrap().persistent);
+        m.as_object_mut().unwrap().remove("persistent");
+        assert!(!parse(m).unwrap().persistent);
     }
 
     #[test]

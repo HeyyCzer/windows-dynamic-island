@@ -1,0 +1,18 @@
+{
+	"meta": {
+		"name": "Água",
+		"description": "Um lembrete para beber água de tempos em tempos. Mostra um background que só roda quando um alarme o acorda."
+	},
+	"module": { "title": "Água" },
+	"settings": {
+		"every": { "label": "Lembrar a cada", "desc": "Minutos entre os lembretes." }
+	},
+	"units": { "min": "min" },
+	"compact": { "due": "Hora de beber água" },
+	"panel": {
+		"today": "copos hoje",
+		"due": "Hora de beber água!",
+		"drink": "Bebi um copo",
+		"next": "Próximo lembrete às {time}"
+	}
+}

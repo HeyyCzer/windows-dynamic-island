@@ -8,6 +8,7 @@
 	"author": "Island for Windows",
 	"icon": "icon.svg",
 	"background": "background.js",
+	"persistent": true,
 	"modules": [
 		{ "id": "timer", "title": "module.title", "icon": "icon.svg", "panel": "panel.html", "size": { "width": 560, "height": 170 } }
 	],

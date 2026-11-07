@@ -869,6 +869,12 @@
     // {version}: e.g. 1.2.0
     version: "v{version}",
     dev: "Developer",
+    background: {
+      persistent: "Runs in the background",
+      persistentHint: "Keeps running while it's on, so it uses more memory.",
+      onDemand: "Runs when something happens",
+      none: "None",
+    },
     installed: {
       empty: "No plugins yet. Find some in the marketplace.",
     },
@@ -896,6 +902,7 @@
       empty: "No sources yet.",
     },
     confirm: {
+      persistent: "It keeps running in the background while it's on, which uses more memory.",
       // {name}: the plugin's name
       install: "Install {name}?",
       update: "Update {name}?",
@@ -917,6 +924,7 @@
       provider: "See what the {provider} module sees",
     },
     page: {
+      background: "Background",
       version: "Version",
       about: "About",
       source: "Source",

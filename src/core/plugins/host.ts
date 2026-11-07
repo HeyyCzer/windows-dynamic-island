@@ -6,6 +6,12 @@
  * looked up in the frames registered here, so a plugin can't speak for
  * another. Privileged calls go on to the backend (`plugins/api.rs`), which
  * checks the plugin's grants again.
+ *
+ * Backgrounds are on demand unless the manifest says `persistent`: the
+ * island mounts one when something is waiting for it (an alarm, a shortcut,
+ * a panel's state, new settings…), hands it the events, and unmounts it once
+ * it has been quiet for a moment. Views, state and alarms live here, so they
+ * outlast the frame.
  */
 import { useSyncExternalStore } from "react";
 import { command, getProvider, onEvent, subscribeProviders } from "../bridge";
@@ -63,10 +69,12 @@ function setView(moduleId: string, view: PluginView | null) {
 	for (const l of viewListeners) l();
 }
 
-/** Forget what a plugin left behind (it was removed or reloaded). */
-export function resetPlugin(pluginId: string) {
+/** Forget what a plugin left behind (it was turned off, removed or reloaded). */
+function resetPlugin(pluginId: string) {
 	states.delete(pluginId);
 	sentSettings.delete(pluginId);
+	clearAlarms(pluginId);
+	sleep(pluginId);
 	const prefix = pluginModuleId(pluginId, "");
 	if (Object.keys(views).some((id) => id.startsWith(prefix))) {
 		views = Object.fromEntries(Object.entries(views).filter(([id]) => !id.startsWith(prefix)));
@@ -83,6 +91,200 @@ function event(frame: Frame, name: string, data: unknown) {
 
 function framesOf(pluginId: string) {
 	return [...frames.values()].filter((f) => f.plugin.id === pluginId);
+}
+
+const backgroundOf = (pluginId: string) =>
+	[...frames.values()].find((f) => f.plugin.id === pluginId && f.context === "background");
+
+// ---------------------------------------------------------------------------
+// Background lifecycle
+
+/** An on-demand background stops after this long without a call or an event… */
+const IDLE_MS = 5_000;
+/** …and after this long no matter what, so a busy loop can't keep it alive. */
+const MAX_AWAKE_MS = 60_000;
+/** Events kept for a background that is starting, per plugin. */
+const MAX_PENDING = 100;
+
+/** Runnable plugins (by id), as the island window last listed them. */
+const known = new Map<string, { key: string; plugin: PluginInfo }>();
+/** Events for a background that isn't ready yet (sent `queued`, see the runtime). */
+const pendingEvents = new Map<string, { name: string; data: unknown }[]>();
+
+interface Awake {
+	since: number;
+	last: number;
+	/** Calls the background made that haven't been answered yet. */
+	inflight: number;
+}
+const awake = new Map<string, Awake>();
+let awakeIds: ReadonlySet<string> = new Set();
+const awakeListeners = new Set<() => void>();
+const subscribeAwake = (l: () => void) => {
+	awakeListeners.add(l);
+	return () => void awakeListeners.delete(l);
+};
+/** On-demand backgrounds that should be mounted right now. */
+export const useAwakeBackgrounds = () => useSyncExternalStore(subscribeAwake, () => awakeIds);
+
+function publishAwake() {
+	awakeIds = new Set(awake.keys());
+	for (const l of awakeListeners) l();
+}
+
+function onDemand(pluginId: string) {
+	const manifest = known.get(pluginId)?.plugin.manifest;
+	return !!manifest?.background && !manifest.persistent;
+}
+
+/**
+ * The island window's runnable plugins; `key` changes when one is updated or
+ * reloaded. Plugins that left are reset, new on-demand ones get a first run
+ * to set their views and alarms.
+ */
+export function syncPlugins(list: { key: string; plugin: PluginInfo }[]) {
+	start();
+	const next = new Map(list.map((entry) => [entry.plugin.id, entry]));
+	for (const [id, entry] of known) {
+		if (next.get(id)?.key === entry.key) continue;
+		known.delete(id);
+		resetPlugin(id);
+	}
+	for (const [id, entry] of next) {
+		const fresh = !known.has(id);
+		known.set(id, entry);
+		if (fresh && onDemand(id)) wake(id);
+	}
+}
+
+function wake(pluginId: string) {
+	const now = Date.now();
+	const state = awake.get(pluginId);
+	if (state) {
+		state.last = now;
+		return;
+	}
+	awake.set(pluginId, { since: now, last: now, inflight: 0 });
+	publishAwake();
+	watchIdle();
+}
+
+function sleep(pluginId: string) {
+	pendingEvents.delete(pluginId);
+	if (!awake.delete(pluginId)) return;
+	publishAwake();
+}
+
+function touch(pluginId: string) {
+	const state = awake.get(pluginId);
+	if (state) state.last = Date.now();
+}
+
+let idleTimer: ReturnType<typeof setInterval> | undefined;
+function watchIdle() {
+	if (idleTimer) return;
+	idleTimer = setInterval(() => {
+		const now = Date.now();
+		for (const [id, state] of awake) {
+			if (now - state.since >= MAX_AWAKE_MS) {
+				console.warn(`[plugins] ${id}: background stopped after ${MAX_AWAKE_MS / 1000} s`);
+				sleep(id);
+			} else if (state.inflight === 0 && now - state.last >= IDLE_MS && backgroundOf(id)?.ready) {
+				sleep(id);
+			}
+		}
+		if (!awake.size) {
+			clearInterval(idleTimer);
+			idleTimer = undefined;
+		}
+	}, 1_000);
+}
+
+/**
+ * An event for the plugin's background: straight in when it's running,
+ * kept while it starts, and an on-demand background is started for it.
+ */
+function toBackground(pluginId: string, name: string, data: unknown) {
+	const frame = backgroundOf(pluginId);
+	if (frame?.ready) {
+		event(frame, name, data);
+		touch(pluginId);
+		return;
+	}
+	if (!frame && !onDemand(pluginId)) return;
+	const queue = pendingEvents.get(pluginId) ?? [];
+	if (queue.length < MAX_PENDING) queue.push({ name, data });
+	pendingEvents.set(pluginId, queue);
+	if (!frame) wake(pluginId);
+}
+
+/** An event for every open panel of the plugin. */
+function toPanels(pluginId: string, name: string, data: unknown, except?: Frame) {
+	for (const frame of framesOf(pluginId)) {
+		if (frame.context === "panel" && frame !== except) event(frame, name, data);
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Alarms (`island.alarms`): kept here, so they fire while the background is stopped.
+
+const MIN_ALARM_S = 30;
+const MAX_ALARM_S = 7 * 24 * 3600;
+const MAX_ALARMS = 50;
+
+interface Alarm {
+	name: string;
+	due: number;
+	every: number | null;
+	timer: ReturnType<typeof setTimeout>;
+}
+const alarms = new Map<string, Map<string, Alarm>>();
+
+function alarmSeconds(value: unknown, what: string): number | null {
+	if (value === undefined || value === null) return null;
+	if (typeof value !== "number" || !Number.isFinite(value) || value < MIN_ALARM_S || value > MAX_ALARM_S) {
+		throw new Error(`${what}: ${MIN_ALARM_S} to ${MAX_ALARM_S} seconds`);
+	}
+	return value;
+}
+
+function createAlarm(pluginId: string, p: Params) {
+	if (!known.get(pluginId)?.plugin.manifest?.background) throw new Error("alarms need a background script");
+	const name = typeof p.name === "string" ? p.name.slice(0, 64) : "";
+	if (!name) throw new Error("an alarm needs a name");
+	const every = alarmSeconds(p.every, "every");
+	const delay = alarmSeconds(p.delay, "delay") ?? every;
+	if (delay === null) throw new Error("an alarm needs 'delay' or 'every'");
+	const list = alarms.get(pluginId) ?? new Map<string, Alarm>();
+	if (!list.has(name) && list.size >= MAX_ALARMS) throw new Error(`at most ${MAX_ALARMS} alarms`);
+	clearAlarm(pluginId, name);
+	const schedule = (after: number) => {
+		const alarm: Alarm = {
+			name,
+			every,
+			due: Date.now() + after * 1000,
+			timer: setTimeout(() => {
+				if (every) schedule(every);
+				else list.delete(name);
+				toBackground(pluginId, "alarm", name);
+			}, after * 1000),
+		};
+		list.set(name, alarm);
+	};
+	schedule(delay);
+	alarms.set(pluginId, list);
+}
+
+function clearAlarm(pluginId: string, name: string) {
+	const alarm = alarms.get(pluginId)?.get(name);
+	if (!alarm) return;
+	clearTimeout(alarm.timer);
+	alarms.get(pluginId)?.delete(name);
+}
+
+function clearAlarms(pluginId: string) {
+	for (const alarm of alarms.get(pluginId)?.values() ?? []) clearTimeout(alarm.timer);
+	alarms.delete(pluginId);
 }
 
 /** A frame starts talking to us; returns the cleanup. */
@@ -136,6 +338,13 @@ function init(frame: Frame) {
 			state: states.get(frame.plugin.id) ?? null,
 		},
 	});
+	if (frame.context === "background") {
+		touch(frame.plugin.id);
+		for (const { name, data } of pendingEvents.get(frame.plugin.id) ?? []) {
+			post(frame, { type: "event", name, data, queued: true });
+		}
+		pendingEvents.delete(frame.plugin.id);
+	}
 }
 
 let started = false;
@@ -147,7 +356,8 @@ function start() {
 	subscribeSettings(onSettings);
 	subscribeProviders(onProviders);
 	onEvent<{ plugin: string; shortcut: string }>("plugin://shortcut", (e) => {
-		for (const frame of framesOf(e.plugin)) event(frame, "shortcut", e.shortcut);
+		toPanels(e.plugin, "shortcut", e.shortcut);
+		toBackground(e.plugin, "shortcut", e.shortcut);
 	});
 }
 
@@ -161,16 +371,28 @@ function onMessage(e: MessageEvent) {
 		return;
 	}
 	if (msg.type !== "call" || typeof msg.id !== "number" || typeof msg.method !== "string") return;
-	handle(frame, msg.method, msg.params ?? {}).then(
-		(value) => post(frame, { type: "result", id: msg.id, ok: true, value: value ?? null }),
-		(error) =>
-			post(frame, {
-				type: "result",
-				id: msg.id,
-				ok: false,
-				error: error instanceof Error ? error.message : String(error),
-			}),
-	);
+	// A background waiting on an answer (a fetch…) isn't idle.
+	const busy = frame.context === "background" ? awake.get(frame.plugin.id) : undefined;
+	if (busy) {
+		busy.inflight++;
+		busy.last = Date.now();
+	}
+	handle(frame, msg.method, msg.params ?? {})
+		.then(
+			(value) => post(frame, { type: "result", id: msg.id, ok: true, value: value ?? null }),
+			(error) =>
+				post(frame, {
+					type: "result",
+					id: msg.id,
+					ok: false,
+					error: error instanceof Error ? error.message : String(error),
+				}),
+		)
+		.finally(() => {
+			if (!busy) return;
+			busy.inflight--;
+			busy.last = Date.now();
+		});
 }
 
 function onSettings() {
@@ -178,16 +400,22 @@ function onSettings() {
 	const locale = currentLocale(values);
 	const localeChanged = locale !== sentLocale;
 	sentLocale = locale;
-	for (const frame of frames.values()) {
-		if (localeChanged) event(frame, "locale", { locale, messages: messagesFor(frame.plugin, locale) });
-	}
+	// Plugins with a page open, and on-demand ones that ran before: a stopped
+	// background still has to hear about it, its views may show the old values.
 	const plugins = new Map([...frames.values()].map((f) => [f.plugin.id, f.plugin]));
+	for (const [id, { plugin }] of known) if (onDemand(id) && sentSettings.has(id)) plugins.set(id, plugin);
 	for (const [id, plugin] of plugins) {
+		if (localeChanged) {
+			const data = { locale, messages: messagesFor(plugin, locale) };
+			toPanels(id, "locale", data);
+			toBackground(id, "locale", data);
+		}
 		const settings = settingsFor(plugin, values);
 		const json = JSON.stringify(settings);
 		if (sentSettings.get(id) === json) continue;
 		sentSettings.set(id, json);
-		for (const frame of framesOf(id)) event(frame, "settings", settings);
+		toPanels(id, "settings", settings);
+		toBackground(id, "settings", settings);
 	}
 }
 
@@ -226,7 +454,8 @@ async function handle(frame: Frame, method: string, p: Params): Promise<unknown>
 		case "state.set": {
 			if (JSON.stringify(p.value ?? null).length > 256 * 1024) throw new Error("state is too big (256 KB)");
 			states.set(plugin, p.value);
-			for (const other of framesOf(plugin)) if (other !== frame) event(other, "state", p.value);
+			toPanels(plugin, "state", p.value, frame);
+			if (frame.context !== "background") toBackground(plugin, "state", p.value);
 			return;
 		}
 		case "settings.set": {
@@ -237,6 +466,17 @@ async function handle(frame: Frame, method: string, p: Params): Promise<unknown>
 		}
 		case "storage":
 			return command("plugin_storage", { plugin, op: p.op, key: p.key ?? null, value: p.value ?? null });
+		case "alarms.create":
+			createAlarm(plugin, p);
+			return;
+		case "alarms.clear":
+			clearAlarm(plugin, String(p.name ?? ""));
+			return;
+		case "alarms.clearAll":
+			clearAlarms(plugin);
+			return;
+		case "alarms.list":
+			return [...(alarms.get(plugin)?.values() ?? [])].map((a) => ({ name: a.name, due: a.due, every: a.every }));
 		case "island.expand":
 			controls?.expand(p.module ? ownModule(frame, p.module) : undefined);
 			return;

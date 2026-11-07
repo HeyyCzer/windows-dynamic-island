@@ -32,7 +32,15 @@
 		"author": { "type": "string" },
 		"homepage": { "type": "string", "pattern": "^https://" },
 		"icon": { "$ref": "#/definitions/path" },
-		"background": { "$ref": "#/definitions/path", "description": "A .js file (run as a module) or an .html page." },
+		"background": {
+			"$ref": "#/definitions/path",
+			"description": "A .js file (run as a module) or an .html page. Runs when something happens (alarm, shortcut, panel state, settings) and stops once idle, unless `persistent`."
+		},
+		"persistent": {
+			"type": "boolean",
+			"default": false,
+			"description": "Keep the background running for as long as the plugin is on. Costs memory: only for work that can't wait for an event (a ticking timer…). The marketplace shows it."
+		},
 		"modules": {
 			"type": "array",
 			"items": {

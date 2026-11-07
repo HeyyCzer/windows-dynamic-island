@@ -1,8 +1,11 @@
-// Runs for as long as the plugin is on. Owns the count: keeps it in storage,
-// shares it with the panel through `island.state`, and shows it in the island.
+// Runs on demand: the island starts it when something happens (the plugin
+// turns on, the shortcut, the panel changes the count, a setting changes) and
+// stops it a few seconds later. Owns the count: keeps it in storage, shares it
+// with the panel through `island.state`, and shows it in the island.
 await island.ready;
 
-let count = (await island.storage.get("count")) ?? 0;
+// The shared state outlives this page: if the panel woke us up, it's the newest.
+let count = island.state.get()?.count ?? (await island.storage.get("count")) ?? 0;
 
 function render() {
 	island.setView("main", {
@@ -27,5 +30,4 @@ island.onShortcut((id) => {
 	if (id === "increment") set(count + island.settings.get("step"));
 });
 
-await island.state.set({ count });
-render();
+await set(count);

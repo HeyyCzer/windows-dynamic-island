@@ -144,6 +144,9 @@ pub struct Listing {
     pub icon: Option<String>,
     #[serde(default)]
     pub permissions: Vec<String>,
+    /// The plugin keeps a background running (`persistent` in its manifest).
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub persistent: bool,
     /// Package (zip) URL, absolute or relative to the index.
     pub package: String,
     /// Hex SHA-256 of the package.

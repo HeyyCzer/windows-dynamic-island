@@ -56,6 +56,13 @@
 		});
 	}
 
+	/**
+	 * Events that started (or waited for) this background, held until someone
+	 * listens: the plugin's code subscribes after `await island.ready` and
+	 * maybe other awaits, and the event that woke it shouldn't be lost.
+	 */
+	const held = [];
+
 	function on(name, callback) {
 		let set = listeners.get(name);
 		if (!set) {
@@ -63,6 +70,14 @@
 			listeners.set(name, set);
 		}
 		set.add(callback);
+		if (held.some((h) => h.name === name)) {
+			queueMicrotask(() => {
+				for (let i = 0; i < held.length; ) {
+					if (held[i].name === name) emit(name, held.splice(i, 1)[0].data);
+					else i++;
+				}
+			});
+		}
 		return () => set.delete(callback);
 	}
 
@@ -110,7 +125,11 @@
 				} else if (msg.name === "state") {
 					info.state = msg.data;
 				}
-				emit(msg.name, msg.name === "locale" ? msg.data.locale : msg.data);
+				{
+					const data = msg.name === "locale" ? msg.data.locale : msg.data;
+					if (msg.queued && !listeners.get(msg.name)?.size) held.push({ name: msg.name, data });
+					else emit(msg.name, data);
+				}
 				break;
 		}
 	});
@@ -225,6 +244,16 @@
 
 		/** A global shortcut declared in plugin.json was pressed. */
 		onShortcut: (callback) => on("shortcut", callback),
+
+		/** Timers kept by the island: they fire (and start the background) while it's stopped. */
+		alarms: Object.freeze({
+			create: (name, options) =>
+				call("alarms.create", { name: String(name), delay: options?.delay ?? null, every: options?.every ?? null }),
+			clear: (name) => call("alarms.clear", { name: String(name) }),
+			clearAll: () => call("alarms.clearAll"),
+			list: () => call("alarms.list"),
+		}),
+		onAlarm: (callback) => on("alarm", callback),
 
 		net: Object.freeze({ fetch: fetchVia }),
 		clipboard: Object.freeze({

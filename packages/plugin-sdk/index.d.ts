@@ -69,6 +69,17 @@ export interface FetchResponse {
 
 export type Unsubscribe = () => void;
 
+/** `delay`, `every` or both, in seconds (30 s to 7 days). `delay` defaults to `every`. */
+export type AlarmOptions = { delay: number; every?: number } | { delay?: number; every: number };
+
+export interface AlarmInfo {
+	name: string;
+	/** When it fires next (ms since the epoch). */
+	due: number;
+	/** Repeat interval in seconds, `null` for a one-off. */
+	every: number | null;
+}
+
 export interface IslandSDK {
 	/** SDK version the runtime implements (`"1.0"`). */
 	readonly sdk: string;
@@ -120,6 +131,25 @@ export interface IslandSDK {
 
 	/** A shortcut from `plugin.json` was pressed (its `id`). */
 	onShortcut(callback: (id: string) => void): Unsubscribe;
+
+	/**
+	 * Timers kept by the island, delivered to the background with `onAlarm`.
+	 * They start a stopped background, so use them instead of `setInterval`.
+	 * Needs a background script; gone when the plugin stops (re-create them
+	 * when the background starts).
+	 */
+	readonly alarms: {
+		/**
+		 * Creates (or replaces) the alarm `name`: once after `delay` seconds, and
+		 * then every `every` seconds when given. Both 30 s to 7 days.
+		 */
+		create(name: string, options: AlarmOptions): Promise<void>;
+		clear(name: string): Promise<void>;
+		clearAll(): Promise<void>;
+		list(): Promise<AlarmInfo[]>;
+	};
+	/** An alarm fired (its `name`). */
+	onAlarm(callback: (name: string) => void): Unsubscribe;
 
 	/** `fetch` through the app. Needs `network:<host>`; HTTPS only; redirects are returned, not followed. */
 	readonly net: { fetch(url: string | URL, init?: FetchInit): Promise<FetchResponse> };
