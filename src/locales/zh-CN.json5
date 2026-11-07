@@ -939,6 +939,7 @@
       pick: "选择…",
       load: "加载",
       reload: "重新加载插件",
+      docs: "如何编写插件",
     },
     module: {
       from: "由插件 {name} 添加。",

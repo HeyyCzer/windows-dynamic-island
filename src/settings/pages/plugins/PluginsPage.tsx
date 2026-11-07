@@ -1,4 +1,4 @@
-import { FolderOpenIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { BookOpenIcon, FolderOpenIcon, RefreshCwIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { PluginIcon } from "../../../components/plugins/Segments";
@@ -6,7 +6,7 @@ import { Button, IconButton } from "../../../components/ui/button";
 import { Block, Card, Collapsible, Desc, List, ListItem, RowText } from "../../../components/ui/card";
 import { Input, Segmented } from "../../../components/ui/form";
 import { Chip, Empty, SectionLabel } from "../../../components/ui/text";
-import { command } from "../../../core/bridge";
+import { command, isTauri } from "../../../core/bridge";
 import { cn } from "../../../core/cn";
 import { useT } from "../../../core/i18n";
 import { pluginEnabled, pluginKey, usePlugins } from "../../../core/plugins/store";
@@ -126,6 +126,9 @@ function InstalledRow({ plugin, enabled }: { plugin: PluginInfo; enabled: boolea
 }
 
 /** Load a plugin from a folder while writing it. */
+const DOCS_URL = "https://github.com/HeyyCzer/windows-island/tree/main/docs/plugins";
+const openDocs = () => (isTauri ? command("open_external", { url: DOCS_URL }) : window.open(DOCS_URL, "_blank"));
+
 function DeveloperMode() {
 	const t = useT();
 	const [path, setPath] = useState("");
@@ -172,10 +175,14 @@ function DeveloperMode() {
 					</Button>
 				</div>
 				{error && <Desc tone="error">{error}</Desc>}
-				<div>
+				<div className="flex gap-2">
 					<Button onClick={() => run(() => command("plugins_reload"))} disabled={busy}>
 						<RefreshCwIcon size={13} />
 						{t("plugins.devMode.reload")}
+					</Button>
+					<Button onClick={openDocs}>
+						<BookOpenIcon size={13} />
+						{t("plugins.devMode.docs")}
 					</Button>
 				</div>
 			</Block>

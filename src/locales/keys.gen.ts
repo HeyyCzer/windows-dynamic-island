@@ -590,5 +590,6 @@ export type MessageKey =
 	| "plugins.devMode.pick"
 	| "plugins.devMode.load"
 	| "plugins.devMode.reload"
+	| "plugins.devMode.docs"
 	| "plugins.module.from"
 	| "plugins.module.open";

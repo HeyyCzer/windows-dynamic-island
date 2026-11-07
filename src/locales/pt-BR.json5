@@ -865,6 +865,7 @@
       pick: "Escolher…",
       load: "Carregar",
       reload: "Recarregar plugins",
+      docs: "Como criar um plugin",
     },
     module: {
       from: "Adicionado pelo plugin {name}.",
