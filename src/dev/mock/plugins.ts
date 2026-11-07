@@ -84,8 +84,15 @@ export const pluginsMock = defineMock({
 						name: index.name ?? null,
 						plugins: index.plugins.map((p: { id: string; icon?: string }) => ({
 							...p,
-							// `plugins/<name>/icon.svg` in the repo; the dev server serves it by plugin id.
-							icon: p.icon && `/__plugins/${p.id}/${p.icon.split("/").slice(2).join("/")}`,
+							// `plugins/<name>/[dist/]icon.svg` in the repo; the dev server serves the
+							// package (the folder, or `dist/` of a bundled one) by plugin id.
+							icon:
+								p.icon &&
+								`/__plugins/${p.id}/${p.icon
+									.split("/")
+									.slice(2)
+									.join("/")
+									.replace(/^dist\//, "")}`,
 							compatible: true,
 							// Like the backend: only a plugin installed from this source counts, not dev folders.
 							installed: null,
