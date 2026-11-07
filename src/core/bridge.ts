@@ -67,6 +67,11 @@ export async function startBridge() {
 	notify();
 }
 
+/** A provider's latest state outside React. */
+export const getProvider = <T>(id: string) => state.get(id) as T | undefined;
+/** Called whenever any provider publishes; returns the unsubscribe. */
+export const subscribeProviders = (listener: Listener) => subscribe(listener);
+
 export function useProvider<T>(id: string): T | undefined {
 	return useSyncExternalStore(subscribe, () => state.get(id) as T | undefined);
 }
@@ -79,6 +84,27 @@ export function providerAction<T = unknown>(id: string, action: string, payload?
 export function command<T = unknown>(cmd: string, args?: Record<string, unknown>) {
 	if (!isTauri) return Promise.resolve(localCall?.("command", "", cmd, args) as T);
 	return invoke<T>(cmd, args);
+}
+
+/** Subscribe to a backend event outside React (local events in the browser mock). */
+export function onEvent<T>(event: string, handler: (payload: T) => void): () => void {
+	const h = (p: unknown) => handler(p as T);
+	if (!isTauri) {
+		const set = localEvents.get(event) ?? new Set();
+		set.add(h);
+		localEvents.set(event, set);
+		return () => void set.delete(h);
+	}
+	let unlisten: UnlistenFn | undefined;
+	let disposed = false;
+	listen<T>(event, (e) => h(e.payload)).then((fn) => {
+		if (disposed) fn();
+		else unlisten = fn;
+	});
+	return () => {
+		disposed = true;
+		unlisten?.();
+	};
 }
 
 /** Subscribe to a backend event for the component's lifetime. */

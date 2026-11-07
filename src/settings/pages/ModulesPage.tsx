@@ -4,9 +4,9 @@ import { useNavigate } from "react-router";
 import { Card } from "../../components/ui/card";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
+import { useAllModules } from "../../core/plugins/modules";
 import { inOrder, layoutSettings, moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
-import { modules } from "../../modules";
 import { Lead, Title } from "../components/Heading";
 import { PlacementSelect } from "../components/PlacementSelect";
 import { Toggle } from "../components/Toggle";
@@ -20,6 +20,7 @@ import { Toggle } from "../components/Toggle";
  */
 export function ModulesPage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
+	const modules = useAllModules();
 	const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
 
 	return (

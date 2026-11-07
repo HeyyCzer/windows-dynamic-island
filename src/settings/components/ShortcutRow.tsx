@@ -5,6 +5,7 @@ import { Row } from "../../components/ui/card";
 import { providerAction, useProvider } from "../../core/bridge";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
+import { useAllModules } from "../../core/plugins/modules";
 import { readSetting, setSetting } from "../../core/settings";
 import {
 	comboOf,
@@ -17,7 +18,7 @@ import {
 	shortcutStateIds,
 	showKeys,
 } from "../../core/shortcuts";
-import { modules } from "../../modules";
+import type { IslandModule } from "../../core/types";
 
 /**
  * A global shortcut: click, then press the new combination (Esc cancels).
@@ -38,6 +39,7 @@ export function ShortcutRow({
 	hint?: boolean;
 }) {
 	const t = useT();
+	const modules = useAllModules();
 	const def = shortcutSetting(id);
 	const status = useProvider<ShortcutsState>(SHORTCUTS_PROVIDER)?.[id];
 	const chosen = readSetting(values, def);
@@ -64,7 +66,7 @@ export function ShortcutRow({
 				setError(
 					t("shortcuts.duplicate", {
 						keys: showKeys(combo),
-						action: actionName(other, t),
+						action: actionName(other, modules, t),
 					}),
 				);
 			else {
@@ -83,7 +85,7 @@ export function ShortcutRow({
 			setHeld([]);
 			providerAction(SHORTCUTS_PROVIDER, "resume");
 		};
-	}, [recording, id, def, values, t]);
+	}, [recording, id, def, values, t, modules]);
 
 	const keys = chosen ?? (def.fallback || null);
 	const label = recording
@@ -152,7 +154,7 @@ export function ShortcutRow({
 }
 
 /** What a shortcut opens, for the "already opens …" message. */
-function actionName(id: ShortcutId, t: ReturnType<typeof useT>) {
+function actionName(id: ShortcutId, modules: IslandModule[], t: ReturnType<typeof useT>) {
 	const module = modules.find((m) => moduleShortcutId(m) === id);
 	return module ? t(module.title) : t(shortcutSetting(id).label);
 }

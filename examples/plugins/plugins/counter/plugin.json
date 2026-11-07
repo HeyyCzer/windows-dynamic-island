@@ -1,0 +1,25 @@
+{
+	"$schema": "../../../../packages/plugin-sdk/plugin.schema.json",
+	"id": "counter",
+	"version": "1.0.0",
+	"sdk": "1.0",
+	"name": "meta.name",
+	"description": "meta.description",
+	"author": "Island for Windows",
+	"icon": "icon.svg",
+	"background": "background.js",
+	"modules": [
+		{
+			"id": "main",
+			"title": "module.title",
+			"icon": "icon.svg",
+			"panel": "panel.html",
+			"size": { "width": 560, "height": 150 }
+		}
+	],
+	"settings": [
+		{ "key": "step", "type": "number", "label": "settings.step.label", "description": "settings.step.desc", "default": 1, "min": 1, "max": 100 },
+		{ "key": "bubble", "type": "boolean", "label": "settings.bubble.label", "description": "settings.bubble.desc", "default": true }
+	],
+	"shortcuts": [{ "id": "increment", "label": "shortcuts.increment" }]
+}

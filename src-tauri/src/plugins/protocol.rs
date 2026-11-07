@@ -86,7 +86,7 @@ fn serve<R: Runtime>(app: &tauri::AppHandle<R>, path: &str) -> Response<Vec<u8>>
             Some(script) => respond(
                 with_sdk(&format!(
                     "<!doctype html><html><head><meta charset=\"utf-8\"></head><body>\
-                     <script type=\"module\" src=\"/{plugin}/{script}\"></script></body></html>"
+                     <script type=\"module\" src=\"./{script}\"></script></body></html>"
                 )),
                 "text/html; charset=utf-8",
                 Some(plugin),
