@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 
 /** Small uppercase heading over a section of a panel. */
@@ -25,17 +25,37 @@ export function Empty({ className, ...rest }: ComponentProps<"div">) {
 }
 
 const chip = tv({
-	base: "rounded-full bg-white/6 px-2.5 py-0.75 text-[11.5px] font-semibold text-text-faint before:content-['○_']",
+	base: "rounded-full bg-white/6 px-2.5 py-0.75 text-[11.5px] font-semibold text-text-faint",
 	variants: {
 		ok: {
-			true: "bg-[rgba(52,199,89,0.12)] text-ok before:content-['●_']",
+			true: "bg-[rgba(52,199,89,0.12)] text-ok",
+		},
+		// A status shows a dot; a label with an icon doesn't.
+		dot: {
+			true: "before:content-['○_']",
+			false: "inline-flex items-center gap-1",
 		},
 	},
+	compoundVariants: [{ ok: true, dot: true, class: "before:content-['●_']" }],
 });
 
-/** A status tag: hollow when off, filled green when `ok`. */
-export function Chip({ ok, className, ...rest }: ComponentProps<"span"> & { ok?: boolean }) {
-	return <span className={chip({ ok, class: className })} {...rest} />;
+/**
+ * A status tag: hollow when off, filled green when `ok`. With an `icon` it's
+ * a plain label (developer mode, runs in the background…), no dot.
+ */
+export function Chip({
+	ok,
+	icon,
+	className,
+	children,
+	...rest
+}: ComponentProps<"span"> & { ok?: boolean; icon?: ReactNode }) {
+	return (
+		<span className={chip({ ok, dot: !icon, class: className })} {...rest}>
+			{icon}
+			{children}
+		</span>
+	);
 }
 
 const chips = tv({ base: "flex flex-wrap gap-1.5" });

@@ -1,4 +1,4 @@
-import { BookOpenIcon, FolderOpenIcon, RefreshCwIcon, ShieldAlertIcon, XIcon } from "lucide-react";
+import { BookOpenIcon, CodeXmlIcon, FolderOpenIcon, RefreshCwIcon, ShieldAlertIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { PluginIcon } from "../../../components/plugins/Segments";
@@ -102,7 +102,7 @@ function InstalledRow({ plugin, enabled }: { plugin: PluginInfo; enabled: boolea
 					<span className="flex items-center gap-2">
 						<span className="truncate text-[13.5px] font-semibold group-hover/open:underline">{name}</span>
 						<span className="text-[11.5px] text-text-faint">{t("plugins.version", { version: plugin.version })}</span>
-						{plugin.dev && <Chip>{t("plugins.dev")}</Chip>}
+						{plugin.dev && <Chip icon={<CodeXmlIcon size={12} />}>{t("plugins.dev")}</Chip>}
 						{plugin.manifest?.persistent && <PersistentChip />}
 					</span>
 					{broken ? (
