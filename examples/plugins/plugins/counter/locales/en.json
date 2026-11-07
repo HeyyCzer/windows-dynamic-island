@@ -1,0 +1,17 @@
+{
+	"meta": {
+		"name": "Counter",
+		"description": "The smallest plugin there is: a number you can count up, kept between restarts."
+	},
+	"module": { "title": "Counter" },
+	"settings": {
+		"step": { "label": "Step", "desc": "How much each click adds." },
+		"bubble": { "label": "Show a bubble", "desc": "Keeps the count next to the island." }
+	},
+	"shortcuts": { "increment": "Count up" },
+	"panel": {
+		"add": "Add {step}",
+		"reset": "Reset",
+		"hint": "Count up from anywhere with a shortcut (Settings → Shortcuts)."
+	}
+}

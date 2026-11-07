@@ -31,6 +31,8 @@ export interface Mock {
 	controls?: Control[];
 	/** `providerAction` handlers, by provider id then action name. */
 	actions?: Record<string, Record<string, ActionHandler>>;
+	/** `command` handlers, by command name. */
+	commands?: Record<string, ActionHandler>;
 }
 
 export const defineMock = (mock: Mock) => mock;

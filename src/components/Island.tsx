@@ -1,10 +1,11 @@
 import { motion } from "motion/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useAppearance } from "../core/appearance";
 import { useTauriEvent } from "../core/bridge";
 import { cn } from "../core/cn";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
+import { setIslandControls } from "../core/plugins/host";
 import { useGlass } from "../core/useGlass";
 import { useHitRects } from "../core/useHitRects";
 import { useIslandController } from "../core/useIslandController";
@@ -20,6 +21,7 @@ import { launcherSize } from "./island/Launcher";
 import { Rim } from "./island/Rim";
 import { Surface } from "./island/Surface";
 import { useIslandFileDrop } from "./island/useIslandFileDrop";
+import { PluginBackgrounds } from "./plugins/PluginBackgrounds";
 
 export function Island() {
 	const ctl = useIslandController(modules);
@@ -58,12 +60,19 @@ export function Island() {
 		[mode, ctl.tab, ctl.expand, ctl.collapse, ctl.keepOpen],
 	);
 
+	// What plugins may ask of the island (`island.expand` / `collapse`).
+	useEffect(() => {
+		setIslandControls({ expand: ctl.expand, collapse: ctl.collapse });
+		return () => setIslandControls(null);
+	}, [ctl.expand, ctl.collapse]);
+
 	const content = islandContent(ctl, look, v);
 	const rim = windows ? <Rim look={look} /> : null;
 	const bubble = { transition: v.shellSpring, rim, onOpen: ctl.expand };
 
 	return (
 		<IslandContext.Provider value={api}>
+			<PluginBackgrounds />
 			<div className="pointer-events-none fixed inset-0 flex items-start justify-center">
 				{/* The tray's black hole: the island spins into its own center and comes back out. */}
 				<motion.div

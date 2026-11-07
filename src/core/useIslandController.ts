@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
+import { usePluginEntries, usePluginModules } from "./plugins/modules";
 import {
 	generalSettings,
 	ISLAND_HIDDEN_KEY,
@@ -31,7 +32,8 @@ export type IslandController = ReturnType<typeof useIslandController>;
  */
 export function useIslandController(modules: IslandModule[]) {
 	const settings = useSettings();
-	const entries = useModuleEntries(modules, settings);
+	const pluginModules = usePluginModules();
+	const entries = useModuleEntries(modules, pluginModules, settings);
 	const fullscreen = useFullscreen();
 
 	// Required actions (such as a hydration reminder at zero) take precedence
@@ -124,20 +126,33 @@ export function useIslandController(modules: IslandModule[]) {
 		lockHover: hover.lockHover,
 		onWheel,
 		/** Browser-only hover handlers (Tauri uses the backend hit-test). */
-		domHover: isTauri ? {} : { onMouseEnter: () => hover.onPointer(true), onMouseLeave: () => hover.onPointer(false) },
+		domHover: isTauri
+			? {}
+			: {
+					onMouseEnter: () => hover.onPointer(true),
+					// Moving onto a plugin's iframe "leaves" the page; the pointer is still over the island.
+					onMouseLeave: (e: MouseEvent<HTMLElement>) => {
+						const r = e.currentTarget.getBoundingClientRect();
+						const inside = e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom;
+						if (!inside) hover.onPointer(false);
+					},
+				},
 	};
 }
 
 /**
  * Every enabled module with its current view, in the order chosen in the
- * settings. The registry is static, so calling each module's hook in order is
- * stable; disabled modules still run their hook (rules of hooks) but are dropped.
+ * settings. The built-in registry is static, so calling each module's hook in
+ * order is stable; disabled modules still run their hook (rules of hooks) but
+ * are dropped. Plugins come and go, so their views come from one hook for all.
  */
-function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEntry[] {
+function useModuleEntries(modules: IslandModule[], pluginModules: IslandModule[], settings: Settings): ModuleEntry[] {
+	const plugins = usePluginEntries(pluginModules);
 	return inOrder(
 		modules
 			// biome-ignore lint/correctness/useHookAtTopLevel: the module registry is static, so the hook order is stable
 			.map((module) => ({ module, view: module.useView() }))
+			.concat(plugins)
 			.filter(({ module }) => readSetting(settings, moduleEnabled(module))),
 		(e) => e.module.id,
 		readSetting(settings, layoutSettings.order),

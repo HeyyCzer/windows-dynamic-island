@@ -16,6 +16,7 @@ import { logCall, type Mock } from "./kit";
 import { monitor } from "./monitor";
 import { music } from "./music";
 import { notifications } from "./notifications";
+import { pluginsMock } from "./plugins";
 import { shelf } from "./shelf";
 import { system } from "./system";
 
@@ -34,13 +35,17 @@ export const mocks: Mock[] = [
 	github,
 	calendarMock,
 	monitor,
+	pluginsMock,
 ];
 
 /** Sent every few frames while the island animates: would drown the log. */
 const UNLOGGED = new Set(["set_hit_rects"]);
 
 function answer(target: "provider" | "command", id: string, name: string, payload: unknown) {
-	const handler = target === "provider" ? mocks.find((m) => m.actions?.[id]?.[name])?.actions?.[id][name] : undefined;
+	const handler =
+		target === "provider"
+			? mocks.find((m) => m.actions?.[id]?.[name])?.actions?.[id][name]
+			: mocks.find((m) => m.commands?.[name])?.commands?.[name];
 	if (!UNLOGGED.has(name))
 		logCall({ at: Date.now(), target: target === "provider" ? id : "command", name, payload, handled: !!handler });
 	return handler?.(payload);

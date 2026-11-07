@@ -1,0 +1,26 @@
+main {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	grid-template-rows: auto auto;
+	align-items: center;
+	gap: 6px 22px;
+	height: 100%;
+	padding: 4px 6px;
+}
+#count {
+	grid-row: span 2;
+	font-size: 56px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	min-width: 1.5ch;
+}
+.actions {
+	display: flex;
+	gap: 8px;
+	align-self: end;
+}
+#hint {
+	margin: 0;
+	font-size: 12px;
+	align-self: start;
+}
