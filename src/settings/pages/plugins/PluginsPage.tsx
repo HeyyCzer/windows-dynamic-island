@@ -1,4 +1,12 @@
-import { BookOpenIcon, CodeXmlIcon, FolderOpenIcon, RefreshCwIcon, ShieldAlertIcon, XIcon } from "lucide-react";
+import {
+	BookOpenIcon,
+	CodeXmlIcon,
+	FolderOpenIcon,
+	RefreshCwIcon,
+	ShieldAlertIcon,
+	TriangleAlertIcon,
+	XIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { PluginIcon } from "../../../components/plugins/Segments";
@@ -297,7 +305,7 @@ function CatalogCard({ entry, onInstall }: { entry: CatalogEntry; onInstall: () 
 	const t = useT();
 	const localize = useLocalize();
 	const action = !entry.compatible ? (
-		<Chip>{t("plugins.marketplace.incompatible")}</Chip>
+		<Chip icon={<TriangleAlertIcon size={12} />}>{t("plugins.marketplace.incompatible")}</Chip>
 	) : entry.update ? (
 		<Button variant="primary" onClick={onInstall}>
 			{t("plugins.marketplace.update", { version: entry.version })}
