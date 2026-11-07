@@ -79,6 +79,23 @@ impl PhysicalShape {
     }
 }
 
+/// The area the glass visual covers: around all the shapes, grown by `pad`
+/// (room for the blur to sample past the outline, so its edges don't fade
+/// in), in whole px: (x, y, width, height). The rest of the window isn't
+/// blurred at all.
+pub fn sprite_bounds(shapes: &[PhysicalShape], pad: f32) -> (f32, f32, f32, f32) {
+    let (l, t, r, b) = shapes.iter().map(PhysicalShape::bounds).fold(
+        (f32::MAX, f32::MAX, f32::MIN, f32::MIN),
+        |(l, t, r, b), (sl, st, sr, sb)| (l.min(sl), t.min(st), r.max(sr), b.max(sb)),
+    );
+    if l > r {
+        return (0.0, 0.0, 0.0, 0.0);
+    }
+    let (l, t) = ((l - pad).floor(), (t - pad).floor());
+    let (r, b) = ((r + pad).ceil(), (b + pad).ceil());
+    (l, t, r - l, b - t)
+}
+
 /// Moves the shapes' transforms to physical px (`scale` is the window's DPI
 /// factor), dropping empty or flattened ones and keeping radii within half
 /// the shorter side.
@@ -164,7 +181,7 @@ pub fn restack() {}
 
 #[cfg(windows)]
 mod imp {
-    use std::cell::RefCell;
+    use std::cell::{Cell, RefCell};
     use std::sync::Mutex;
     use std::sync::atomic::{AtomicIsize, Ordering};
 
@@ -216,9 +233,9 @@ mod imp {
         WS_POPUP,
     };
     use windows::core::{BOOL, GUID, HSTRING, Interface, PCWSTR, Ref, implement, w};
-    use windows_numerics::{Matrix3x2, Vector2};
+    use windows_numerics::{Matrix3x2, Vector2, Vector3};
 
-    use super::{GlassLevel, GlassShape, PhysicalShape, ShapeKind, to_physical};
+    use super::{GlassLevel, GlassShape, PhysicalShape, ShapeKind, sprite_bounds, to_physical};
     use crate::window::ISLAND_LABEL;
 
     /// The glass window (0 until created), readable from any thread.
@@ -244,6 +261,8 @@ mod imp {
         backdrop: CompositionBackdropBrush,
         clip: CompositionGeometricClip,
         d2d: ID2D1Factory,
+        /// Margin (physical px) the blur needs around the outline.
+        pad: Cell<f32>,
     }
 
     thread_local! {
@@ -345,7 +364,6 @@ mod imp {
                 .cast::<ICompositorDesktopInterop>()?
                 .CreateDesktopWindowTarget(hwnd, false)?;
             let sprite = compositor.CreateSpriteVisual()?;
-            sprite.SetRelativeSizeAdjustment(Vector2 { X: 1.0, Y: 1.0 })?;
             let backdrop = compositor.CreateHostBackdropBrush()?;
             sprite.SetBrush(&backdrop)?;
             let clip = compositor.CreateGeometricClip()?;
@@ -360,6 +378,7 @@ mod imp {
                 backdrop,
                 clip,
                 d2d,
+                pad: Cell::new(0.0),
             })
         }
     }
@@ -468,6 +487,11 @@ mod imp {
             if let Err(e) = brush.and_then(|b| scene.sprite.SetBrush(&b)) {
                 log::warn!("glass: could not change the blur: {e}");
             }
+            // A Gaussian blur reaches about 3 deviations out.
+            scene.pad.set((deviation * 3.0).ceil());
+            if let Some(last) = LAST.lock().unwrap().as_ref() {
+                let _ = unsafe { set_outline(scene, &last.shapes) };
+            }
         });
     }
 
@@ -555,9 +579,14 @@ mod imp {
         }
     }
 
+    /// Sizes the visual around the shapes and clips it to their outline.
     unsafe fn set_outline(scene: &Scene, shapes: &[PhysicalShape]) -> windows::core::Result<()> {
         unsafe {
-            // Each shape is drawn in its own px, then put in place by its transform.
+            let (x, y, w, h) = sprite_bounds(shapes, scene.pad.get());
+            scene.sprite.SetOffset(Vector3 { X: x, Y: y, Z: 0.0 })?;
+            scene.sprite.SetSize(Vector2 { X: w, Y: h })?;
+            // Each shape is drawn in its own px, then put in place by its
+            // transform, in the visual's space.
             let mut parts = Vec::with_capacity(shapes.len());
             for s in shapes {
                 let path = scene.d2d.CreatePathGeometry()?;
@@ -570,8 +599,8 @@ mod imp {
                     M12: b,
                     M21: c,
                     M22: d,
-                    M31: e,
-                    M32: f,
+                    M31: e - x,
+                    M32: f - y,
                 };
                 parts.push(Some(
                     scene.d2d.CreateTransformedGeometry(&path, &m)?.cast()?,
@@ -759,6 +788,20 @@ mod tests {
         s.radius_top = -3.0;
         let p = to_physical(&[s], 2.0);
         assert_eq!((p[0].radius_top, p[0].radius_bottom), (0.0, 10.0));
+    }
+
+    #[test]
+    fn sprite_covers_all_shapes_plus_the_blur_margin() {
+        let p = to_physical(
+            &[
+                shape(100.0, 20.0, [1.0, 0.0, 0.0, 1.0, 50.5, 4.0]),
+                shape(10.0, 10.0, [1.0, 0.0, 0.0, 1.0, 30.0, 4.0]),
+            ],
+            1.0,
+        );
+        assert_eq!(sprite_bounds(&p, 0.0), (30.0, 4.0, 121.0, 20.0));
+        assert_eq!(sprite_bounds(&p, 6.0), (24.0, -2.0, 133.0, 32.0));
+        assert_eq!(sprite_bounds(&[], 6.0), (0.0, 0.0, 0.0, 0.0));
     }
 
     #[test]

@@ -5,6 +5,9 @@ import type { GlassLevel } from "./settings";
 /** The island's fill while the glass is on: dark enough to read, clear enough to see the blur. */
 const GLASS_TINT = "rgb(0 0 0 / 0.55)";
 
+/** Unchanged frames before the outline is measured less often. */
+const IDLE_AFTER = 10;
+
 type Kind = "rect" | "earLeft" | "earRight";
 
 interface GlassShape {
@@ -88,9 +91,16 @@ export function useGlass(level: GlassLevel) {
 
 		let raf = 0;
 		let last = "";
+		let frame = 0;
+		/** Frames in a row the outline didn't change. */
+		let still = 0;
 		const send = (shapes: GlassShape[]) => {
 			const key = JSON.stringify(shapes);
-			if (key === last) return;
+			if (key === last) {
+				still++;
+				return;
+			}
+			still = 0;
 			last = key;
 			command("set_glass_shapes", { shapes });
 		};
@@ -98,6 +108,8 @@ export function useGlass(level: GlassLevel) {
 		if (enabled) {
 			const tick = () => {
 				raf = requestAnimationFrame(tick);
+				// At rest, every other frame is enough: a spring that starts is caught a frame late at most.
+				if (still > IDLE_AFTER && frame++ % 2) return;
 				const shapes: GlassShape[] = [];
 				for (const el of document.querySelectorAll<HTMLElement>("[data-glass]")) {
 					if (el.closest("[data-glass-off]")) continue;
