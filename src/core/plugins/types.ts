@@ -47,6 +47,8 @@ export interface Manifest {
 	homepage?: string;
 	icon?: string;
 	background?: string;
+	/** The background runs for as long as the plugin is on (otherwise only on events). */
+	persistent?: boolean;
 	modules: PluginModuleDef[];
 	settings: PluginSettingDef[];
 	shortcuts: PluginShortcutDef[];
@@ -94,6 +96,8 @@ export interface CatalogEntry {
 	homepage?: string;
 	icon?: string;
 	permissions: string[];
+	/** Keeps a background running (shown in the marketplace). */
+	persistent?: boolean;
 	package: string;
 	sha256: string;
 	compatible: boolean;

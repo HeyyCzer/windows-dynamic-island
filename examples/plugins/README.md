@@ -1,11 +1,12 @@
 # Example plugins
 
-This folder is laid out like a plugin **source repository**: add it as a source and the marketplace lists both plugins. Read [`docs/plugins/`](../../docs/plugins) first.
+This folder is laid out like a plugin **source repository**: add it as a source and the marketplace lists every plugin. Read [`docs/plugins/`](../../docs/plugins) first.
 
 | Plugin | Shows |
 |---|---|
-| [`counter`](plugins/counter) | Plain JavaScript, no build step: background script, panel, `setView` bubble, settings, a shortcut, storage, translations |
-| [`pomodoro`](plugins/pomodoro) | React + TypeScript + Vite: compact pill while running, attention and a peek when a round ends, state shared between the background and the panel |
+| [`counter`](plugins/counter) | Plain JavaScript, no build step: on-demand background script, panel, `setView` bubble, settings, a shortcut, storage, translations |
+| [`water`](plugins/water) | Plain JavaScript: an on-demand background woken up by an alarm, attention and a peek, the next alarm in the panel |
+| [`pomodoro`](plugins/pomodoro) | React + TypeScript + Vite: a persistent background (the pill ticks every second), attention and a peek when a round ends, state shared between the background and the panel |
 
 ```sh
 # pomodoro is bundled: build it first (dist/ is its package)

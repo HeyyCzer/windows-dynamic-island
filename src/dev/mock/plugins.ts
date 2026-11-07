@@ -47,10 +47,14 @@ export const pluginsMock = defineMock({
 	label: "Plugins",
 	controls: [
 		{ kind: "button", label: "Reload plugins", run: () => void load() },
-		...["toggle", "reset"].map((shortcut) => ({
+		...[
+			["pomodoro", "toggle"],
+			["pomodoro", "reset"],
+			["counter", "increment"],
+		].map(([plugin, shortcut]) => ({
 			kind: "button" as const,
-			label: `Shortcut: pomodoro ${shortcut}`,
-			run: () => emitLocal("plugin://shortcut", { plugin: "pomodoro", shortcut }),
+			label: `Shortcut: ${plugin} ${shortcut}`,
+			run: () => emitLocal("plugin://shortcut", { plugin, shortcut }),
 		})),
 	],
 	commands: {

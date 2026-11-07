@@ -15,7 +15,15 @@ The SDK also injects a small stylesheet with the island's look: dark color schem
 await island.ready; // the island answered: locale, settings and state are filled in
 ```
 
-Calls made before that are queued. `island.context` is `"background"` or `"panel"`, and `island.module` is the panel's module id (`null` in the background). A panel is created when its tab opens and destroyed when it closes, so keep anything that has to survive in the background, in `island.state` or in `island.storage`.
+Calls made before that are queued. `island.context` is `"background"` or `"panel"`, and `island.module` is the panel's module id (`null` in the background). A panel is created when its tab opens and destroyed when it closes. Unless it's [persistent](manifest.md#background-on-demand-or-persistent), the background also comes and goes: it's started for an event and stopped when idle. Keep anything that has to survive in `island.state` or `island.storage`.
+
+An on-demand background runs its script from the top every time it starts. Register your listeners (`onAlarm`, `onShortcut`, `state.subscribe`…) on every run: the event that started it is held until you subscribe to it, even after other `await`s.
+
+```js
+await island.ready;
+const count = island.state.get()?.count ?? (await island.storage.get("count")) ?? 0;
+island.onShortcut((id) => …); // the shortcut that started this run arrives here
+```
 
 ## View: what the island shows while it's closed
 
@@ -48,7 +56,7 @@ island.state.get();                       // the latest value
 const off = island.state.subscribe((s) => render(s)); // fires on changes from any page
 ```
 
-State is in memory and per plugin: the background and every open panel see the same value. It's gone when the plugin stops (app restart, plugin turned off or updated). Limit: 256 KB as JSON.
+State is in memory and per plugin: the background and every open panel see the same value. A panel changing it starts an on-demand background. It survives the background stopping when idle, and is gone when the plugin stops (app restart, plugin turned off or updated). Limit: 256 KB as JSON.
 
 ## Settings
 
@@ -87,7 +95,31 @@ island.onShortcut((id) => {
 });
 ```
 
-`id` is a shortcut's `id` from `plugin.json`. Every page of the plugin gets the event, so handle it in one place (usually the background).
+`id` is a shortcut's `id` from `plugin.json`. Every page of the plugin gets the event, so handle it in one place (usually the background). It starts an on-demand background.
+
+## Alarms
+
+Timers kept by the island. They fire while the background is stopped, starting it, so an on-demand background can do periodic work without staying in memory.
+
+```js
+await island.alarms.create("refresh", { every: 15 * 60 }); // every 15 minutes
+await island.alarms.create("ring", { delay: 25 * 60 });    // once, in 25 minutes
+island.onAlarm((name) => {
+  if (name === "refresh") refresh();
+});
+await island.alarms.list(); // [{ name, due (ms since the epoch), every (s) or null }]
+await island.alarms.clear("ring");
+await island.alarms.clearAll();
+```
+
+`delay` and `every` are seconds, from 30 seconds to 7 days; `delay` defaults to `every`. Creating an alarm with an existing name replaces it. Up to 50 per plugin. They need a background script (they're delivered there), but panels can create and list them too.
+
+Alarms are gone when the plugin stops (app restart, turned off, updated), and the background starts right after, so create them there. An on-demand background runs again on every event, so don't re-create them blindly on each run, or each run would push the next one back:
+
+```js
+const [alarm] = await island.alarms.list();
+if (alarm?.every !== 900) await island.alarms.create("refresh", { every: 900 });
+```
 
 ## Translations
 

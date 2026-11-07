@@ -97,6 +97,13 @@ function PluginDetails({ plugin, values }: { plugin: PluginInfo; values: Record<
 									: `✓ ${t("plugins.page.verified")}`}
 						</Fact>
 						<Fact label="SDK">{manifest?.sdk ?? "—"}</Fact>
+						<Fact label={t("plugins.page.background")}>
+							{!manifest?.background
+								? t("plugins.background.none")
+								: manifest.persistent
+									? `${t("plugins.background.persistent")} · ${t("plugins.background.persistentHint")}`
+									: t("plugins.background.onDemand")}
+						</Fact>
 					</dl>
 				</Block>
 			</Card>

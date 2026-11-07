@@ -14,7 +14,7 @@ import type { CatalogEntry, CatalogSource, PluginInfo, PluginSource } from "../.
 import { readSetting, setSetting } from "../../../core/settings";
 import { Lead, Title } from "../../components/Heading";
 import { Toggle } from "../../components/Toggle";
-import { ConfirmInstall, useLocalize } from "./shared";
+import { ConfirmInstall, PersistentChip, useLocalize } from "./shared";
 
 type Tab = "installed" | "marketplace" | "sources";
 
@@ -98,6 +98,7 @@ function InstalledRow({ plugin, enabled }: { plugin: PluginInfo; enabled: boolea
 						<span className="truncate text-[13.5px] font-semibold group-hover/open:underline">{name}</span>
 						<span className="text-[11.5px] text-text-faint">{t("plugins.version", { version: plugin.version })}</span>
 						{plugin.dev && <Chip>{t("plugins.dev")}</Chip>}
+						{plugin.manifest?.persistent && <PersistentChip />}
 					</span>
 					{broken ? (
 						<Desc tone="error" className="truncate">
@@ -270,6 +271,7 @@ function Marketplace({ onSources }: { onSources: () => void }) {
 				name={pending ? localize(pending.entry.name) : null}
 				update={!!pending?.entry.update}
 				permissions={pending?.entry.permissions ?? []}
+				persistent={!!pending?.entry.persistent}
 				busy={busy}
 				error={error}
 				onCancel={() => setPending(null)}
@@ -313,7 +315,8 @@ function CatalogCard({ entry, onInstall }: { entry: CatalogEntry; onInstall: () 
 			</div>
 			{entry.description && <Desc className="line-clamp-3 min-h-[2.9em]">{localize(entry.description)}</Desc>}
 			<div className="mt-auto flex items-center justify-between gap-2 pt-1">
-				<span className="text-[11.5px] text-text-faint">
+				<span className="flex min-w-0 items-center gap-2 text-[11.5px] text-text-faint">
+					{entry.persistent && <PersistentChip />}
 					{entry.permissions.length ? `${entry.permissions.length} ${t("plugins.page.permissions").toLowerCase()}` : ""}
 				</span>
 				{action}

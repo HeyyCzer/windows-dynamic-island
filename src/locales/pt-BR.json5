@@ -789,6 +789,12 @@
     },
     version: "v{version}",
     dev: "Desenvolvedor",
+    background: {
+      persistent: "Roda em segundo plano",
+      persistentHint: "Fica rodando enquanto estiver ligado, então usa mais memória.",
+      onDemand: "Roda quando algo acontece",
+      none: "Nenhum",
+    },
     installed: {
       empty: "Nenhum plugin ainda. Encontre alguns no marketplace.",
     },
@@ -813,6 +819,7 @@
       empty: "Nenhuma fonte ainda.",
     },
     confirm: {
+      persistent: "Ele fica rodando em segundo plano enquanto estiver ligado, o que usa mais memória.",
       install: "Instalar {name}?",
       update: "Atualizar {name}?",
       permissions: "Ele vai poder:",
@@ -830,6 +837,7 @@
       provider: "Ver o que o módulo {provider} vê",
     },
     page: {
+      background: "Segundo plano",
       version: "Versão",
       about: "Sobre",
       source: "Fonte",

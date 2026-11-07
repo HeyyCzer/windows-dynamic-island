@@ -1,6 +1,6 @@
-import { useEffect, useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { cn } from "../../core/cn";
-import { type FrameContext, registerFrame, resetPlugin } from "../../core/plugins/host";
+import { type FrameContext, registerFrame } from "../../core/plugins/host";
 import type { PluginInfo } from "../../core/plugins/types";
 
 /**
@@ -31,13 +31,6 @@ export function PluginFrame({
 		if (!win) return;
 		return registerFrame(win, plugin, context, module);
 	}, [plugin, context, module]);
-
-	// A background going away (turned off, removed, reloaded) takes its views along.
-	const id = plugin.id;
-	useEffect(() => {
-		if (context !== "background") return;
-		return () => resetPlugin(id);
-	}, [context, id]);
 
 	return (
 		<iframe

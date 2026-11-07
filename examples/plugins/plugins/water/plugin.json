@@ -1,0 +1,32 @@
+{
+	"$schema": "../../../../packages/plugin-sdk/plugin.schema.json",
+	"id": "water",
+	"version": "1.0.0",
+	"sdk": "1.0",
+	"name": "meta.name",
+	"description": "meta.description",
+	"author": "Island for Windows",
+	"icon": "icon.svg",
+	"background": "background.js",
+	"modules": [
+		{
+			"id": "main",
+			"title": "module.title",
+			"icon": "icon.svg",
+			"panel": "panel.html",
+			"size": { "width": 500, "height": 130 }
+		}
+	],
+	"settings": [
+		{
+			"key": "every",
+			"type": "number",
+			"label": "settings.every.label",
+			"description": "settings.every.desc",
+			"default": 45,
+			"min": 1,
+			"max": 240,
+			"unit": "units.min"
+		}
+	]
+}

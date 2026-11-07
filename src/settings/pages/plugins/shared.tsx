@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { Row } from "../../../components/ui/card";
 import { Input, NumberField, Select } from "../../../components/ui/form";
+import { Chip } from "../../../components/ui/text";
 import { matchLocale, type Translate, useLocale, useT } from "../../../core/i18n";
 import { pluginKey, pluginSettingKey } from "../../../core/plugins/store";
 import type { LocalizedText, PluginSettingDef } from "../../../core/plugins/types";
@@ -48,6 +49,16 @@ export function PermissionList({ permissions }: { permissions: string[] }) {
 	);
 }
 
+/** Marks a plugin whose background never stops: it costs memory for as long as it's on. */
+export function PersistentChip() {
+	const t = useT();
+	return (
+		<Chip className="text-warn" title={t("plugins.background.persistentHint")}>
+			{t("plugins.background.persistent")}
+		</Chip>
+	);
+}
+
 /** A centered dialog over the settings window. */
 export function Dialog({ open, children }: { open: boolean; children: ReactNode }) {
 	return (
@@ -82,6 +93,7 @@ export function ConfirmInstall({
 	name,
 	update,
 	permissions,
+	persistent,
 	busy,
 	error,
 	onCancel,
@@ -90,6 +102,7 @@ export function ConfirmInstall({
 	name: string | null;
 	update: boolean;
 	permissions: string[];
+	persistent: boolean;
 	busy: boolean;
 	error: string | null;
 	onCancel: () => void;
@@ -109,6 +122,7 @@ export function ConfirmInstall({
 			) : (
 				<p className="text-[13px] text-text-dim">{t("plugins.confirm.none")}</p>
 			)}
+			{persistent && <p className="text-[13px] text-warn">{t("plugins.confirm.persistent")}</p>}
 			<p className="text-[12px] text-text-faint">{t("plugins.confirm.warning")}</p>
 			{error && <p className="text-[12px] text-[#ff5f57] select-text">{error}</p>}
 			<div className="mt-1 flex justify-end gap-2">

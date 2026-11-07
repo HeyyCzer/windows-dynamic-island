@@ -119,6 +119,8 @@ export function validate(dir) {
 	if (m.homepage && !m.homepage.startsWith("https://")) errors.push("homepage: only https links");
 	const modules = m.modules ?? [];
 	if (!modules.length && !m.background) errors.push("a plugin needs a module or a background script");
+	if (m.persistent !== undefined && typeof m.persistent !== "boolean") errors.push("persistent: true or false");
+	if (m.persistent && !m.background) errors.push("'persistent' needs a background script");
 
 	const paths = [m.icon, m.background, ...modules.flatMap((x) => [x.icon, x.panel])].filter(Boolean);
 	for (const p of paths) {
@@ -279,6 +281,7 @@ function index(root, baseUrl) {
 			homepage: m.homepage,
 			icon: m.icon ? rel(join(dir, m.icon)) : undefined,
 			permissions: m.permissions ?? [],
+			persistent: m.persistent === true || undefined,
 			package: url(rel(file)),
 			sha256,
 		});

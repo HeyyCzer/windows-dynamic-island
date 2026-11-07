@@ -13,7 +13,8 @@ Plugins add modules (tabs) to the island, along with their own settings, global 
 Examples live in [`examples/plugins/`](../../examples/plugins), which is laid out like a source repository:
 
 - [`counter`](../../examples/plugins/plugins/counter): plain JavaScript, no build step. Background script, panel, settings, shortcut, storage.
-- [`pomodoro`](../../examples/plugins/plugins/pomodoro): React + TypeScript + Vite. Compact pill while running, attention when done, panel ↔ background state.
+- [`pomodoro`](../../examples/plugins/plugins/pomodoro): React + TypeScript + Vite. Compact pill while running, attention when done, panel ↔ background state. A persistent background, since the pill ticks every second.
+- [`water`](../../examples/plugins/plugins/water): plain JavaScript. An on-demand background woken up by an alarm, the pattern most plugins should follow.
 
 ## How a plugin runs
 
@@ -23,7 +24,7 @@ A plugin is a small website: HTML, JavaScript and CSS, plus a `plugin.json` that
 ┌────────────────────────── island window ──────────────────────────┐
 │  island UI (React)                                                │
 │   ├─ host  ◄── postMessage ──►  <iframe sandbox> background page  │
-│   │                             (runs while the plugin is on)     │
+│   │                             (on demand, or always)            │
 │   └─ host  ◄── postMessage ──►  <iframe sandbox> panel page       │
 │        │                        (while its tab is open)           │
 │        ▼                                                          │
@@ -31,7 +32,7 @@ A plugin is a small website: HTML, JavaScript and CSS, plus a `plugin.json` that
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-- **Background** (optional): a script that runs for as long as the plugin is on. It keeps state, reacts to shortcuts and settings, and tells the island what to show while it's closed with `island.setView()`.
+- **Background** (optional): a script that reacts to alarms, shortcuts, settings and panels, and tells the island what to show while it's closed with `island.setView()`. It runs only when there's something to do and stops when idle, unless the manifest makes it [persistent](manifest.md#background-on-demand-or-persistent).
 - **Modules**: tabs in the island. Each can have a **panel**, an HTML page shown in the tab's area when it's open. The pill, bubble and tab icon are *declarative*: you describe them (text, icon, color, priority) and the island draws them, so they look native and cost nothing while the island is closed.
 - **SDK**: the app injects `window.island` into every page of your plugin before your own scripts run. There's nothing to bundle, and the version always matches the app.
 

@@ -21,7 +21,7 @@
 			"icon": "plugins/counter/icon.svg",
 			"permissions": [],
 			"package": "packages/counter-1.0.0.zip",
-			"sha256": "a92a7992dd86b7aef8e6b5737a309928a3437ac367b200ec2a2d2e4e9d8cb4a1"
+			"sha256": "6828b8f5212539ea78a2b5750c993da0a629d02cc69e4e8358c6e19af3f64fd2"
 		},
 		{
 			"id": "pomodoro",
@@ -38,8 +38,27 @@
 			"author": "Island for Windows",
 			"icon": "plugins/pomodoro/dist/icon.svg",
 			"permissions": [],
+			"persistent": true,
 			"package": "packages/pomodoro-1.0.0.zip",
-			"sha256": "00c5628dbc9ea08a09438e860a412dc62c9fdf713a3a845d5fe3f8b0aa6f7ada"
+			"sha256": "1918d125432f6f1bd5bb4a007e7646468d8e412821eea186e02698de03a4d6ff"
+		},
+		{
+			"id": "water",
+			"version": "1.0.0",
+			"sdk": "1.0",
+			"name": {
+				"en": "Water",
+				"pt-BR": "Água"
+			},
+			"description": {
+				"en": "A nudge to drink water every so often. Shows how a background runs only when an alarm wakes it up.",
+				"pt-BR": "Um lembrete para beber água de tempos em tempos. Mostra um background que só roda quando um alarme o acorda."
+			},
+			"author": "Island for Windows",
+			"icon": "plugins/water/icon.svg",
+			"permissions": [],
+			"package": "packages/water-1.0.0.zip",
+			"sha256": "ec9eea3cca39427db3a648c2622139c5142990c6841abd77bff35f9396382f3c"
 		}
 	]
 }

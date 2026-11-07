@@ -326,6 +326,26 @@ pub async fn plugin_install(
     Ok(info)
 }
 
+/// The package is what the index announced and the user agreed to.
+fn check_package(manifest: &Manifest, listing: &Listing, approved: &[String]) -> Result<(), String> {
+    if manifest.id != listing.id || manifest.version != listing.version {
+        return Err(format!(
+            "the package is {} {}, the index says {} {}",
+            manifest.id, manifest.version, listing.id, listing.version
+        ));
+    }
+    if let Some(extra) = manifest.permissions.iter().find(|p| !approved.contains(p)) {
+        return Err(format!(
+            "the package asks for '{extra}', which wasn't approved"
+        ));
+    }
+    // The marketplace shows "runs in the background" from the index: it can't hide it.
+    if manifest.persistent && !listing.persistent {
+        return Err("the package keeps a background running, the index doesn't say so".into());
+    }
+    Ok(())
+}
+
 fn install(
     app: &AppHandle,
     source_id: &str,
@@ -367,17 +387,7 @@ fn install(
         .join("staging")
         .join(format!("{id}-{}", now_ms()));
     let unpacked = package::unpack(&bytes, &staging).and_then(|(manifest, files)| {
-        if manifest.id != id || manifest.version != listing.version {
-            return Err(format!(
-                "the package is {} {}, the index says {id} {}",
-                manifest.id, manifest.version, listing.version
-            ));
-        }
-        if let Some(extra) = manifest.permissions.iter().find(|p| !approved.contains(p)) {
-            return Err(format!(
-                "the package asks for '{extra}', which wasn't approved"
-            ));
-        }
+        check_package(&manifest, &listing, approved)?;
         Ok((manifest, files))
     });
     let (manifest, files) = match unpacked {
@@ -537,4 +547,47 @@ pub async fn plugins_reload(app: AppHandle) -> Result<(), String> {
     .await?;
     changed(&app);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn manifest(extra: serde_json::Value) -> Manifest {
+        let mut m = serde_json::json!({
+            "id": "demo", "version": "1.0.0", "sdk": "1.0", "name": "n", "background": "bg.js",
+            "permissions": ["clipboard:read"],
+        });
+        m.as_object_mut()
+            .unwrap()
+            .extend(extra.as_object().unwrap().clone());
+        Manifest::parse(&m.to_string()).unwrap()
+    }
+
+    fn listing(persistent: bool) -> Listing {
+        serde_json::from_value(serde_json::json!({
+            "id": "demo", "version": "1.0.0", "sdk": "1.0", "name": "n",
+            "package": "https://x.dev/demo.zip", "sha256": "00", "persistent": persistent,
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn package_must_match_its_listing() {
+        let ok = vec!["clipboard:read".to_string()];
+        assert!(check_package(&manifest(serde_json::json!({})), &listing(false), &ok).is_ok());
+        assert!(check_package(&manifest(serde_json::json!({})), &listing(false), &[]).is_err());
+        let other = manifest(serde_json::json!({ "version": "1.0.1" }));
+        assert!(check_package(&other, &listing(false), &ok).is_err());
+    }
+
+    #[test]
+    fn package_cant_hide_a_persistent_background() {
+        let ok = vec!["clipboard:read".to_string()];
+        let persistent = manifest(serde_json::json!({ "persistent": true }));
+        assert!(check_package(&persistent, &listing(false), &ok).is_err());
+        assert!(check_package(&persistent, &listing(true), &ok).is_ok());
+        // Saying more than the package does is harmless.
+        assert!(check_package(&manifest(serde_json::json!({})), &listing(true), &ok).is_ok());
+    }
 }

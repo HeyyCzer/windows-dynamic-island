@@ -62,6 +62,7 @@ A **package** is a folder with `plugin.json` at its root. For plain-JS plugins i
 - `icon` and `package` are absolute HTTPS URLs or relative to the index.
 - `sha256` is the package's hash. The app refuses a package that doesn't match it.
 - `permissions` is what the marketplace shows before installing. The package's `plugin.json` can't ask for more.
+- `persistent: true` when the plugin's background never stops (see [manifest.md](manifest.md#background-on-demand-or-persistent)). The marketplace shows it, and the app refuses a persistent package whose listing doesn't say so. `island-plugin index` fills it in.
 - An entry that doesn't make sense (bad version, `http://` URL, bad hash) is skipped, and the rest of the source still shows.
 
 Don't write it by hand: the CLI generates it.
