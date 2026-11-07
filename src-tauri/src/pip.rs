@@ -71,6 +71,7 @@ fn create(app: &AppHandle) -> tauri::Result<()> {
         .focused(false)
         .visible(false)
         .background_color(tauri::webview::Color(0, 0, 0, 255))
+        .additional_browser_args(crate::memory::BROWSER_ARGS)
         .build()?;
 
     let scale = win.scale_factor()?;

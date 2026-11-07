@@ -50,6 +50,9 @@ drag = "2"
 windows-collections = "0.3"
 # `#[implement]` (the drop target in `file_drop.rs`) expands to `windows_core::…`.
 windows-core = "0.62"
+# WebView2 COM interfaces beyond what Tauri exposes (memory target level).
+# Keep the version in step with wry's.
+webview2-com = "0.39"
 # `Vector2` / `Vector3` for the glass's composition visuals and Direct2D path.
 windows-numerics = "0.3"
 windows = { version = "0.62", features = [
