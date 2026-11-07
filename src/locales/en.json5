@@ -894,12 +894,22 @@
       error: "Couldn't read this source: {error}",
     },
     sources: {
+      confirm: {
+        // {source}: what the user typed, e.g. owner/repo
+        title: "Add {source}?",
+        body: "Whoever controls this source decides which plugins and updates you're offered. We don't review sources or their plugins and aren't responsible for them. Only add sources from people you trust.",
+        accept: "Add source",
+      },
       desc: "A source is a GitHub repository (owner/repo or its link), or the link to an island-plugins.json. Only add sources you trust.",
       placeholder: "owner/repo",
       add: "Add",
       adding: "Checking…",
       remove: "Remove",
       empty: "No sources yet.",
+    },
+    trust: {
+      title: "Third-party plugins",
+      body: "Plugins and sources are made by other people, not by Island for Windows. We don't review them and aren't responsible for what they do or for any harm they cause. Only add sources and install plugins from people you trust.",
     },
     confirm: {
       persistent: "It keeps running in the background while it's on, which uses more memory.",
@@ -908,7 +918,7 @@
       update: "Update {name}?",
       permissions: "It will be able to:",
       none: "It doesn't ask for anything beyond its own sandbox.",
-      warning: "Only install plugins you trust: they can do whatever these permissions allow.",
+      warning: "Plugins are made by third parties, not by Island for Windows. We don't review them and aren't responsible for what they do. Only install plugins from people you trust: they can do whatever these permissions allow.",
       cancel: "Cancel",
       accept: "Install",
     },

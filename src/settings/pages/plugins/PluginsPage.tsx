@@ -1,4 +1,4 @@
-import { BookOpenIcon, FolderOpenIcon, RefreshCwIcon, XIcon } from "lucide-react";
+import { BookOpenIcon, FolderOpenIcon, RefreshCwIcon, ShieldAlertIcon, XIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { PluginIcon } from "../../../components/plugins/Segments";
@@ -14,7 +14,7 @@ import type { CatalogEntry, CatalogSource, PluginInfo, PluginSource } from "../.
 import { readSetting, setSetting } from "../../../core/settings";
 import { Lead, Title } from "../../components/Heading";
 import { Toggle } from "../../components/Toggle";
-import { ConfirmInstall, PersistentChip, useLocalize } from "./shared";
+import { ConfirmInstall, Dialog, PersistentChip, TrustNotice, useLocalize } from "./shared";
 
 type Tab = "installed" | "marketplace" | "sources";
 
@@ -51,7 +51,12 @@ export function PluginsPage({ values }: { values: Record<string, unknown> }) {
 			</div>
 			<Lead>{t("plugins.desc")}</Lead>
 			{tab === "installed" && <Installed values={values} onBrowse={() => pick("marketplace")} />}
-			{tab === "marketplace" && <Marketplace onSources={() => pick("sources")} />}
+			{tab === "marketplace" && (
+				<>
+					<TrustNotice />
+					<Marketplace onSources={() => pick("sources")} />
+				</>
+			)}
 			{tab === "sources" && <Sources />}
 		</>
 	);
@@ -338,12 +343,20 @@ function Sources() {
 	const [input, setInput] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	/** The source waiting for the user to accept the warning. */
+	const [confirming, setConfirming] = useState<string | null>(null);
 	const load = useCallback(async () => setSources((await command<PluginSource[]>("plugin_sources")) ?? []), []);
 	useEffect(() => {
 		void load();
 	}, [load]);
 
+	const ask = () => {
+		if (!input.trim() || busy) return;
+		setError(null);
+		setConfirming(input.trim());
+	};
 	const add = async () => {
+		setConfirming(null);
 		setBusy(true);
 		setError(null);
 		try {
@@ -362,36 +375,53 @@ function Sources() {
 	};
 
 	return (
-		<Card>
-			<Block>
-				<RowText label={t("plugins.tabs.sources")} desc={t("plugins.sources.desc")} />
-				{sources.length ? (
-					<List>
-						{sources.map((s) => (
-							<ListItem key={s.id} name={s.label}>
-								<IconButton size="sm" tone="danger" title={t("plugins.sources.remove")} onClick={() => remove(s.id)}>
-									<XIcon size={11} />
-								</IconButton>
-							</ListItem>
-						))}
-					</List>
-				) : (
-					<Desc>{t("plugins.sources.empty")}</Desc>
-				)}
-				<div className="flex gap-2">
-					<Input
-						className="flex-1"
-						placeholder={t("plugins.sources.placeholder")}
-						value={input}
-						onChange={(e) => setInput(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && input.trim() && !busy && add()}
-					/>
-					<Button variant="primary" onClick={add} disabled={busy || !input.trim()}>
-						{busy ? t("plugins.sources.adding") : t("plugins.sources.add")}
+		<>
+			<Card>
+				<Block>
+					<RowText label={t("plugins.tabs.sources")} desc={t("plugins.sources.desc")} />
+					{sources.length ? (
+						<List>
+							{sources.map((s) => (
+								<ListItem key={s.id} name={s.label}>
+									<IconButton size="sm" tone="danger" title={t("plugins.sources.remove")} onClick={() => remove(s.id)}>
+										<XIcon size={11} />
+									</IconButton>
+								</ListItem>
+							))}
+						</List>
+					) : (
+						<Desc>{t("plugins.sources.empty")}</Desc>
+					)}
+					<div className="flex gap-2">
+						<Input
+							className="flex-1"
+							placeholder={t("plugins.sources.placeholder")}
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+							onKeyDown={(e) => e.key === "Enter" && ask()}
+						/>
+						<Button variant="primary" onClick={ask} disabled={busy || !input.trim()}>
+							{busy ? t("plugins.sources.adding") : t("plugins.sources.add")}
+						</Button>
+					</div>
+					{error && <Desc tone="error">{error}</Desc>}
+				</Block>
+			</Card>
+			<Dialog open={confirming !== null}>
+				<h2 className="text-[17px] font-bold break-all">
+					{t("plugins.sources.confirm.title", { source: confirming ?? "" })}
+				</h2>
+				<p className="flex items-start gap-2 rounded-lg bg-warn/8 px-3 py-2 text-[12.5px]/snug text-text-dim">
+					<ShieldAlertIcon size={14} className="mt-0.5 flex-none text-warn" />
+					{t("plugins.sources.confirm.body")}
+				</p>
+				<div className="mt-1 flex justify-end gap-2">
+					<Button onClick={() => setConfirming(null)}>{t("plugins.confirm.cancel")}</Button>
+					<Button variant="primary" onClick={add}>
+						{t("plugins.sources.confirm.accept")}
 					</Button>
 				</div>
-				{error && <Desc tone="error">{error}</Desc>}
-			</Block>
-		</Card>
+			</Dialog>
+		</>
 	);
 }

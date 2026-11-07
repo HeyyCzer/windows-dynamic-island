@@ -811,6 +811,12 @@
       error: "Não deu para ler esta fonte: {error}",
     },
     sources: {
+      confirm: {
+        // {source}: o que o usuário digitou, ex.: dono/repo
+        title: "Adicionar {source}?",
+        body: "Quem controla esta fonte decide quais plugins e atualizações são oferecidos a você. Não revisamos fontes nem seus plugins e não nos responsabilizamos por eles. Só adicione fontes de pessoas em quem você confia.",
+        accept: "Adicionar fonte",
+      },
       desc: "Uma fonte é um repositório do GitHub (dono/repo ou o link dele) ou o link de um island-plugins.json. Só adicione fontes em que você confia.",
       placeholder: "dono/repo",
       add: "Adicionar",
@@ -818,13 +824,17 @@
       remove: "Remover",
       empty: "Nenhuma fonte ainda.",
     },
+    trust: {
+      title: "Plugins de terceiros",
+      body: "Plugins e fontes são feitos por outras pessoas, não pelo Island for Windows. Não os revisamos e não nos responsabilizamos pelo que fazem nem por danos que causem. Só adicione fontes e instale plugins de pessoas em quem você confia.",
+    },
     confirm: {
       persistent: "Ele fica rodando em segundo plano enquanto estiver ligado, o que usa mais memória.",
       install: "Instalar {name}?",
       update: "Atualizar {name}?",
       permissions: "Ele vai poder:",
       none: "Ele não pede nada além do próprio isolamento.",
-      warning: "Só instale plugins em que você confia: eles podem fazer tudo o que estas permissões deixam.",
+      warning: "Plugins são feitos por terceiros, não pelo Island for Windows. Não os revisamos e não nos responsabilizamos pelo que fazem. Só instale plugins de pessoas em quem você confia: eles podem fazer tudo o que estas permissões deixam.",
       cancel: "Cancelar",
       accept: "Instalar",
     },
