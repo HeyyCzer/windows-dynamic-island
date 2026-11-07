@@ -17,6 +17,10 @@ export default defineConfig({
 		strictPort: true,
 		watch: { ignored: ["**/src-tauri/**"] },
 	},
+	// Only the app's page: the dep scan would otherwise crawl every .html, the
+	// example plugins' too, and pull a second React from their node_modules.
+	optimizeDeps: { entries: ["index.html"] },
+	resolve: { dedupe: ["react", "react-dom"] },
 	envPrefix: ["VITE_", "TAURI_ENV_*"],
 	build: {
 		target: "chrome120",
