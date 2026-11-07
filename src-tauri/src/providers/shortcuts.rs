@@ -20,6 +20,9 @@ pub const ID: &str = "shortcuts";
 
 const MODULE_PREFIX: &str = "shortcut.module.";
 
+/// `shortcut.plugin.<plugin>.<shortcut>`: a plugin's own action.
+const PLUGIN_PREFIX: &str = "shortcut.plugin.";
+
 struct Action {
     id: &'static str,
     default: &'static str,
@@ -51,6 +54,11 @@ static REGISTERED: Mutex<Vec<RegisteredShortcut>> = Mutex::new(Vec::new());
 pub enum ShortcutTarget {
     Event(&'static str),
     Module(String),
+    /// Sent to the plugin as `onShortcut(shortcut)`.
+    Plugin {
+        plugin: String,
+        shortcut: String,
+    },
 }
 
 pub fn event_for(shortcut: &Shortcut) -> Option<ShortcutTarget> {
@@ -62,9 +70,18 @@ pub fn event_for(shortcut: &Shortcut) -> Option<ShortcutTarget> {
     match id.as_str() {
         "ask" => Some(ShortcutTarget::Event("island://ask")),
         "find" => Some(ShortcutTarget::Event("island://find")),
-        _ => id
-            .strip_prefix("module:")
-            .map(|module_id| ShortcutTarget::Module(module_id.to_string())),
+        _ => {
+            if let Some((plugin, shortcut)) =
+                id.strip_prefix("plugin:").and_then(|p| p.split_once(':'))
+            {
+                return Some(ShortcutTarget::Plugin {
+                    plugin: plugin.to_string(),
+                    shortcut: shortcut.to_string(),
+                });
+            }
+            id.strip_prefix("module:")
+                .map(|module_id| ShortcutTarget::Module(module_id.to_string()))
+        }
     }
 }
 
@@ -92,6 +109,10 @@ impl Provider for ShortcutsProvider {
         let on_settings = tx.clone();
         hub.app().listen(settings::CHANGED_EVENT, move |_| {
             let _ = on_settings.send(());
+        });
+        let on_plugins = tx.clone();
+        hub.app().listen(crate::plugins::CHANGED_EVENT, move |_| {
+            let _ = on_plugins.send(());
         });
         let _ = tx.send(());
         *self.tx.lock().unwrap() = Some(tx);
@@ -129,7 +150,7 @@ struct DesiredShortcut {
     chosen: Option<String>,
 }
 
-fn desired_shortcuts(settings: &Settings) -> Vec<DesiredShortcut> {
+fn desired_shortcuts(app: &tauri::AppHandle, settings: &Settings) -> Vec<DesiredShortcut> {
     let mut actions = BUILTIN_ACTIONS
         .iter()
         .map(|action| DesiredShortcut {
@@ -153,6 +174,23 @@ fn desired_shortcuts(settings: &Settings) -> Vec<DesiredShortcut> {
             chosen: value.as_str().map(str::to_string),
         });
     }
+
+    // Plugins' shortcuts: the manifest suggests a default, the user decides.
+    for manifest in app.state::<crate::plugins::Plugins>().manifests() {
+        if crate::plugins::is_disabled(app, &manifest.id) {
+            continue;
+        }
+        for shortcut in &manifest.shortcuts {
+            actions.push(DesiredShortcut {
+                id: format!("plugin:{}:{}", manifest.id, shortcut.id),
+                default: shortcut.default.clone(),
+                fallback: None,
+                chosen: settings
+                    .get(&format!("{PLUGIN_PREFIX}{}.{}", manifest.id, shortcut.id))
+                    .and_then(|value| value.as_str().map(str::to_string)),
+            });
+        }
+    }
     actions
 }
 
@@ -164,7 +202,7 @@ fn sync(hub: &Hub, paused: bool) {
     let mut registered = Vec::new();
     let mut state = Map::new();
 
-    for action in desired_shortcuts(&settings) {
+    for action in desired_shortcuts(app, &settings) {
         let uses_default = action.chosen.is_none();
         let mut candidates = match action.chosen {
             Some(keys) => vec![keys.trim().to_string()],

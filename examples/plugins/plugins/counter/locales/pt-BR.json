@@ -1,0 +1,17 @@
+{
+	"meta": {
+		"name": "Contador",
+		"description": "O menor plugin possível: um número que você aumenta, guardado entre reinícios."
+	},
+	"module": { "title": "Contador" },
+	"settings": {
+		"step": { "label": "Passo", "desc": "Quanto cada clique soma." },
+		"bubble": { "label": "Mostrar bolha", "desc": "Deixa a contagem ao lado da ilha." }
+	},
+	"shortcuts": { "increment": "Somar" },
+	"panel": {
+		"add": "Somar {step}",
+		"reset": "Zerar",
+		"hint": "Some de qualquer lugar com um atalho (Configurações → Atalhos)."
+	}
+}

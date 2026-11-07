@@ -4,6 +4,7 @@
  * default, an empty string turns it off.
  */
 import { useProvider } from "./bridge";
+import { getPlugins, pluginKey, pluginShortcutId } from "./plugins/store";
 import type { SettingDef } from "./settings";
 
 export const SHORTCUTS_PROVIDER = "shortcuts";
@@ -26,6 +27,19 @@ const BUILTIN_SHORTCUTS: Record<string, SettingDef<string | null> & { fallback: 
 };
 
 export function shortcutSetting(id: ShortcutId): SettingDef<string | null> & { fallback: string } {
+	// `plugin:<plugin>:<shortcut>`: a plugin's action, its default from plugin.json.
+	if (id.startsWith("plugin:")) {
+		const [, pluginId = "", shortcutId = ""] = id.split(":");
+		const def = getPlugins()
+			.find((p) => p.id === pluginId)
+			?.manifest?.shortcuts.find((s) => s.id === shortcutId);
+		return {
+			key: `shortcut.plugin.${pluginId}.${shortcutId}`,
+			label: def ? pluginKey(pluginId, def.label) : "shortcuts.label",
+			default: null,
+			fallback: def?.default ?? "",
+		};
+	}
 	return (
 		BUILTIN_SHORTCUTS[id] ?? {
 			key: `shortcut.module.${id.replace(/^module:/, "")}`,
@@ -47,6 +61,7 @@ export function shortcutStateIds(values: Record<string, unknown>): string[] {
 		...Object.keys(values)
 			.filter((key) => key.startsWith("shortcut.module."))
 			.map((key) => `module:${key.slice(16)}`),
+		...getPlugins().flatMap((p) => (p.manifest?.shortcuts ?? []).map((s) => pluginShortcutId(p.id, s.id))),
 	];
 }
 
