@@ -48,6 +48,13 @@ const WINDOWS: Variant = {
 /** Windows Island at rest without the clock: a small, empty pill. */
 const WINDOWS_BARE_IDLE: Geo = { width: 110, height: 30, radius: 15, ear: 0 };
 
+/**
+ * Tallest the island may grow (px). The window is `STRIP_HEIGHT` (640, see
+ * `window.rs`) tall; the rest is room for the top gap, the shadow and the
+ * spring's overshoot, so the bottom corners never get cut off.
+ */
+export const MAX_HEIGHT = 560;
+
 export const BUBBLE = 38;
 export const BUBBLE_GAP = 10;
 /** Gap between ambient bubbles (px). */
@@ -76,7 +83,7 @@ export function geometry(
 		case "expanded": {
 			const size = bigSize ?? v.expanded;
 			const extra = mode === "expanded" ? v.tabBar : 0;
-			return { ...v.expanded, width: size.width, height: size.height + extra };
+			return { ...v.expanded, width: size.width, height: Math.min(size.height + extra, MAX_HEIGHT) };
 		}
 	}
 }
