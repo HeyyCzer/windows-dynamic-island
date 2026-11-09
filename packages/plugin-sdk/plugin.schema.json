@@ -1,0 +1,118 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Island for Windows plugin manifest (plugin.json)",
+	"type": "object",
+	"required": ["id", "version", "sdk", "name"],
+	"definitions": {
+		"id": { "type": "string", "pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$", "maxLength": 32 },
+		"path": {
+			"type": "string",
+			"description": "Path inside the package, with forward slashes.",
+			"pattern": "^(?!/)(?!.*\\.\\.)(?!.*\\\\)[^:]+$"
+		},
+		"key": { "type": "string", "description": "Key into locales/<code>.json.", "minLength": 1 }
+	},
+	"properties": {
+		"$schema": { "type": "string" },
+		"id": {
+			"type": "string",
+			"pattern": "^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$",
+			"minLength": 2,
+			"maxLength": 48,
+			"description": "Unique, never changes."
+		},
+		"version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?$" },
+		"sdk": {
+			"type": "string",
+			"pattern": "^\\d+(?:\\.\\d+)?$",
+			"description": "SDK version the plugin needs, e.g. \"1.0\"."
+		},
+		"name": { "$ref": "#/definitions/key" },
+		"description": { "$ref": "#/definitions/key" },
+		"author": { "type": "string" },
+		"homepage": { "type": "string", "pattern": "^https://" },
+		"icon": { "$ref": "#/definitions/path" },
+		"background": {
+			"$ref": "#/definitions/path",
+			"description": "A .js file (run as a module) or an .html page. Runs when something happens (alarm, shortcut, panel state, settings) and stops once idle, unless `persistent`."
+		},
+		"persistent": {
+			"type": "boolean",
+			"default": false,
+			"description": "Keep the background running for as long as the plugin is on. Costs memory: only for work that can't wait for an event (a ticking timer…). The marketplace shows it."
+		},
+		"modules": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["id", "title"],
+				"additionalProperties": false,
+				"properties": {
+					"id": { "$ref": "#/definitions/id" },
+					"title": { "$ref": "#/definitions/key" },
+					"icon": { "$ref": "#/definitions/path" },
+					"panel": { "$ref": "#/definitions/path" },
+					"size": {
+						"type": "object",
+						"required": ["width", "height"],
+						"properties": {
+							"width": { "type": "integer", "minimum": 160, "maximum": 900 },
+							"height": { "type": "integer", "minimum": 60, "maximum": 600 }
+						}
+					},
+					"enabledByDefault": { "type": "boolean" }
+				}
+			}
+		},
+		"settings": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["key", "type", "label", "default"],
+				"properties": {
+					"key": { "$ref": "#/definitions/id" },
+					"type": { "enum": ["boolean", "number", "string", "select"] },
+					"label": { "$ref": "#/definitions/key" },
+					"description": { "$ref": "#/definitions/key" },
+					"default": {},
+					"min": { "type": "number" },
+					"max": { "type": "number" },
+					"step": { "type": "number" },
+					"unit": { "$ref": "#/definitions/key" },
+					"options": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"required": ["value", "label"],
+							"properties": { "value": { "type": "string" }, "label": { "$ref": "#/definitions/key" } }
+						}
+					},
+					"secret": { "type": "boolean" }
+				}
+			}
+		},
+		"shortcuts": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": ["id", "label"],
+				"properties": {
+					"id": { "$ref": "#/definitions/id" },
+					"label": { "$ref": "#/definitions/key" },
+					"default": { "type": "string", "description": "e.g. Ctrl+Alt+P; the user can change it." }
+				}
+			}
+		},
+		"permissions": {
+			"type": "array",
+			"uniqueItems": true,
+			"items": {
+				"anyOf": [
+					{ "enum": ["clipboard:read", "clipboard:write", "open-url", "provider:music", "provider:monitor"] },
+					{ "type": "string", "pattern": "^network:(\\*\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+(:\\d+)?$" },
+					{ "type": "string", "pattern": "^fs:read:\\$(HOME|APPDATA|LOCALAPPDATA|DOCUMENTS)(/[^*/]+)*(/\\*{1,2})?$" }
+				]
+			}
+		}
+	}
+}

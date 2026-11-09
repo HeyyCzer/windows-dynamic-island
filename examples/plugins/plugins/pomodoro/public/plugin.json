@@ -1,0 +1,24 @@
+{
+	"$schema": "../../../../../packages/plugin-sdk/plugin.schema.json",
+	"id": "pomodoro",
+	"version": "1.0.0",
+	"sdk": "1.0",
+	"name": "meta.name",
+	"description": "meta.description",
+	"author": "Island for Windows",
+	"icon": "icon.svg",
+	"background": "background.js",
+	"persistent": true,
+	"modules": [
+		{ "id": "timer", "title": "module.title", "icon": "icon.svg", "panel": "panel.html", "size": { "width": 560, "height": 170 } }
+	],
+	"settings": [
+		{ "key": "work", "type": "number", "label": "settings.work", "default": 25, "min": 1, "max": 120, "unit": "units.min" },
+		{ "key": "break", "type": "number", "label": "settings.break", "default": 5, "min": 1, "max": 60, "unit": "units.min" },
+		{ "key": "auto-break", "type": "boolean", "label": "settings.autoBreak", "description": "settings.autoBreakDesc", "default": true }
+	],
+	"shortcuts": [
+		{ "id": "toggle", "label": "shortcuts.toggle", "default": "Ctrl+Alt+P" },
+		{ "id": "reset", "label": "shortcuts.reset" }
+	]
+}

@@ -852,4 +852,123 @@
     // Decimal separator in the sizes above
     decimal: ".",
   },
+
+  // Settings → Plugins
+  plugins: {
+    title: "Plugins",
+    desc: "Add modules, settings and shortcuts to the island. Plugins run in a sandbox and can only do what you allow.",
+    tabs: {
+      installed: "Installed",
+      marketplace: "Marketplace",
+      sources: "Sources",
+    },
+    enabled: {
+      label: "Turn on",
+      desc: "When off, its modules and shortcuts go away until you turn it back on.",
+    },
+    // {version}: e.g. 1.2.0
+    version: "v{version}",
+    dev: "Developer",
+    background: {
+      persistent: "Runs in the background",
+      persistentHint: "Keeps running while it's on, so it uses more memory.",
+      onDemand: "Runs when something happens",
+      none: "None",
+    },
+    installed: {
+      empty: "No plugins yet. Find some in the marketplace.",
+    },
+    marketplace: {
+      empty: "Add a source to see its plugins.",
+      loading: "Loading…",
+      refresh: "Refresh",
+      install: "Install",
+      installing: "Installing…",
+      // {version}: the new version
+      update: "Update to {version}",
+      installed: "Installed",
+      incompatible: "Needs a newer app",
+      // {author}: who made the plugin
+      by: "by {author}",
+      // {error}: what went wrong
+      error: "Couldn't read this source: {error}",
+    },
+    sources: {
+      confirm: {
+        // {source}: what the user typed, e.g. owner/repo
+        title: "Add {source}?",
+        body: "Whoever controls this source decides which plugins and updates you're offered. We don't review sources or their plugins and aren't responsible for them. Only add sources from people you trust.",
+        accept: "Add source",
+      },
+      desc: "A source is a GitHub repository (owner/repo or its link), or the link to an island-plugins.json. Only add sources you trust.",
+      placeholder: "owner/repo",
+      add: "Add",
+      adding: "Checking…",
+      remove: "Remove",
+      empty: "No sources yet.",
+    },
+    trust: {
+      title: "Third-party plugins",
+      body: "Plugins and sources are made by other people, not by Island for Windows. We don't review them and aren't responsible for what they do or for any harm they cause. Only add sources and install plugins from people you trust.",
+    },
+    confirm: {
+      persistent: "It keeps running in the background while it's on, which uses more memory.",
+      // {name}: the plugin's name
+      install: "Install {name}?",
+      update: "Update {name}?",
+      permissions: "It will be able to:",
+      none: "It doesn't ask for anything beyond its own sandbox.",
+      warning: "Plugins are made by third parties, not by Island for Windows. We don't review them and aren't responsible for what they do. Only install plugins from people you trust: they can do whatever these permissions allow.",
+      cancel: "Cancel",
+      accept: "Install",
+    },
+    permission: {
+      // {host}: e.g. api.github.com
+      network: "Connect to {host}",
+      clipboardRead: "Read your clipboard",
+      clipboardWrite: "Change your clipboard",
+      openUrl: "Open links in your browser",
+      // {path}: e.g. $HOME/.config/foo/**
+      fsRead: "Read files in {path}",
+      // {provider}: e.g. music
+      provider: "See what the {provider} module sees",
+    },
+    page: {
+      background: "Background",
+      version: "Version",
+      about: "About",
+      source: "Source",
+      folder: "Folder (developer mode)",
+      author: "Author",
+      homepage: "Homepage",
+      permissions: "Permissions",
+      modules: "Modules",
+      settings: "Settings",
+      shortcuts: "Shortcuts",
+      integrity: "Integrity",
+      verified: "Every file matches what was installed",
+      unverified: "Not checked in developer mode",
+      uninstall: "Remove",
+      uninstallConfirm: "Click again to remove",
+    },
+    problem: {
+      tampered: "Its files changed after it was installed, so it won't run. Install it again.",
+      // {error}: why
+      invalid: "It can't run: {error}",
+    },
+    devMode: {
+      title: "Developer mode",
+      desc: "Load a plugin straight from a folder that has its plugin.json. Changes show up when you press Reload.",
+      placeholder: "Folder path",
+      pick: "Choose…",
+      load: "Load",
+      reload: "Reload plugins",
+      docs: "How to write a plugin",
+    },
+    module: {
+      // {name}: the plugin's name
+      from: "Added by the {name} plugin.",
+      open: "Plugin settings",
+    },
+  },
 }

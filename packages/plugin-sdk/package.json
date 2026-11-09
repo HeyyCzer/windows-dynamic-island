@@ -1,0 +1,19 @@
+{
+	"name": "@windows-island/plugin-sdk",
+	"version": "1.0.0",
+	"description": "Types, runtime and CLI for Island for Windows plugins",
+	"license": "GPL-3.0-or-later",
+	"type": "module",
+	"main": "index.js",
+	"types": "index.d.ts",
+	"bin": {
+		"island-plugin": "cli.mjs"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts",
+		"cli.mjs",
+		"plugin.schema.json",
+		"runtime"
+	]
+}

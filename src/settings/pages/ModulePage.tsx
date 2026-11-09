@@ -1,11 +1,14 @@
 import { motion } from "motion/react";
-import { Navigate, useParams } from "react-router";
+import { Navigate, useNavigate, useParams } from "react-router";
+import { Button } from "../../components/ui/button";
 import { Card, Row } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
+import { useAllModules } from "../../core/plugins/modules";
+import { pluginKey } from "../../core/plugins/store";
+import type { PluginInfo } from "../../core/plugins/types";
 import { moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import { moduleShortcutId } from "../../core/shortcuts";
 import type { IslandModule } from "../../core/types";
-import { modules } from "../../modules";
 import { BackLink, Title } from "../components/Heading";
 import { PlacementSelect } from "../components/PlacementSelect";
 import { ShortcutRow } from "../components/ShortcutRow";
@@ -13,6 +16,7 @@ import { Toggle, ToggleRow } from "../components/Toggle";
 
 export function ModulePage({ values }: { values: Record<string, unknown> }) {
 	const { id } = useParams();
+	const modules = useAllModules();
 	const module = modules.find((m) => m.id === id);
 	if (!module) return <Navigate to="/modules" replace />;
 	// Keyed so each module's `useHiddenSettings` hook gets its own component.
@@ -34,6 +38,7 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
 		<>
 			<BackLink to="/modules">{t("modules.title")}</BackLink>
 			<Title icon={module.settingsIcon}>{t(module.title)}</Title>
+			{module.plugin && <FromPlugin plugin={module.plugin.plugin} />}
 			<Card>
 				<Row as="label" label={t("settings.module.label")} desc={t("settings.module.desc")}>
 					<Toggle checked={enabled} onChange={(v) => setSetting(enabledDef, v)} />
@@ -68,5 +73,19 @@ function ModuleSettings({ module, values }: { module: IslandModule; values: Reco
 					))}
 			</motion.div>
 		</>
+	);
+}
+
+/** A plugin's module links back to the plugin's own page. */
+function FromPlugin({ plugin }: { plugin: PluginInfo }) {
+	const t = useT();
+	const navigate = useNavigate();
+	const name = t(pluginKey(plugin.id, plugin.manifest?.name ?? plugin.id));
+	return (
+		<Card>
+			<Row label={t("plugins.module.from", { name })}>
+				<Button onClick={() => navigate(`/plugins/${plugin.id}`)}>{t("plugins.module.open")}</Button>
+			</Row>
+		</Card>
 	);
 }

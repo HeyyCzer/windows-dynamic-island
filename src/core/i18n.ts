@@ -9,7 +9,7 @@
  * The language is a setting: "auto" (default) follows the system language,
  * falling back to English when it isn't available.
  */
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import en from "../locales/en.json5";
 import type { MessageKey } from "../locales/keys.gen";
 import { command } from "./bridge";
@@ -64,10 +64,42 @@ export function resolveLocale(pref: LanguagePref): string {
 
 export type Translate = (key: MessageKey, vars?: Record<string, string | number>) => string;
 
+/**
+ * Plugins' strings, by locale, under `plugin.<id>.<key>` (see
+ * `core/plugins/store.ts`). They go through the same `t()` as the app's own,
+ * so a plugin module's title renders wherever a module title does.
+ */
+let pluginMessages: Record<string, Record<string, string>> = {};
+let pluginMessagesVersion = 0;
+const pluginMessageListeners = new Set<() => void>();
+const subscribePluginMessages = (l: () => void) => {
+	pluginMessageListeners.add(l);
+	return () => void pluginMessageListeners.delete(l);
+};
+
+export function setPluginMessages(messages: Record<string, Record<string, string>>) {
+	pluginMessages = messages;
+	pluginMessagesVersion++;
+	for (const l of pluginMessageListeners) l();
+}
+
+/** The best of `available` for `locale`: exact, then same language, else English. */
+export function matchLocale(locale: string, available: string[]): string[] {
+	const base = (code: string) => code.split("-")[0].toLowerCase();
+	const exact = available.find((c) => c.toLowerCase() === locale.toLowerCase());
+	const sameLanguage = available.find((c) => base(c) === base(locale));
+	return [exact, sameLanguage, "en"].filter((c, i, all): c is string => !!c && all.indexOf(c) === i);
+}
+
 export function translator(locale: string): Translate {
 	const messages: Messages = locales[locale]?.messages ?? en;
+	const plugin = matchLocale(locale, Object.keys(pluginMessages)).map((code) => pluginMessages[code] ?? {});
+	const fromPlugins = (key: string) => {
+		for (const m of plugin) if (key in m) return m[key];
+		return undefined;
+	};
 	return (key, vars) => {
-		const text = messages[key] ?? (en as Messages)[key] ?? key;
+		const text = messages[key] ?? (en as Messages)[key] ?? fromPlugins(key) ?? key;
 		return vars ? text.replace(/\{(\w+)\}/g, (m, name) => (name in vars ? String(vars[name]) : m)) : text;
 	};
 }
@@ -76,8 +108,9 @@ export function useLocale(): string {
 	return resolveLocale(readSetting(useSettings(), languageSetting));
 }
 
-/** `t()` for the active language; re-renders when it changes. */
+/** `t()` for the active language; re-renders when it changes (or plugins do). */
 export function useT(): Translate {
+	useSyncExternalStore(subscribePluginMessages, () => pluginMessagesVersion);
 	return translator(useLocale());
 }
 

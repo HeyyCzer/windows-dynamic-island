@@ -60,6 +60,11 @@ export async function startSettings() {
 	notify();
 }
 
+/** Current settings outside React. */
+export const getSettings = (): Values => values;
+/** Called on every settings change; returns the unsubscribe. */
+export const subscribeSettings = subscribe;
+
 export function readSetting<T>(all: Values, def: SettingDef<T>): T {
 	return (def.key in all ? all[def.key] : def.default) as T;
 }

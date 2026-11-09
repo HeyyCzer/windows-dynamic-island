@@ -1,0 +1,25 @@
+main {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+	height: 100%;
+	padding: 4px 8px;
+}
+#glasses {
+	font-size: 52px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	color: #5ac8fa;
+	min-width: 1.2ch;
+}
+.text {
+	flex: 1;
+	min-width: 0;
+}
+.text p {
+	margin: 0;
+}
+#next {
+	margin-top: 2px;
+	font-size: 12px;
+}

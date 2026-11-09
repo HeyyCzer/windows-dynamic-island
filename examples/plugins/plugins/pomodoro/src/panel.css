@@ -1,0 +1,42 @@
+main {
+	--phase: #ff6b63;
+	display: flex;
+	align-items: center;
+	gap: 28px;
+	height: 100%;
+	padding: 0 6px;
+}
+main[data-phase="break"] {
+	--phase: #34c759;
+}
+.clock {
+	display: flex;
+	flex-direction: column;
+}
+.phase {
+	color: var(--phase);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+output {
+	font-size: 54px;
+	font-weight: 700;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+}
+.side {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+.actions {
+	display: flex;
+	gap: 8px;
+}
+.actions [data-tone="accent"] {
+	background: var(--phase);
+	color: #000;
+	min-width: 92px;
+}

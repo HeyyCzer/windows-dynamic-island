@@ -1,0 +1,18 @@
+{
+	"meta": {
+		"name": "Water",
+		"description": "A nudge to drink water every so often. Shows how a background runs only when an alarm wakes it up."
+	},
+	"module": { "title": "Water" },
+	"settings": {
+		"every": { "label": "Remind every", "desc": "Minutes between reminders." }
+	},
+	"units": { "min": "min" },
+	"compact": { "due": "Time for some water" },
+	"panel": {
+		"today": "glasses today",
+		"due": "Time for some water!",
+		"drink": "I had a glass",
+		"next": "Next reminder at {time}"
+	}
+}

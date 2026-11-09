@@ -1,0 +1,64 @@
+{
+	"schema": 1,
+	"name": {
+		"en": "Example plugins",
+		"pt-BR": "Plugins de exemplo"
+	},
+	"plugins": [
+		{
+			"id": "counter",
+			"version": "1.0.0",
+			"sdk": "1.0",
+			"name": {
+				"en": "Counter",
+				"pt-BR": "Contador"
+			},
+			"description": {
+				"en": "The smallest plugin there is: a number you can count up, kept between restarts.",
+				"pt-BR": "O menor plugin possível: um número que você aumenta, guardado entre reinícios."
+			},
+			"author": "Island for Windows",
+			"icon": "plugins/counter/icon.svg",
+			"permissions": [],
+			"package": "packages/counter-1.0.0.zip",
+			"sha256": "6828b8f5212539ea78a2b5750c993da0a629d02cc69e4e8358c6e19af3f64fd2"
+		},
+		{
+			"id": "pomodoro",
+			"version": "1.0.0",
+			"sdk": "1.0",
+			"name": {
+				"en": "Pomodoro",
+				"pt-BR": "Pomodoro"
+			},
+			"description": {
+				"en": "Focus in rounds: a timer in the island, a break when it rings.",
+				"pt-BR": "Foque em rodadas: um timer na ilha e uma pausa quando ele tocar."
+			},
+			"author": "Island for Windows",
+			"icon": "plugins/pomodoro/dist/icon.svg",
+			"permissions": [],
+			"persistent": true,
+			"package": "packages/pomodoro-1.0.0.zip",
+			"sha256": "1918d125432f6f1bd5bb4a007e7646468d8e412821eea186e02698de03a4d6ff"
+		},
+		{
+			"id": "water",
+			"version": "1.0.0",
+			"sdk": "1.0",
+			"name": {
+				"en": "Water",
+				"pt-BR": "Água"
+			},
+			"description": {
+				"en": "A nudge to drink water every so often. Shows how a background runs only when an alarm wakes it up.",
+				"pt-BR": "Um lembrete para beber água de tempos em tempos. Mostra um background que só roda quando um alarme o acorda."
+			},
+			"author": "Island for Windows",
+			"icon": "plugins/water/icon.svg",
+			"permissions": [],
+			"package": "packages/water-1.0.0.zip",
+			"sha256": "ec9eea3cca39427db3a648c2622139c5142990c6841abd77bff35f9396382f3c"
+		}
+	]
+}

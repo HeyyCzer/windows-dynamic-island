@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import type { MessageKey } from "./i18n";
+import type { PluginInfo, PluginModuleDef } from "./plugins/types";
 import type { SettingDef } from "./settings";
 import type { ShortcutId } from "./shortcuts";
 
@@ -77,6 +78,11 @@ export interface IslandModule {
 	settingsSectionCards?: boolean;
 	/** Global shortcut that opens it, editable on its settings page. */
 	shortcut?: ShortcutId;
+	/**
+	 * Set on a plugin's module (`core/plugins/modules.tsx`): its view comes
+	 * from the plugin, not from `useView`.
+	 */
+	plugin?: { plugin: PluginInfo; def: PluginModuleDef };
 }
 
 /** An enabled module together with its current view. */
