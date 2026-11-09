@@ -1,4 +1,12 @@
-import { CommandIcon, InfoIcon, LayoutGridIcon, PaletteIcon, PuzzleIcon, SettingsIcon } from "lucide-react";
+import {
+	CommandIcon,
+	InfoIcon,
+	LayoutGridIcon,
+	MousePointerClickIcon,
+	PaletteIcon,
+	PuzzleIcon,
+	SettingsIcon,
+} from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
@@ -8,6 +16,7 @@ import { NavItem, NavSection } from "./components/NavItem";
 import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
 import { AppearancePage } from "./pages/AppearancePage";
+import { BehaviorPage } from "./pages/BehaviorPage";
 import { GeneralPage } from "./pages/GeneralPage";
 import { ModulePage } from "./pages/ModulePage";
 import { ModulesPage } from "./pages/ModulesPage";
@@ -17,7 +26,7 @@ import { ShortcutsPage } from "./pages/ShortcutsPage";
 
 /**
  * Settings window: frameless, with a sidebar in two groups — the app itself
- * (general, appearance) and the island's modules (one page listing them all,
+ * (general, appearance, behavior) and the island's modules (one page listing them all,
  * each opening its own settings) — plus about. Pages are routes in a
  * `MemoryRouter`, since the window has no URL.
  */
@@ -35,6 +44,7 @@ export function SettingsApp() {
 						<NavSection label={t("settings.section.app")} />
 						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
 						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
+						<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
 						<NavSection label={t("settings.section.island")} />
 						{/* Stays highlighted on each module's own page too. */}
 						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
@@ -48,6 +58,7 @@ export function SettingsApp() {
 							<Routes>
 								<Route index element={<GeneralPage values={values} />} />
 								<Route path="appearance" element={<AppearancePage values={values} />} />
+								<Route path="behavior" element={<BehaviorPage values={values} />} />
 								<Route path="modules" element={<ModulesPage values={values} />} />
 								<Route path="modules/:id" element={<ModulePage values={values} />} />
 								<Route path="shortcuts" element={<ShortcutsPage values={values} />} />

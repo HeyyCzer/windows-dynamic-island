@@ -37,6 +37,8 @@ export function islandContent(ctl: IslandController, look: Appearance, v: Varian
 				bottom={v.tabsAtBottom}
 				transition={v.shellSpring}
 				extra={ctl.launcher ? undefined : focused?.view.tabBarExtra}
+				pinned={ctl.pinned}
+				onPin={ctl.setPinned}
 			/>
 		);
 		return {

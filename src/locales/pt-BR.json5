@@ -33,10 +33,6 @@
       label: "Ocultar em tela cheia",
       desc: "Esconde a island quando um jogo, vídeo ou app está em tela cheia.",
     },
-    expandOnHover: {
-      label: "Expandir ao passar o mouse",
-      desc: "Desligado: expande só com clique.",
-    },
     monitor: {
       label: "Monitor",
       desc: "Onde a ilha fica. Automático segue o monitor principal definido no Windows.",
@@ -95,6 +91,25 @@
 
   island: {
     settings: "Configurações",
+    pin: "Fixar aberta",
+    unpin: "Desafixar",
+  },
+
+  // Settings' Behavior page: how the island opens and closes
+  behavior: {
+    title: "Comportamento",
+    openOn: {
+      label: "Abrir a ilha",
+      desc: "O que expande a ilha.",
+      hover: "Ao passar o mouse",
+      click: "Ao clicar",
+    },
+    closeOn: {
+      label: "Fechar a ilha",
+      desc: "O que a recolhe de novo. Fixada (o pino na barra de abas), ela fica aberta de qualquer jeito.",
+      leave: "Quando o mouse sai",
+      clickOutside: "Ao clicar fora",
+    },
   },
 
   modules: {

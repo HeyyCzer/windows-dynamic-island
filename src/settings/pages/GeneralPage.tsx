@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Card, Row } from "../../components/ui/card";
-import { NumberField, Select } from "../../components/ui/form";
+import { Select } from "../../components/ui/form";
 import { command, isTauri } from "../../core/bridge";
 import { type LanguagePref, languageSetting, locales, systemLocale, useT } from "../../core/i18n";
-import { generalSettings, monitorSettings, positionSettings, readSetting, setSetting } from "../../core/settings";
+import { monitorSettings, readSetting, setSetting } from "../../core/settings";
 import { Title } from "../components/Heading";
-import { Toggle, ToggleRow } from "../components/Toggle";
+import { Toggle } from "../components/Toggle";
 
 export function GeneralPage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
@@ -15,20 +15,9 @@ export function GeneralPage({ values }: { values: Record<string, unknown> }) {
 			<Card>
 				<LanguageRow value={readSetting(values, languageSetting)} />
 				<AutostartRow />
-				{Object.values(generalSettings).map((def) => (
-					<ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
-				))}
 			</Card>
 			<Card>
 				<MonitorRow value={readSetting(values, monitorSettings.monitor)} />
-				<ToggleRow def={monitorSettings.avoidMaximized} value={readSetting(values, monitorSettings.avoidMaximized)} />
-			</Card>
-			<Card>
-				<ToggleRow def={positionSettings.returnToCenter} value={readSetting(values, positionSettings.returnToCenter)} />
-				<SecondsRow
-					value={readSetting(values, positionSettings.returnDelay)}
-					disabled={!readSetting(values, positionSettings.returnToCenter)}
-				/>
 			</Card>
 		</>
 	);
@@ -122,34 +111,6 @@ function AutostartRow() {
 						setBlocked(e === "disabledByUser");
 					}
 				}}
-			/>
-		</Row>
-	);
-}
-
-function SecondsRow({ value, disabled }: { value: number; disabled: boolean }) {
-	const t = useT();
-	const def = positionSettings.returnDelay;
-	const [draft, setDraft] = useState(String(value));
-	useEffect(() => setDraft(String(value)), [value]);
-	const commit = () => {
-		const n = Math.round(Number(draft));
-		if (Number.isFinite(n) && n >= 1 && n <= 3600) setSetting(def, n);
-		else setDraft(String(value));
-	};
-
-	return (
-		<Row as="label" label={t(def.label)} desc={t(def.description)} disabled={disabled}>
-			<NumberField
-				unit="s"
-				min={1}
-				max={3600}
-				step={1}
-				value={draft}
-				disabled={disabled}
-				onChange={(e) => setDraft(e.target.value)}
-				onBlur={commit}
-				onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
 			/>
 		</Row>
 	);

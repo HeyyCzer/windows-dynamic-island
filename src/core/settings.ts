@@ -104,20 +104,41 @@ export const moduleEnabled = ({
 	default: enabledByDefault,
 });
 
-export const generalSettings = {
+/** What opens the island: the pointer entering it, or a click on it. */
+export type OpenTrigger = "hover" | "click";
+/** What closes the island: the pointer leaving it, or a click anywhere else. */
+export type CloseTrigger = "leave" | "clickOutside";
+
+/** How the island reacts to the pointer (the settings' Behavior page). */
+export const behaviorSettings = {
+	openOn: {
+		key: "island.openOn",
+		label: "behavior.openOn.label",
+		description: "behavior.openOn.desc",
+		default: "hover" as OpenTrigger,
+	} satisfies SettingDef<OpenTrigger>,
+	closeOn: {
+		key: "island.closeOn",
+		label: "behavior.closeOn.label",
+		description: "behavior.closeOn.desc",
+		default: "leave" as CloseTrigger,
+	} satisfies SettingDef<CloseTrigger>,
 	hideInFullscreen: {
 		key: "island.hideInFullscreen",
 		label: "settings.hideInFullscreen.label",
 		description: "settings.hideInFullscreen.desc",
 		default: true,
-	},
-	expandOnHover: {
-		key: "island.expandOnHover",
-		label: "settings.expandOnHover.label",
-		description: "settings.expandOnHover.desc",
-		default: true,
-	},
-} satisfies Record<string, SettingDef>;
+	} satisfies SettingDef,
+};
+
+/** Before `island.openOn`, a boolean said whether hovering expands the island. */
+const LEGACY_EXPAND_ON_HOVER_KEY = "island.expandOnHover";
+
+/** The open trigger, honoring the old "Expand on hover" switch when it was turned off. */
+export function openTrigger(all: Values): OpenTrigger {
+	if (behaviorSettings.openOn.key in all) return readSetting(all, behaviorSettings.openOn);
+	return all[LEGACY_EXPAND_ON_HOVER_KEY] === false ? "click" : "hover";
+}
 
 /**
  * Tabs of the open island: their order, and which ones sit in the tab bar.

@@ -40,10 +40,6 @@
       label: "Hide in fullscreen",
       desc: "Hides the island while a game, video or app is fullscreen.",
     },
-    expandOnHover: {
-      label: "Expand on hover",
-      desc: "When off, the island only expands on click.",
-    },
     monitor: {
       label: "Monitor",
       desc: "Where the island lives. Automatic follows the primary monitor set in Windows.",
@@ -108,6 +104,25 @@
   // Island chrome
   island: {
     settings: "Settings",
+    pin: "Pin open",
+    unpin: "Unpin",
+  },
+
+  // Settings' Behavior page: how the island opens and closes
+  behavior: {
+    title: "Behavior",
+    openOn: {
+      label: "Open the island",
+      desc: "What expands the island.",
+      hover: "On hover",
+      click: "On click",
+    },
+    closeOn: {
+      label: "Close the island",
+      desc: "What collapses it again. Pinned (the pin in the tab bar), it stays open either way.",
+      leave: "When the pointer leaves",
+      clickOutside: "On click outside",
+    },
   },
 
   // Modules page of the settings: every module, its tab order and on/off

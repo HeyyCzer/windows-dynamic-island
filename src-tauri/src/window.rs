@@ -17,6 +17,8 @@ use tauri::{AppHandle, Emitter, Manager, WebviewWindow};
 pub const ISLAND_LABEL: &str = "island";
 pub const HOVER_EVENT: &str = "island://hover";
 pub const FULLSCREEN_EVENT: &str = "island://fullscreen";
+/// The left button went down off the island (closes it in "click outside" mode).
+pub const PRESS_OUTSIDE_EVENT: &str = "island://press-outside";
 /// Tray "Recenter": the frontend snaps the island back to the middle.
 pub const RECENTER_EVENT: &str = "island://recenter";
 
@@ -238,6 +240,9 @@ pub fn spawn_hit_test(app: AppHandle) {
             let down = left_button_down();
             if down && !button_down {
                 pressed_inside = over_island;
+                if !over_island {
+                    let _ = app.emit(PRESS_OUTSIDE_EVENT, ());
+                }
             }
             button_down = down;
             let drop_zone = island_interactive

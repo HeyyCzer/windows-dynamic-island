@@ -36,10 +36,6 @@
       label: "全屏时隐藏",
       desc: "当有游戏、视频或应用全屏运行时隐藏灵动岛。",
     },
-    expandOnHover: {
-      label: "悬停时展开",
-      desc: "关闭后，灵动岛仅在点击时展开。",
-    },
     monitor: {
       label: "显示器",
       desc: "灵动岛所在的屏幕位置。自动模式将跟随 Windows 中设置的主显示器。",
@@ -104,6 +100,25 @@
   // 灵动岛主界面
   island: {
     settings: "设置",
+    pin: "固定展开",
+    unpin: "取消固定",
+  },
+
+  // Settings' Behavior page: how the island opens and closes
+  behavior: {
+    title: "行为",
+    openOn: {
+      label: "展开灵动岛",
+      desc: "灵动岛在何时展开。",
+      hover: "悬停时",
+      click: "点击时",
+    },
+    closeOn: {
+      label: "收起灵动岛",
+      desc: "灵动岛在何时收起。固定后（标签栏中的图钉），无论如何都保持展开。",
+      leave: "指针离开时",
+      clickOutside: "点击外部时",
+    },
   },
 
   // 设置中的模块页面：所有模块的排列顺序与开关

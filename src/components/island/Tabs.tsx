@@ -1,4 +1,4 @@
-import { LayoutGridIcon, SettingsIcon } from "lucide-react";
+import { LayoutGridIcon, PinIcon, SettingsIcon } from "lucide-react";
 import { motion, type Transition } from "motion/react";
 import type { CSSProperties, ReactNode } from "react";
 import { tv } from "tailwind-variants";
@@ -16,9 +16,11 @@ const tabs = tv({
 		dot: "relative size-1.25 rounded-full bg-ok",
 		extra: "ml-auto flex items-center gap-1.5",
 		gear: "grid size-7.5 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
+		pin: "grid size-7.5 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
 	},
 	variants: {
 		active: { true: { tab: "text-text" } },
+		pinned: { true: { pin: "bg-white/10 text-text" } },
 		/** The launcher's grid button, pushed right with the gear. */
 		launcher: { true: { tab: "ml-auto w-7.5 justify-center p-0" } },
 		/** Windows Island: round icon tabs, ringed in the module's color. */
@@ -30,7 +32,7 @@ const tabs = tv({
 			},
 		},
 		bottom: {
-			true: { base: "m-0 mt-2 justify-center", extra: "ml-1.5", gear: "ml-1.5" },
+			true: { base: "m-0 mt-2 justify-center", extra: "ml-1.5", gear: "ml-1.5", pin: "ml-1.5" },
 		},
 	},
 	compoundVariants: [
@@ -47,6 +49,8 @@ export function Tabs({
 	bottom,
 	transition,
 	extra,
+	pinned,
+	onPin,
 }: {
 	entries: ModuleEntry[];
 	current: string | null;
@@ -57,6 +61,9 @@ export function Tabs({
 	transition: Transition;
 	/** The open module's `tabBarExtra`, shown next to the gear. */
 	extra?: ReactNode;
+	/** Kept open whatever the pointer does; the pin button sits at the far right. */
+	pinned: boolean;
+	onPin: (pinned: boolean) => void;
 }) {
 	const t = useT();
 	const s = tabs({ iconsOnly, bottom });
@@ -114,6 +121,25 @@ export function Tabs({
 				}}
 			>
 				<SettingsIcon size={16} />
+			</motion.button>
+			<motion.button
+				className={s.pin({ pinned })}
+				title={t(pinned ? "island.unpin" : "island.pin")}
+				aria-pressed={pinned}
+				whileTap={{ scale: 0.85 }}
+				onClick={(e) => {
+					e.stopPropagation();
+					onPin(!pinned);
+				}}
+			>
+				<motion.span
+					className="grid place-items-center"
+					initial={false}
+					animate={{ rotate: pinned ? 0 : 45 }}
+					transition={{ type: "spring", stiffness: 300, damping: 18 }}
+				>
+					<PinIcon size={15} fill={pinned ? "currentColor" : "none"} />
+				</motion.span>
 			</motion.button>
 		</div>
 	);

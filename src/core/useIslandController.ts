@@ -2,11 +2,12 @@ import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState, typ
 import { command, isTauri, useTauriEvent } from "./bridge";
 import { usePluginEntries, usePluginModules } from "./plugins/modules";
 import {
-	generalSettings,
+	behaviorSettings,
 	ISLAND_HIDDEN_KEY,
 	inOrder,
 	layoutSettings,
 	moduleEnabled,
+	openTrigger,
 	readSetting,
 	type Values as Settings,
 	useSettings,
@@ -43,7 +44,8 @@ export function useIslandController(modules: IslandModule[]) {
 	const tabMemory = useTabMemory(attentionId);
 	const { peekId, peek, endPeek } = usePeek(entries);
 	const hover = useIslandHover({
-		expandOnHover: readSetting(settings, generalSettings.expandOnHover),
+		expandOnHover: openTrigger(settings) === "hover",
+		collapseOnLeave: readSetting(settings, behaviorSettings.closeOn) === "leave",
 		onOpen: tabMemory.onIslandOpen,
 		onClose: tabMemory.onIslandClose,
 	});
@@ -52,7 +54,7 @@ export function useIslandController(modules: IslandModule[]) {
 	const forceExpanded = forcedId !== null;
 	const mode = islandMode({
 		swallowed: settings[ISLAND_HIDDEN_KEY] === true,
-		hidden: fullscreen && readSetting(settings, generalSettings.hideInFullscreen),
+		hidden: fullscreen && readSetting(settings, behaviorSettings.hideInFullscreen),
 		expanded: hover.open,
 		forceExpanded,
 		peeking: peekId !== null,
@@ -101,6 +103,8 @@ export function useIslandController(modules: IslandModule[]) {
 	useTauriEvent("island://find", () => enabled("find") && expand("find"));
 	useTauriEvent<string>("island://open-module", (id) => enabled(id) && expand(id));
 	useTauriEvent<boolean>("island://hover", hover.onPointer);
+	useTauriEvent("island://press-outside", hover.onPressOutside);
+	usePressOutsideInBrowser(hover.onPressOutside);
 
 	const onWheel = useWheelTabs(
 		mode === "expanded",
@@ -123,6 +127,8 @@ export function useIslandController(modules: IslandModule[]) {
 		peek,
 		collapse,
 		keepOpen: hover.keepOpen,
+		pinned: hover.pinned,
+		setPinned: hover.setPin,
 		lockHover: hover.lockHover,
 		onWheel,
 		/** Browser-only hover handlers (Tauri uses the backend hit-test). */
@@ -169,6 +175,20 @@ function useBusiest(entries: ModuleEntry[]) {
 	// Looked up again so the views are this render's, not the memoized ones.
 	const fresh = (e?: ModuleEntry) => (e ? entries.find((x) => x.module.id === e.module.id) : undefined);
 	return { primary: fresh(active[0]), secondary: fresh(active[1]) };
+}
+
+/** Browser preview: a press on the page but off the island counts as outside. */
+function usePressOutsideInBrowser(onPressOutside: () => void) {
+	const latest = useRef(onPressOutside);
+	latest.current = onPressOutside;
+	useEffect(() => {
+		if (isTauri) return;
+		const onDown = (e: PointerEvent) => {
+			if (!(e.target as Element).closest("[data-hit]")) latest.current();
+		};
+		window.addEventListener("pointerdown", onDown);
+		return () => window.removeEventListener("pointerdown", onDown);
+	}, []);
 }
 
 /** Fullscreen apps hide the island. */

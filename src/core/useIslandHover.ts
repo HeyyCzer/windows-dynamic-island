@@ -8,10 +8,14 @@ const HOVER_OUT_DELAY = 380;
  */
 const RESIZE_GRACE_MS = 2000;
 const RESIZE_OUT_DELAY = 1200;
+/** `keepOpen` reason held while the island is pinned. */
+const PIN_HOLD = "pin";
 
 interface Options {
 	/** Entering expands the island; when off, only a click does. */
 	expandOnHover: boolean;
+	/** Leaving collapses the island; when off, only a click outside it does. */
+	collapseOnLeave: boolean;
 	onOpen: () => void;
 	onClose: () => void;
 }
@@ -20,17 +24,19 @@ interface Options {
  * Whether the island is expanded, as driven by the pointer (the Rust hit-test
  * thread inside Tauri, DOM events in the browser), clicks and shortcuts.
  *
- * Leaving always collapses, after a short delay. Dragging the island
- * (`lockHover`) and holds (`keepOpen`: typing a question, dragging files in)
- * keep it open wherever the pointer goes; the pointer's last state applies
- * once every reason to stay open has ended.
+ * Leaving collapses after a short delay (or, with `collapseOnLeave` off, a
+ * click outside does). Dragging the island (`lockHover`), holds (`keepOpen`:
+ * typing a question, dragging files in) and the pin keep it open wherever the
+ * pointer goes; the pointer's last state applies once every reason to stay
+ * open has ended.
  */
-export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
+export function useIslandHover({ expandOnHover, collapseOnLeave, onOpen, onClose }: Options) {
 	const [open, setOpen] = useState(false);
+	const [pinned, setPinned] = useState(false);
 	const openRef = useRef(false);
 	const timer = useRef<number | undefined>(undefined);
-	const latest = useRef({ expandOnHover, onOpen, onClose });
-	latest.current = { expandOnHover, onOpen, onClose };
+	const latest = useRef({ expandOnHover, collapseOnLeave, onOpen, onClose });
+	latest.current = { expandOnHover, collapseOnLeave, onOpen, onClose };
 
 	const pointerInside = useRef(false);
 	const locked = useRef(false);
@@ -59,7 +65,8 @@ export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
 		(inside: boolean) => {
 			pointerInside.current = inside;
 			if (locked.current || holds.current.size > 0) return;
-			if (!inside || latest.current.expandOnHover) transition(inside);
+			const { expandOnHover, collapseOnLeave } = latest.current;
+			if (inside ? expandOnHover : collapseOnLeave) transition(inside);
 			else window.clearTimeout(timer.current);
 		},
 		[transition],
@@ -75,7 +82,9 @@ export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
 			if (on) holds.current.add(reason);
 			else holds.current.delete(reason);
 			if (holds.current.size > 0) window.clearTimeout(timer.current);
-			else if (!pointerInside.current) transition(false);
+			else if (!pointerInside.current) {
+				if (latest.current.collapseOnLeave) transition(false);
+			}
 			// Once the icon's double-click hold ends, resume hover where the pointer is.
 			else if (!openRef.current && latest.current.expandOnHover) transition(true);
 		},
@@ -90,8 +99,24 @@ export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
 	const expand = useCallback(() => transition(true, true), [transition]);
 	const collapse = useCallback(() => {
 		holds.current.clear();
+		setPinned(false);
 		transition(false, true);
 	}, [transition]);
 
-	return { open, expand, collapse, onPointer, keepOpen, lockHover, expectResize };
+	/** A click landed outside the island (another app, the desktop…). */
+	const onPressOutside = useCallback(() => {
+		if (latest.current.collapseOnLeave || locked.current || holds.current.size > 0) return;
+		transition(false, true);
+	}, [transition]);
+
+	/** Pinned, the island stays open until unpinned (or collapsed on purpose). */
+	const setPin = useCallback(
+		(on: boolean) => {
+			setPinned(on);
+			keepOpen(on, PIN_HOLD);
+		},
+		[keepOpen],
+	);
+
+	return { open, pinned, setPin, expand, collapse, onPointer, onPressOutside, keepOpen, lockHover, expectResize };
 }
