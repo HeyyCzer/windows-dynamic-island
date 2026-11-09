@@ -9,14 +9,15 @@ import { LAUNCHER } from "../../core/useIslandController";
 
 const tabs = tv({
 	slots: {
-		base: "mb-2.5 flex gap-1",
+		/** Room on the right for the pin, which sits apart from the tabs at the far edge. */
+		base: "relative mb-2.5 flex gap-1 pr-9.5",
 		tab: "relative flex h-7.5 items-center gap-1.75 rounded-[15px] pr-3 pl-2 text-[13px] font-semibold text-text-dim transition-colors duration-200 hover:text-text",
 		pill: "absolute inset-0 rounded-[inherit] bg-white/10",
 		part: "relative grid place-items-center",
 		dot: "relative size-1.25 rounded-full bg-ok",
 		extra: "ml-auto flex items-center gap-1.5",
 		gear: "grid size-7.5 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
-		pin: "grid size-7.5 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
+		pin: "absolute top-1/2 right-0 grid size-7.5 -translate-y-1/2 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
 	},
 	variants: {
 		active: { true: { tab: "text-text" } },
@@ -32,7 +33,7 @@ const tabs = tv({
 			},
 		},
 		bottom: {
-			true: { base: "m-0 mt-2 justify-center", extra: "ml-1.5", gear: "ml-1.5", pin: "ml-1.5" },
+			true: { base: "m-0 mt-2 justify-center px-9.5", extra: "ml-1.5", gear: "ml-1.5" },
 		},
 	},
 	compoundVariants: [
