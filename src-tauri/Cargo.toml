@@ -49,15 +49,15 @@ zip = { version = "8", default-features = false, features = ["deflate"] }
 # Drags shelf items out of the island into other apps (OLE drag & drop).
 drag = "2"
 # `IIterable` / `IMapView` for WinRT calls (`windows` doesn't re-export them).
-windows-collections = "0.3"
+windows-collections = "0.100"
 # `#[implement]` (the drop target in `file_drop.rs`) expands to `windows_core::…`.
-windows-core = "0.62"
+windows-core = "0.100"
 # WebView2 COM interfaces beyond what Tauri exposes: the memory target level,
 # and keeping plugin iframes within the plugin protocol (`plugins/frames.rs`).
 # Keep the version in step with wry's, so the WebView2 types match.
 webview2-com = "0.39"
 # `Vector2` / `Vector3` for the glass's composition visuals and Direct2D path.
-windows-numerics = "0.3"
+windows-numerics = "0.100"
 windows = { version = "0.62", features = [
   "ApplicationModel",
   "Devices_Enumeration",
