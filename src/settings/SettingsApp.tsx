@@ -1,17 +1,10 @@
-import {
-	CommandIcon,
-	InfoIcon,
-	LayoutGridIcon,
-	MousePointerClickIcon,
-	PaletteIcon,
-	PuzzleIcon,
-	SettingsIcon,
-} from "lucide-react";
+import { CommandIcon, InfoIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, SettingsIcon } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { useSyncLocale, useT } from "../core/i18n";
 import { useSettings } from "../core/settings";
+import { ModulesNav } from "./components/ModulesNav";
 import { NavItem, NavSection } from "./components/NavItem";
 import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
@@ -40,14 +33,13 @@ export function SettingsApp() {
 			<div className="flex h-full flex-col" data-settings>
 				<TitleBar />
 				<div className="flex min-h-0 flex-1">
-					<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
+					<nav className="flex w-53 flex-none flex-col gap-0.5 overflow-y-auto px-2.5 pt-2 pb-4 [&::-webkit-scrollbar]:w-0">
 						<NavSection label={t("settings.section.app")} />
 						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
 						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
 						<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
 						<NavSection label={t("settings.section.island")} />
-						{/* Stays highlighted on each module's own page too. */}
-						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
+						<ModulesNav values={values} />
 						<NavItem to="/shortcuts" icon={<CommandIcon size={14} />} label={t("shortcuts.title")} />
 						<NavItem to="/plugins" end={false} icon={<PuzzleIcon size={14} />} label={t("plugins.title")} />
 						<div className="flex-1" />

@@ -7,6 +7,11 @@
 
   // Janela de configurações
   settings: {
+    // Sidebar: the module list under "Modules"
+    nav: {
+      fold: "Ocultar os módulos",
+      unfold: "Mostrar os módulos",
+    },
     subtitle: "Configurações",
     section: {
       app: "App",

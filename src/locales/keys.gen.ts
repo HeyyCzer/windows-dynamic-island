@@ -1,6 +1,8 @@
 // Generated from en.json5 by vite-plugin-locales.ts — do not edit.
 export type MessageKey =
 	| "language.name"
+	| "settings.nav.fold"
+	| "settings.nav.unfold"
 	| "settings.subtitle"
 	| "settings.section.app"
 	| "settings.section.island"
