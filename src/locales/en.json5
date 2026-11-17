@@ -466,6 +466,20 @@
     permission: "Permission: {what}",
   },
   // Appearance page (settings): island style and rim
+  sound: {
+    title: "Sound",
+    lead: "How loud the island's sounds play.",
+    volume: {
+      label: "Volume",
+      desc: "For the sounds the island plays from a file, such as Claude Code's alerts (a sample plays when you let go). The calendar uses Windows' own reminder sound.",
+    },
+    agents: {
+      label: "Claude Code's sounds",
+      desc: "When a session finishes or asks for permission: in the AI agents module's settings.",
+      open: "Open",
+    },
+  },
+
   appearance: {
     title: "Appearance",
     style: {

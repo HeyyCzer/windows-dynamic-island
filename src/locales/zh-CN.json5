@@ -462,6 +462,20 @@
   },
 
   // 外观页面（设置）：灵动岛样式与边框
+  sound: {
+    title: "声音",
+    lead: "灵动岛声音的音量。",
+    volume: {
+      label: "音量",
+      desc: "适用于灵动岛从文件播放的声音，例如 Claude Code 的提醒（松开时播放示例）。日历使用 Windows 自带的提醒音。",
+    },
+    agents: {
+      label: "Claude Code 的声音",
+      desc: "会话完成或请求权限时：在 AI 代理模块的设置中。",
+      open: "打开",
+    },
+  },
+
   appearance: {
     title: "外观",
     style: {

@@ -431,6 +431,20 @@
     interrupted: "Interrompido",
     permission: "Permissão: {what}",
   },
+  sound: {
+    title: "Som",
+    lead: "O volume dos sons da ilha.",
+    volume: {
+      label: "Volume",
+      desc: "Para os sons que a ilha toca de um arquivo, como os alertas do Claude Code (uma amostra toca ao soltar). O calendário usa o som de lembrete do próprio Windows.",
+    },
+    agents: {
+      label: "Sons do Claude Code",
+      desc: "Quando uma sessão termina ou pede permissão: nas configurações do módulo Agentes de IA.",
+      open: "Abrir",
+    },
+  },
+
   appearance: {
     title: "Aparência",
     style: {

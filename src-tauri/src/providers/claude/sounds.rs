@@ -76,6 +76,6 @@ pub fn play(app: &AppHandle, alert: Alert, test: bool) {
         .filter(|p| p.is_file());
     let (name, bytes) = alert.bundled();
     if let Some(path) = custom.or_else(|| sound::bundled(app, name, bytes)) {
-        sound::file(&path);
+        sound::file(app, &path);
     }
 }

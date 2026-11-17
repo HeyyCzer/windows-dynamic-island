@@ -6,6 +6,7 @@ import {
 	PaletteIcon,
 	PuzzleIcon,
 	SettingsIcon,
+	Volume2Icon,
 } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
@@ -23,6 +24,7 @@ import { ModulesPage } from "./pages/ModulesPage";
 import { PluginPage } from "./pages/plugins/PluginPage";
 import { PluginsPage } from "./pages/plugins/PluginsPage";
 import { ShortcutsPage } from "./pages/ShortcutsPage";
+import { SoundPage } from "./pages/SoundPage";
 
 /**
  * Settings window: frameless, with a sidebar in two groups — the app itself
@@ -45,6 +47,7 @@ export function SettingsApp() {
 						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
 						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
 						<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
+						<NavItem to="/sound" icon={<Volume2Icon size={15} />} label={t("sound.title")} />
 						<NavSection label={t("settings.section.island")} />
 						{/* Stays highlighted on each module's own page too. */}
 						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
@@ -59,6 +62,7 @@ export function SettingsApp() {
 								<Route index element={<GeneralPage values={values} />} />
 								<Route path="appearance" element={<AppearancePage values={values} />} />
 								<Route path="behavior" element={<BehaviorPage values={values} />} />
+								<Route path="sound" element={<SoundPage values={values} />} />
 								<Route path="modules" element={<ModulesPage values={values} />} />
 								<Route path="modules/:id" element={<ModulePage values={values} />} />
 								<Route path="shortcuts" element={<ShortcutsPage values={values} />} />

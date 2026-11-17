@@ -296,3 +296,13 @@ export const appearanceSettings = {
 		default: true,
 	} satisfies SettingDef,
 };
+
+/** Settings → Sound. */
+export const soundSettings = {
+	/** 0–100, for every sound the app plays from a file (read by `sound.rs`). */
+	volume: {
+		key: "sound.volume",
+		label: "sound.volume.label",
+		default: 70,
+	} satisfies SettingDef<number>,
+};
