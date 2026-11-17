@@ -215,7 +215,7 @@ function GoogleAccount() {
 							spellCheck={false}
 							onChange={(e) => setClientSecret(e.target.value)}
 						/>
-						<Button variant="primary" disabled={!!busy || !clientId.trim()}>
+						<Button type="submit" variant="primary" disabled={!!busy || !clientId.trim()}>
 							{t("calendar.google.clientSave")}
 						</Button>
 					</form>
@@ -271,7 +271,7 @@ function IcalLinks() {
 						setError(null);
 					}}
 				/>
-				<Button variant="primary" disabled={busy || !url.trim()}>
+				<Button type="submit" variant="primary" disabled={busy || !url.trim()}>
 					{busy ? "…" : t("calendar.ics.add")}
 				</Button>
 			</form>

@@ -54,7 +54,7 @@ function Repos() {
 						setError(null);
 					}}
 				/>
-				<Button variant="primary" disabled={!input.trim()}>
+				<Button type="submit" variant="primary" disabled={!input.trim()}>
 					{t("github.repos.add")}
 				</Button>
 			</form>
@@ -156,7 +156,7 @@ function Account() {
 							spellCheck={false}
 							onChange={(e) => setToken(e.target.value)}
 						/>
-						<Button variant="primary" disabled={busy || !token.trim()}>
+						<Button type="submit" variant="primary" disabled={busy || !token.trim()}>
 							{busy ? "…" : t("github.account.save")}
 						</Button>
 					</form>
