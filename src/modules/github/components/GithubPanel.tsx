@@ -46,7 +46,8 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 					<LinkButton onClick={() => command("open_settings")}>{t("github.addInSettings")}</LinkButton>
 				</div>
 			) : (
-				<div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none]">
+				// data-scroll: the wheel scrolls the list instead of switching tabs.
+				<div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none]" data-scroll>
 					{repos.map((repo) => (
 						<RepoRow
 							key={repo.name}
