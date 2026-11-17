@@ -19,6 +19,9 @@ const follow = { stiffness: 480, damping: 30, mass: 0.85 };
 /** Jelly settle of the squash & stretch. */
 const wobble = { stiffness: 520, damping: 16, mass: 0.6 };
 
+/** Whether the primary button is among a pointer event's `buttons`. */
+export const pressed = (buttons: number) => (buttons & 1) === 1;
+
 const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(min, v));
 const rubber = (v: number, min: number, max: number) =>
 	v > max ? max + (v - max) * RUBBER : v < min ? min + (v - min) * RUBBER : v;
@@ -156,6 +159,12 @@ export function useIslandDrag({ width, leftExtra, rightExtra, canReturn, onDragC
 
 			const move = (ev: globalThis.PointerEvent) => {
 				if (ev.pointerId !== pointerId) return;
+				// The release never came (the window lost the mouse while it was down,
+				// e.g. a click that activated it): moving with the button up is no drag.
+				if (!pressed(ev.buttons)) {
+					end(ev);
+					return;
+				}
 				const dx = ev.clientX - startX;
 				if (!active) {
 					if (Math.abs(dx) < DRAG_THRESHOLD) return;
