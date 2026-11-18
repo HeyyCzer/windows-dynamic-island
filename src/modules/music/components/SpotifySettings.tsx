@@ -113,7 +113,7 @@ export function SpotifySettings() {
 							spellCheck={false}
 							onChange={(e) => setClientId(e.target.value)}
 						/>
-						<Button variant="primary" disabled={!!busy || !clientId.trim()}>
+						<Button type="submit" variant="primary" disabled={!!busy || !clientId.trim()}>
 							{t("music.spotify.clientSave")}
 						</Button>
 					</form>

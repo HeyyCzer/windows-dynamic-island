@@ -14,6 +14,7 @@ export const button = tv({
 	defaultVariants: { variant: "soft" },
 });
 
+/** `type="button"` unless given: inside a form, the one that sends it needs `type="submit"`. */
 export function Button({ variant, className, ...rest }: ComponentProps<"button"> & VariantProps<typeof button>) {
 	return <button type="button" className={button({ variant, class: className })} {...rest} />;
 }

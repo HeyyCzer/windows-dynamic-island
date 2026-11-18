@@ -156,6 +156,12 @@ export function useIslandDrag({ width, leftExtra, rightExtra, canReturn, onDragC
 
 			const move = (ev: globalThis.PointerEvent) => {
 				if (ev.pointerId !== pointerId) return;
+				// The release never came (the window lost the mouse while it was down,
+				// e.g. a click that activated it): moving with the button up is no drag.
+				if ((ev.buttons & 1) === 0) {
+					end(ev);
+					return;
+				}
 				const dx = ev.clientX - startX;
 				if (!active) {
 					if (Math.abs(dx) < DRAG_THRESHOLD) return;
