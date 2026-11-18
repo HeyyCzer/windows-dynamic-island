@@ -290,22 +290,40 @@
   // Módulo GitHub
   github: {
     title: "GitHub",
-    openIssues: "Issues abertas",
     refresh: "Atualizar",
     loading: "Atualizando…",
     updated: "Atualizado {time}",
     rateLimited: "Limite de requisições até {time}",
     empty: "Nenhum repositório ainda",
     addInSettings: "Adicione nas configurações",
-    newIssue: "Nova",
+    newItem: "Novo",
     noIssues: "Nenhuma issue aberta",
+    noPulls: "Nenhum pull request aberto",
+    noCommits: "Nenhum commit ainda",
+    noReleases: "Nenhuma release ainda",
+    tab: {
+      issues: "Issues",
+      pulls: "PRs",
+      commits: "Commits",
+      releases: "Releases",
+    },
     showBubble: {
       label: "Bolinha lateral",
       desc: "Mostra o total de issues abertas ao lado da ilha.",
     },
-    peekOnNew: {
-      label: "Expandir com issue nova",
-      desc: "Abre a ilha por alguns segundos quando alguém abre uma issue.",
+    notify: {
+      issues: {
+        label: "Notificar issue nova",
+        desc: "Abre a ilha por alguns segundos quando alguém abre uma issue.",
+      },
+      pulls: {
+        label: "Notificar pull request novo",
+        desc: "Abre a ilha por alguns segundos quando alguém abre um pull request.",
+      },
+      releases: {
+        label: "Notificar release nova",
+        desc: "Abre a ilha por alguns segundos quando uma release é publicada.",
+      },
     },
     error: {
       notFound: "Não encontrado ou sem acesso",
