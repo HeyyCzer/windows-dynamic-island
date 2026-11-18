@@ -57,7 +57,9 @@ const tabs = tv({
 	},
 	compoundVariants: [
 		{ iconsOnly: true, active: true, class: { tab: "opacity-100" } },
-		{ iconsOnly: true, launcher: true, class: { tab: "ml-1.5 w-8 [--tab-accent:#fff]" } },
+		{ iconsOnly: true, launcher: true, class: { tab: "w-8 [--tab-accent:#fff]" } },
+		/** Centered at the bottom, the launcher sits with the tabs; on top it stays pushed right. */
+		{ iconsOnly: true, launcher: true, bottom: true, class: { tab: "ml-1.5" } },
 	],
 });
 
