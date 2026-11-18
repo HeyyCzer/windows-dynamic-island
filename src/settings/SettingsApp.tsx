@@ -34,16 +34,18 @@ export function SettingsApp() {
 			<div className="flex h-full flex-col" data-settings>
 				<TitleBar />
 				<div className="flex min-h-0 flex-1">
-					<nav className="flex w-53 flex-none flex-col gap-0.5 overflow-y-auto px-2.5 pt-2 pb-4 [&::-webkit-scrollbar]:w-0">
-						<NavSection label={t("settings.section.app")} />
-						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
-						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
-						<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
-						<NavSection label={t("settings.section.island")} />
-						<ModulesNav values={values} />
-						<NavItem to="/shortcuts" icon={<CommandIcon size={14} />} label={t("shortcuts.title")} />
-						<NavItem to="/plugins" end={false} icon={<PuzzleIcon size={14} />} label={t("plugins.title")} />
-						<div className="flex-1" />
+					<nav className="flex w-53 flex-none flex-col gap-2 px-2.5 pt-2 pb-4">
+						{/* Scrolls on its own when the module list outgrows the window; "About" stays pinned below. */}
+						<div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto *:shrink-0 [&::-webkit-scrollbar]:w-0">
+							<NavSection label={t("settings.section.app")} />
+							<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
+							<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
+							<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
+							<NavSection label={t("settings.section.island")} />
+							<ModulesNav values={values} />
+							<NavItem to="/shortcuts" icon={<CommandIcon size={14} />} label={t("shortcuts.title")} />
+							<NavItem to="/plugins" end={false} icon={<PuzzleIcon size={14} />} label={t("plugins.title")} />
+						</div>
 						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
 					</nav>
 					<main className="min-w-0 flex-1 overflow-y-auto rounded-tl-xl bg-[#121217] shadow-[inset_1px_1px_0_var(--hairline)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-3 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-white/12 [&::-webkit-scrollbar-thumb]:bg-clip-padding">
