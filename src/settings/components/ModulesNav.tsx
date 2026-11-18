@@ -1,22 +1,14 @@
 import { ChevronDownIcon, LayoutGridIcon, PuzzleIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
-import { useAllModules } from "../../core/plugins/modules";
-import { inOrder, layoutSettings, moduleEnabled, readSetting } from "../../core/settings";
+import { useOrderedModules } from "../../core/plugins/modules";
+import { moduleEnabled, readSetting } from "../../core/settings";
+import { usePersisted } from "../../core/usePersisted";
 import { NavItem } from "./NavItem";
 
-/** Whether the list is unfolded, kept per viewer (it's only a convenience). */
+/** Whether the list is unfolded; folded at first, so the sidebar stays short. */
 const OPEN_KEY = "settings.nav.modulesOpen";
-
-function storedOpen() {
-	try {
-		return localStorage.getItem(OPEN_KEY) !== "0";
-	} catch {
-		return true;
-	}
-}
 
 /**
  * "Modules" in the sidebar, with every module folded under it: each module's
@@ -24,17 +16,8 @@ function storedOpen() {
  */
 export function ModulesNav({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
-	const modules = useAllModules();
-	const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
-	const [open, setOpen] = useState(storedOpen);
-
-	const toggle = () => {
-		const next = !open;
-		setOpen(next);
-		try {
-			localStorage.setItem(OPEN_KEY, next ? "1" : "0");
-		} catch {}
-	};
+	const ordered = useOrderedModules(values);
+	const [open, setOpen] = usePersisted(OPEN_KEY, false);
 
 	return (
 		<>
@@ -52,7 +35,7 @@ export function ModulesNav({ values }: { values: Record<string, unknown> }) {
 					aria-expanded={open}
 					title={t(open ? "settings.nav.fold" : "settings.nav.unfold")}
 					className="absolute top-1/2 right-1.5 grid size-6 -translate-y-1/2 place-items-center rounded-md text-text-faint transition-colors hover:bg-white/6 hover:text-text"
-					onClick={toggle}
+					onClick={() => setOpen(!open)}
 				>
 					<ChevronDownIcon size={14} className={cn("transition-transform duration-200", !open && "-rotate-90")} />
 				</button>
@@ -71,7 +54,7 @@ export function ModulesNav({ values }: { values: Record<string, unknown> }) {
 								key={m.id}
 								to={`/modules/${m.id}`}
 								size="sm"
-								icon={m.settingsIcon ?? <PuzzleIcon size={13} />}
+								icon={m.settingsIcon ?? <PuzzleIcon />}
 								label={t(m.title)}
 								off={!readSetting(values, moduleEnabled(m))}
 							/>

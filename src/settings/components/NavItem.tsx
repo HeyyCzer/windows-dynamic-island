@@ -55,7 +55,12 @@ export function NavItem({
 							transition={{ type: "spring", stiffness: 500, damping: 38 }}
 						/>
 					)}
-					<span className="relative grid w-4 place-items-center">{icon}</span>
+					{/* Folded entries draw every icon at one size, whatever size it came in. */}
+					<span
+						className={cn("relative grid w-4 place-items-center", size === "sm" && "[&_img]:size-3.5 [&_svg]:size-3.5")}
+					>
+						{icon}
+					</span>
 					<span className={cn("relative truncate", off && "opacity-50")}>{label}</span>
 				</>
 			)}

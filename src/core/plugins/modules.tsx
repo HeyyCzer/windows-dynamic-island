@@ -9,7 +9,7 @@ import { PluginFrame } from "../../components/plugins/PluginFrame";
 import { PluginIcon, Segments } from "../../components/plugins/Segments";
 import { modules as builtinModules } from "../../modules";
 import { useT } from "../i18n";
-import { useSettings } from "../settings";
+import { inOrder, layoutSettings, readSetting, useSettings } from "../settings";
 import type { IslandModule, ModuleEntry, ModuleView } from "../types";
 import { usePluginViews } from "./host";
 import { isRunnable, pluginKey, pluginModuleId, pluginUrl, usePluginGeneration, usePlugins } from "./store";
@@ -48,6 +48,12 @@ export function usePluginModules(): IslandModule[] {
 export function useAllModules(): IslandModule[] {
 	const plugin = usePluginModules();
 	return useMemo(() => [...builtinModules, ...plugin], [plugin]);
+}
+
+/** Every module, in the tab order the user set (modules page, settings sidebar). */
+export function useOrderedModules(values: Record<string, unknown>): IslandModule[] {
+	const modules = useAllModules();
+	return inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
 }
 
 /** Each plugin module with the view its plugin set. */
