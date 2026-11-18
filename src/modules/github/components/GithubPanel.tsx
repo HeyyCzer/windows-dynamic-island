@@ -47,7 +47,7 @@ export function GithubPanel({ state }: { state: GithubState | undefined }) {
 				</div>
 			) : (
 				// data-scroll: the wheel scrolls the list instead of switching tabs.
-				<div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto [scrollbar-width:none]" data-scroll>
+				<div className="flex min-h-0 flex-col gap-0.5 overflow-y-auto scrollbar-none" data-scroll>
 					{repos.map((repo) => (
 						<RepoRow
 							key={repo.name}
@@ -87,7 +87,7 @@ function RepoRow({ repo, fresh }: { repo: GithubRepo; fresh: boolean }) {
 				</span>
 				<span className={cn("truncate text-[11.5px] text-text-faint", repo.error && "text-danger")}>
 					{fresh && (
-						<span className="mr-1.5 rounded-[4px] bg-[#d29922] px-1.25 text-[10px] font-[750] text-black uppercase">
+						<span className="mr-1.5 rounded-sm bg-[#d29922] px-1.25 text-[10px] font-[750] text-black uppercase">
 							{t("github.newIssue")}
 						</span>
 					)}
