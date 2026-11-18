@@ -1,9 +1,10 @@
-//! GitHub: open issue counts for the repositories the user follows.
+//! GitHub: open issues and pull requests, newest commit and newest release of
+//! the repositories the user follows.
 //!
 //! The repo list lives in the regular settings store (`github.repos`, edited by
 //! the settings window); this provider re-polls whenever it changes and every
-//! few minutes otherwise. Counts come from the search API, which excludes pull
-//! requests (a repo's `open_issues_count` doesn't).
+//! few minutes otherwise. Issue counts come from the search API, which excludes
+//! pull requests (a repo's `open_issues_count` doesn't).
 //!
 //! Auth, in order: a token saved from the settings window (kept in the Windows
 //! Credential Manager, see `providers/credentials.rs`), the GitHub CLI (`gh auth token`),
@@ -43,23 +44,75 @@ pub enum Auth {
     Gh,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Kind {
+    Issues,
+    Pulls,
+    Commits,
+    Releases,
+}
+
+impl Kind {
+    const ALL: [Kind; 4] = [Kind::Issues, Kind::Pulls, Kind::Commits, Kind::Releases];
+
+    fn fetch(self, repo: &str, token: Option<&str>) -> Result<api::Section, api::Error> {
+        match self {
+            Kind::Issues => api::issues(repo, token),
+            Kind::Pulls => api::pulls(repo, token),
+            Kind::Commits => api::commits(repo, token),
+            Kind::Releases => api::releases(repo, token),
+        }
+    }
+
+    /// Commits come and go too often to be worth a peek.
+    fn notifies(self) -> bool {
+        self != Kind::Commits
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct RepoState {
     /// `owner/name`, as the user typed it.
     pub name: String,
-    pub open_issues: Option<u64>,
-    pub latest: Option<api::Issue>,
+    /// `None` until first fetched.
+    pub issues: Option<api::Section>,
+    pub pulls: Option<api::Section>,
+    pub commits: Option<api::Section>,
+    pub releases: Option<api::Section>,
     pub error: Option<&'static str>,
 }
 
-/// An issue that showed up since the previous poll (drives the peek).
+impl RepoState {
+    fn section(&mut self, kind: Kind) -> &mut Option<api::Section> {
+        match kind {
+            Kind::Issues => &mut self.issues,
+            Kind::Pulls => &mut self.pulls,
+            Kind::Commits => &mut self.commits,
+            Kind::Releases => &mut self.releases,
+        }
+    }
+}
+
+/// An issue, pull request or release that showed up since the previous poll
+/// (drives the peek; the frontend drops the kinds the user muted).
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NewIssue {
+pub struct NewItem {
+    pub kind: Kind,
     pub repo: String,
-    pub issue: api::Issue,
+    pub item: api::Entry,
     pub seen_at: u64,
+}
+
+/// The newest entry of `next`, if it wasn't there at the previous poll. Nothing
+/// on the first fetch, which only learns what already exists.
+fn arrived<'a>(prev: Option<&api::Section>, next: &'a api::Section) -> Option<&'a api::Entry> {
+    let prev = prev?;
+    let latest = next.latest.as_ref()?;
+    let before = prev.latest.as_ref().map_or(0, |e| e.key);
+    (latest.key > before).then_some(latest)
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Default)]
@@ -73,7 +126,8 @@ pub struct GithubState {
     pub rate_limited_until: Option<u64>,
     pub loading: bool,
     pub updated_at: Option<u64>,
-    pub new_issue: Option<NewIssue>,
+    /// Newest arrival per kind.
+    pub news: Vec<NewItem>,
 }
 
 enum Wake {
@@ -267,37 +321,41 @@ impl Worker {
         self.state.loading = true;
         self.publish();
 
-        for i in 0..self.state.repos.len() {
-            if self.state.rate_limited_until.is_some() {
-                break;
-            }
+        'repos: for i in 0..self.state.repos.len() {
             let name = self.state.repos[i].name.clone();
-            match api::repo_issues(&name, token.as_deref()) {
-                Ok(found) => {
-                    let repo = &mut self.state.repos[i];
-                    let prev_number = repo.latest.as_ref().map(|l| l.number);
-                    if let (Some(prev), Some(latest)) = (prev_number, &found.latest)
-                        && latest.number > prev
-                    {
-                        self.state.new_issue = Some(NewIssue {
-                            repo: name.clone(),
-                            issue: latest.clone(),
-                            seen_at: now_ms(),
-                        });
-                    }
-                    let repo = &mut self.state.repos[i];
-                    repo.open_issues = Some(found.open);
-                    repo.latest = found.latest;
-                    repo.error = None;
+            for kind in Kind::ALL {
+                if self.state.rate_limited_until.is_some() {
+                    break 'repos;
                 }
-                Err(api::Error::RateLimited(until)) => {
-                    self.state.rate_limited_until = Some(until);
-                }
-                Err(e) => {
-                    if matches!(e, api::Error::Unauthorized) && token.is_some() {
-                        self.state.auth_error = true;
+                match kind.fetch(&name, token.as_deref()) {
+                    Ok(next) => {
+                        let section = self.state.repos[i].section(kind);
+                        if kind.notifies()
+                            && let Some(item) = arrived(section.as_ref(), &next)
+                        {
+                            let item = NewItem {
+                                kind,
+                                repo: name.clone(),
+                                item: item.clone(),
+                                seen_at: now_ms(),
+                            };
+                            self.state.news.retain(|n| n.kind != kind);
+                            self.state.news.push(item);
+                        }
+                        *self.state.repos[i].section(kind) = Some(next);
+                        self.state.repos[i].error = None;
                     }
-                    self.state.repos[i].error = Some(e.code());
+                    Err(api::Error::RateLimited(until)) => {
+                        self.state.rate_limited_until = Some(until);
+                    }
+                    Err(e) => {
+                        if matches!(e, api::Error::Unauthorized) && token.is_some() {
+                            self.state.auth_error = true;
+                        }
+                        self.state.repos[i].error = Some(e.code());
+                        // Missing repo, offline…: the other lists would fail alike.
+                        break;
+                    }
                 }
             }
             self.publish();
@@ -345,4 +403,47 @@ fn gh_token() -> Option<String> {
     }
     let token = String::from_utf8(out.stdout).ok()?.trim().to_string();
     (!token.is_empty()).then_some(token)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn section(key: Option<u64>) -> api::Section {
+        api::Section {
+            count: Some(1),
+            latest: key.map(|key| api::Entry {
+                id: format!("#{key}"),
+                title: String::new(),
+                url: String::new(),
+                author: None,
+                at: String::new(),
+                key,
+            }),
+        }
+    }
+
+    #[test]
+    fn first_fetch_announces_nothing() {
+        assert!(arrived(None, &section(Some(5))).is_none());
+    }
+
+    #[test]
+    fn newer_entry_is_announced() {
+        assert_eq!(
+            arrived(Some(&section(Some(5))), &section(Some(6))).map(|e| e.key),
+            Some(6)
+        );
+        assert!(arrived(Some(&section(Some(6))), &section(Some(6))).is_none());
+        // The newest one got closed: not new.
+        assert!(arrived(Some(&section(Some(6))), &section(Some(4))).is_none());
+    }
+
+    #[test]
+    fn first_entry_of_an_empty_list_is_announced() {
+        assert_eq!(
+            arrived(Some(&section(None)), &section(Some(1))).map(|e| e.key),
+            Some(1)
+        );
+    }
 }

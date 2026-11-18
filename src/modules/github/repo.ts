@@ -1,4 +1,6 @@
-import type { GithubState } from "./types";
+import { readSetting, type Values } from "../../core/settings";
+import { notifySettings } from "./settings";
+import type { GithubKind, GithubNewItem, GithubState } from "./types";
 
 /** `https://github.com/o/r/issues`, `git@github.com:o/r.git` or `o/r` → `o/r`. */
 export function parseRepo(input: string): string | null {
@@ -10,12 +12,17 @@ export function parseRepo(input: string): string | null {
 	return m ? `${m[1]}/${m[2]}` : null;
 }
 
-/** A new issue keeps its highlight for this long. */
-export const NEW_ISSUE_MS = 15 * 60_000;
+/** A new item keeps its highlight for this long. */
+export const NEW_ITEM_MS = 15 * 60_000;
 
-export function freshIssue(state: GithubState | undefined, now: number) {
-	const n = state?.newIssue;
-	return n && now - n.seenAt < NEW_ISSUE_MS ? n : null;
+/** Fresh arrivals of the kinds the user wants to hear about, newest first. */
+export function freshNews(state: GithubState | undefined, now: number, settings: Values): GithubNewItem[] {
+	return (state?.news ?? [])
+		.filter((n) => now - n.seenAt < NEW_ITEM_MS && readSetting(settings, notifySettings[n.kind]))
+		.sort((a, b) => b.seenAt - a.seenAt);
 }
+
+/** Page of a repo's list on github.com. */
+export const listUrl = (repo: string, kind: GithubKind) => `https://github.com/${repo}/${kind}`;
 
 export const formatCount = (n: number) => (n > 99 ? "99+" : String(n));

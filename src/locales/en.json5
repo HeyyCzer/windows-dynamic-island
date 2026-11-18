@@ -320,7 +320,6 @@
   // GitHub module
   github: {
     title: "GitHub",
-    openIssues: "Open issues",
     refresh: "Refresh",
     loading: "Updating…",
     // {time}: relative time, e.g. "5 min ago"
@@ -329,15 +328,34 @@
     rateLimited: "Rate limited until {time}",
     empty: "No repositories yet",
     addInSettings: "Add one in settings",
-    newIssue: "New",
+    newItem: "New",
     noIssues: "No open issues",
+    noPulls: "No open pull requests",
+    noCommits: "No commits yet",
+    noReleases: "No releases yet",
+    tab: {
+      issues: "Issues",
+      pulls: "PRs",
+      commits: "Commits",
+      releases: "Releases",
+    },
     showBubble: {
       label: "Side bubble",
       desc: "Shows the total of open issues next to the island.",
     },
-    peekOnNew: {
-      label: "Expand on new issue",
-      desc: "Opens the island for a few seconds when someone opens an issue.",
+    notify: {
+      issues: {
+        label: "Notify on new issue",
+        desc: "Expands the island for a few seconds when someone opens an issue.",
+      },
+      pulls: {
+        label: "Notify on new pull request",
+        desc: "Expands the island for a few seconds when someone opens a pull request.",
+      },
+      releases: {
+        label: "Notify on new release",
+        desc: "Expands the island for a few seconds when a release is published.",
+      },
     },
     error: {
       notFound: "Not found or no access",

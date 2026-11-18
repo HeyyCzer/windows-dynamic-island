@@ -70,10 +70,10 @@ function Repos() {
 										{t(`github.error.${repo.error}`)}
 									</span>
 								) : (
-									repo?.openIssues != null && (
+									repo?.issues?.count != null && (
 										<span className="flex items-center gap-1 text-[12px] font-[650] text-[#3fb950]">
 											<CircleDotIcon size={12} />
-											{formatCount(repo.openIssues)}
+											{formatCount(repo.issues.count)}
 										</span>
 									)
 								)}

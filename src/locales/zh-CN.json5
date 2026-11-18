@@ -316,7 +316,6 @@
   // GitHub 模块
   github: {
     title: "GitHub",
-    openIssues: "未解决 Issue",
     refresh: "刷新",
     loading: "正在更新…",
     // {time}: 相对时间，例如 "5 min ago"
@@ -325,15 +324,34 @@
     rateLimited: "请求超限，将在 {time} 解除",
     empty: "暂无仓库",
     addInSettings: "在设置中添加仓库",
-    newIssue: "新建",
+    newItem: "新",
     noIssues: "没有未解决的 Issue",
+    noPulls: "没有未合并的 PR",
+    noCommits: "暂无提交",
+    noReleases: "暂无发布",
+    tab: {
+      issues: "Issue",
+      pulls: "PR",
+      commits: "提交",
+      releases: "发布",
+    },
     showBubble: {
       label: "侧边气泡",
       desc: "在灵动岛旁显示未解决 Issue 总数。",
     },
-    peekOnNew: {
-      label: "有新 Issue 时自动展开",
-      desc: "当有人提出新 Issue 时，展开灵动岛数秒以提示。",
+    notify: {
+      issues: {
+        label: "新 Issue 提醒",
+        desc: "有人提出新 Issue 时，展开灵动岛数秒以提示。",
+      },
+      pulls: {
+        label: "新 PR 提醒",
+        desc: "有人提交新 Pull Request 时，展开灵动岛数秒以提示。",
+      },
+      releases: {
+        label: "新版本提醒",
+        desc: "有新 Release 发布时，展开灵动岛数秒以提示。",
+      },
     },
     error: {
       notFound: "未找到仓库或无权访问",
