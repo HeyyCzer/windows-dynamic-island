@@ -2,25 +2,14 @@
  * Browser-only panel to drive the mock: every mock's controls, by section, and
  * the actions the UI sent. Renders whatever `mocks` declare, nothing per module.
  */
-import { useState, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { cn } from "../core/cn";
+import { usePersisted } from "../core/usePersisted";
 import { mocks } from "./mock";
 import { type Control, callLog, devStore, type Mock } from "./mock/kit";
 
 const OPEN_KEY = "devtools.open";
 const COLLAPSED_KEY = "devtools.collapsed";
-
-function usePersisted<T>(key: string, initial: T) {
-	const [value, setValue] = useState<T>(() => {
-		const saved = localStorage.getItem(key);
-		return saved === null ? initial : (JSON.parse(saved) as T);
-	});
-	const set = (next: T) => {
-		localStorage.setItem(key, JSON.stringify(next));
-		setValue(next);
-	};
-	return [value, set] as const;
-}
 
 export function DevTools() {
 	useSyncExternalStore(devStore.subscribe, devStore.version);

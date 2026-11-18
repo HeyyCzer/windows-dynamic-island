@@ -8,6 +8,11 @@
 
   // 设置窗口
   settings: {
+    // Sidebar: the module list under "Modules"
+    nav: {
+      fold: "收起模块",
+      unfold: "展开模块",
+    },
     subtitle: "设置",
     // 侧边栏分组
     section: {

@@ -4,8 +4,8 @@ import { useNavigate } from "react-router";
 import { Card } from "../../components/ui/card";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
-import { useAllModules } from "../../core/plugins/modules";
-import { inOrder, layoutSettings, moduleEnabled, readSetting, setSetting } from "../../core/settings";
+import { useOrderedModules } from "../../core/plugins/modules";
+import { layoutSettings, moduleEnabled, readSetting, setSetting } from "../../core/settings";
 import type { IslandModule } from "../../core/types";
 import { Lead, Title } from "../components/Heading";
 import { PlacementSelect } from "../components/PlacementSelect";
@@ -20,8 +20,7 @@ import { Toggle } from "../components/Toggle";
  */
 export function ModulesPage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
-	const modules = useAllModules();
-	const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
+	const ordered = useOrderedModules(values);
 
 	return (
 		<>

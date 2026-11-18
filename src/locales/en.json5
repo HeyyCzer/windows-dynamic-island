@@ -12,6 +12,11 @@
 
   // Settings window
   settings: {
+    // Sidebar: the module list under "Modules"
+    nav: {
+      fold: "Hide the modules",
+      unfold: "Show the modules",
+    },
     subtitle: "Settings",
     // Sidebar groups
     section: {

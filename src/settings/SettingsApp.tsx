@@ -1,17 +1,11 @@
-import {
-	CommandIcon,
-	InfoIcon,
-	LayoutGridIcon,
-	MousePointerClickIcon,
-	PaletteIcon,
-	PuzzleIcon,
-	SettingsIcon,
-} from "lucide-react";
+import { CommandIcon, InfoIcon, MousePointerClickIcon, PaletteIcon, PuzzleIcon, SettingsIcon } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
+import { cn } from "../core/cn";
 import { useSyncLocale, useT } from "../core/i18n";
 import { useSettings } from "../core/settings";
+import { ModulesNav } from "./components/ModulesNav";
 import { NavItem, NavSection } from "./components/NavItem";
 import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
@@ -24,11 +18,16 @@ import { PluginPage } from "./pages/plugins/PluginPage";
 import { PluginsPage } from "./pages/plugins/PluginsPage";
 import { ShortcutsPage } from "./pages/ShortcutsPage";
 
+/** Thin rounded scrollbar thumb, inset from the edges (sidebar and pages). */
+const scrollbar =
+	"[&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-3 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-white/12 [&::-webkit-scrollbar-thumb]:bg-clip-padding";
+
 /**
  * Settings window: frameless, with a sidebar in two groups — the app itself
- * (general, appearance, behavior) and the island's modules (one page listing them all,
- * each opening its own settings) — plus about. Pages are routes in a
- * `MemoryRouter`, since the window has no URL.
+ * (general, appearance, behavior) and the island's modules (one page listing
+ * them all, each also folded under it in the sidebar, opening its own
+ * settings) — plus about. Pages are routes in a `MemoryRouter`, since the
+ * window has no URL.
  */
 export function SettingsApp() {
 	const values = useSettings();
@@ -40,20 +39,35 @@ export function SettingsApp() {
 			<div className="flex h-full flex-col" data-settings>
 				<TitleBar />
 				<div className="flex min-h-0 flex-1">
-					<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
-						<NavSection label={t("settings.section.app")} />
-						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
-						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
-						<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
-						<NavSection label={t("settings.section.island")} />
-						{/* Stays highlighted on each module's own page too. */}
-						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
-						<NavItem to="/shortcuts" icon={<CommandIcon size={14} />} label={t("shortcuts.title")} />
-						<NavItem to="/plugins" end={false} icon={<PuzzleIcon size={14} />} label={t("plugins.title")} />
-						<div className="flex-1" />
+					<nav className="flex w-53 flex-none flex-col gap-2 px-2.5 pt-2 pb-4">
+						{/*
+						 * Scrolls on its own when the module list outgrows the window; "About" stays
+						 * pinned below. The scrollbar's gutter sits in the sidebar's right padding,
+						 * so the entries keep their width whether it shows or not.
+						 */}
+						<div
+							className={cn(
+								"-mr-2.5 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto [scrollbar-gutter:stable] *:shrink-0",
+								scrollbar,
+							)}
+						>
+							<NavSection label={t("settings.section.app")} />
+							<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
+							<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
+							<NavItem to="/behavior" icon={<MousePointerClickIcon size={15} />} label={t("behavior.title")} />
+							<NavSection label={t("settings.section.island")} />
+							<ModulesNav values={values} />
+							<NavItem to="/shortcuts" icon={<CommandIcon size={14} />} label={t("shortcuts.title")} />
+							<NavItem to="/plugins" end={false} icon={<PuzzleIcon size={14} />} label={t("plugins.title")} />
+						</div>
 						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
 					</nav>
-					<main className="min-w-0 flex-1 overflow-y-auto rounded-tl-xl bg-[#121217] shadow-[inset_1px_1px_0_var(--hairline)] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:border-3 [&::-webkit-scrollbar-thumb]:border-solid [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-thumb]:bg-white/12 [&::-webkit-scrollbar-thumb]:bg-clip-padding">
+					<main
+						className={cn(
+							"min-w-0 flex-1 overflow-y-auto rounded-tl-xl bg-[#121217] shadow-[inset_1px_1px_0_var(--hairline)]",
+							scrollbar,
+						)}
+					>
 						<Page>
 							<Routes>
 								<Route index element={<GeneralPage values={values} />} />

@@ -12,19 +12,26 @@ export function NavSection({ label }: { label: string }) {
 	);
 }
 
-/** Sidebar entry; the pill slides to whichever one is active (`end: false` also matches sub-pages). */
+/**
+ * Sidebar entry; the pill slides to whichever one is active (`end: false` also
+ * matches sub-pages). `sm`: an entry folded under another one.
+ */
 export function NavItem({
 	to,
 	icon,
 	label,
 	off,
 	end = true,
+	size = "md",
+	className,
 }: {
 	to: string;
 	icon: ReactNode;
 	label: string;
 	off?: boolean;
 	end?: boolean;
+	size?: "md" | "sm";
+	className?: string;
 }) {
 	return (
 		<NavLink
@@ -32,8 +39,10 @@ export function NavItem({
 			end={end}
 			className={({ isActive }) =>
 				cn(
-					"relative flex h-9 cursor-pointer items-center gap-2.75 rounded-[9px] px-3 text-left text-[13.5px] font-[550] text-text-dim no-underline transition-colors duration-150 [-webkit-user-drag:none] hover:bg-white/3.5 hover:text-text",
+					"relative flex cursor-pointer items-center rounded-[9px] px-3 text-left font-[550] text-text-dim no-underline transition-colors duration-150 [-webkit-user-drag:none] hover:bg-white/3.5 hover:text-text",
+					size === "sm" ? "h-7.5 gap-2.25 text-[12.5px]" : "h-9 gap-2.75 text-[13.5px]",
 					isActive && "text-text",
+					className,
 				)
 			}
 		>
@@ -46,7 +55,12 @@ export function NavItem({
 							transition={{ type: "spring", stiffness: 500, damping: 38 }}
 						/>
 					)}
-					<span className="relative grid w-4 place-items-center">{icon}</span>
+					{/* Folded entries draw every icon at one size, whatever size it came in. */}
+					<span
+						className={cn("relative grid w-4 place-items-center", size === "sm" && "[&_img]:size-3.5 [&_svg]:size-3.5")}
+					>
+						{icon}
+					</span>
 					<span className={cn("relative truncate", off && "opacity-50")}>{label}</span>
 				</>
 			)}
