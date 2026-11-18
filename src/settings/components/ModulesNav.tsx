@@ -1,7 +1,6 @@
 import { ChevronDownIcon, LayoutGridIcon, PuzzleIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
-import { useLocation } from "react-router";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
 import { useAllModules } from "../../core/plugins/modules";
@@ -27,13 +26,10 @@ export function ModulesNav({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
 	const modules = useAllModules();
 	const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
-	const { pathname } = useLocation();
 	const [open, setOpen] = useState(storedOpen);
-	// On a module's page the list stays unfolded: the page is highlighted in it.
-	const shown = open || pathname.startsWith("/modules/");
 
 	const toggle = () => {
-		const next = !shown;
+		const next = !open;
 		setOpen(next);
 		try {
 			localStorage.setItem(OPEN_KEY, next ? "1" : "0");
@@ -44,19 +40,25 @@ export function ModulesNav({ values }: { values: Record<string, unknown> }) {
 		<>
 			<div className="relative">
 				{/* Folded, "Modules" stays highlighted on a module's page; unfolded, the module is. */}
-				<NavItem to="/modules" end={shown} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
+				<NavItem
+					to="/modules"
+					end={open}
+					icon={<LayoutGridIcon size={14} />}
+					label={t("modules.title")}
+					className="pr-9"
+				/>
 				<button
 					type="button"
-					aria-expanded={shown}
-					title={t(shown ? "settings.nav.fold" : "settings.nav.unfold")}
+					aria-expanded={open}
+					title={t(open ? "settings.nav.fold" : "settings.nav.unfold")}
 					className="absolute top-1/2 right-1.5 grid size-6 -translate-y-1/2 place-items-center rounded-md text-text-faint transition-colors hover:bg-white/6 hover:text-text"
 					onClick={toggle}
 				>
-					<ChevronDownIcon size={14} className={cn("transition-transform duration-200", !shown && "-rotate-90")} />
+					<ChevronDownIcon size={14} className={cn("transition-transform duration-200", !open && "-rotate-90")} />
 				</button>
 			</div>
 			<AnimatePresence initial={false}>
-				{shown && (
+				{open && (
 					<motion.div
 						className="flex flex-col gap-px overflow-hidden pl-3.5"
 						initial={{ height: 0, opacity: 0 }}

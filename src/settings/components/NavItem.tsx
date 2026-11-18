@@ -23,6 +23,7 @@ export function NavItem({
 	off,
 	end = true,
 	size = "md",
+	className,
 }: {
 	to: string;
 	icon: ReactNode;
@@ -30,6 +31,7 @@ export function NavItem({
 	off?: boolean;
 	end?: boolean;
 	size?: "md" | "sm";
+	className?: string;
 }) {
 	return (
 		<NavLink
@@ -40,6 +42,7 @@ export function NavItem({
 					"relative flex cursor-pointer items-center rounded-[9px] px-3 text-left font-[550] text-text-dim no-underline transition-colors duration-150 [-webkit-user-drag:none] hover:bg-white/3.5 hover:text-text",
 					size === "sm" ? "h-7.5 gap-2.25 text-[12.5px]" : "h-9 gap-2.75 text-[13.5px]",
 					isActive && "text-text",
+					className,
 				)
 			}
 		>

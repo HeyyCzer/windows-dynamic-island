@@ -19,9 +19,10 @@ import { ShortcutsPage } from "./pages/ShortcutsPage";
 
 /**
  * Settings window: frameless, with a sidebar in two groups — the app itself
- * (general, appearance, behavior) and the island's modules (one page listing them all,
- * each opening its own settings) — plus about. Pages are routes in a
- * `MemoryRouter`, since the window has no URL.
+ * (general, appearance, behavior) and the island's modules (one page listing
+ * them all, each also folded under it in the sidebar, opening its own
+ * settings) — plus about. Pages are routes in a `MemoryRouter`, since the
+ * window has no URL.
  */
 export function SettingsApp() {
 	const values = useSettings();
