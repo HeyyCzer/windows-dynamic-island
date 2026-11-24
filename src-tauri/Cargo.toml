@@ -43,7 +43,7 @@ sha2 = "0.10"
 getrandom = "0.4"
 url = "2"
 # Plugin packages (zip), see `src/plugins/`.
-zip = { version = "8", default-features = false, features = ["deflate"] }
+zip = { version = "9", default-features = false, features = ["deflate"] }
 
 [target.'cfg(windows)'.dependencies]
 # Drags shelf items out of the island into other apps (OLE drag & drop).

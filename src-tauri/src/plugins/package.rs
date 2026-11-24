@@ -55,7 +55,7 @@ pub fn unpack(zip: &[u8], dest: &Path) -> Result<(Manifest, FileHashes), String>
     for i in 0..archive.len() {
         let mut entry = archive.by_index(i).map_err(|e| e.to_string())?;
         // The raw name, not `enclosed_name`: anything odd is an error, not skipped.
-        let name = entry.name().replace('\\', "/");
+        let name = entry.name().map_err(|e| e.to_string())?.replace('\\', "/");
         if entry.is_dir() {
             check_path(name.trim_end_matches('/'))?;
             continue;
